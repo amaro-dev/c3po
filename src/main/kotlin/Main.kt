@@ -77,9 +77,9 @@ fun DeviceDetailsTab(currentDevice: AdbDevice?) {
         DeviceAttrRow("Name:", currentDevice?.details?.name)
         DeviceAttrRow("Model:", currentDevice?.details?.model)
         DeviceAttrRow("Brand:", currentDevice?.details?.brand)
+        DeviceAttrRow("Manufacturer:", currentDevice?.details?.manufacturer)
         DeviceAttrRow("Android SDK:", currentDevice?.details?.sdkLevel)
         DeviceAttrRow("Serial Number:", currentDevice?.details?.serialNumber)
-
     }
 }
 
