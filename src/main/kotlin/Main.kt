@@ -1,21 +1,24 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import commands.*
+import commands.CommandResult
 import core.Action
 import core.App
 import models.AdbDevice
 import models.AppPackage
+import models.DeviceAttrs
 import ui.PackageRow
 import java.io.InputStreamReader
 
@@ -35,7 +38,10 @@ fun Render(app: App) {
                                 selected = it.id == state.currentDevice?.id,
                                 onClick = { app.perform(Action.SelectDevice(it)) })
                             Column {
-                                Text(it.details.name ?: "<unknown>", style = MaterialTheme.typography.body1)
+                                Text(
+                                    it.details[DeviceAttrs.Name.key] ?: "<unknown>",
+                                    style = MaterialTheme.typography.body1
+                                )
                                 Text(it.id, style = MaterialTheme.typography.overline)
                             }
                         }
@@ -72,14 +78,11 @@ fun DeviceDetailsTab(currentDevice: AdbDevice?) {
             .padding(16.dp, 12.dp)
             .fillMaxHeight()
             .border(width = 1.dp, color = MaterialTheme.colors.onBackground)
-            .padding(8.dp, 4.dp)
     ) {
-        DeviceAttrRow("Name:", currentDevice?.details?.name)
-        DeviceAttrRow("Model:", currentDevice?.details?.model)
-        DeviceAttrRow("Brand:", currentDevice?.details?.brand)
-        DeviceAttrRow("Manufacturer:", currentDevice?.details?.manufacturer)
-        DeviceAttrRow("Android SDK:", currentDevice?.details?.sdkLevel)
-        DeviceAttrRow("Serial Number:", currentDevice?.details?.serialNumber)
+        DeviceAttrs.entries.forEach {
+            DeviceAttrRow("${it.name}:", currentDevice?.details?.run { this[it.key] })
+            Spacer(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colors.onBackground))
+        }
     }
 }
 
@@ -112,7 +115,7 @@ object CommandRunner {
 
 @Composable
 fun DeviceAttrRow(label: String, value: String?) {
-    Row(Modifier.fillMaxWidth()) {
+    Row(Modifier.fillMaxWidth().padding(0.dp, 4.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),

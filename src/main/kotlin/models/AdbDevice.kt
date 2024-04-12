@@ -1,18 +1,16 @@
 package models
 
-import javax.print.attribute.standard.PrinterMoreInfoManufacturer
-
 
 data class AdbDevice(
     val id: String,
-    val details: DeviceDetails = DeviceDetails()
+    val details: Map<String, String> = emptyMap()
 )
 
-data class DeviceDetails(
-    val name: String? = null,
-    val model: String? = null,
-    val brand: String? = null,
-    val manufacturer: String? = null,
-    val sdkLevel: String? = null,
-    val serialNumber: String? = null
-)
+enum class DeviceAttrs(val key: String) {
+    Name("ro.product.name"),
+    Model("ro.product.model"),
+    Brand("ro.product.brand"),
+    Manufacturer("ro.product.manufacturer"),
+    AndroidSdk("ro.build.version.sdk"),
+    SerialNumber("ro.serialno")
+}
