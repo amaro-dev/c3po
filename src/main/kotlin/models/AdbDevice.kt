@@ -11,6 +11,12 @@ enum class DeviceAttrs(val key: String) {
     Model("ro.product.model"),
     Brand("ro.product.brand"),
     Manufacturer("ro.product.manufacturer"),
+
+    Board("ro.product.board"),
+    SerialNumber("ro.serialno"),
+
+    AndroidVersion("ro.build.version.release"),
     AndroidSdk("ro.build.version.sdk"),
-    SerialNumber("ro.serialno")
+    Build("ro.build.id"),
+
 }
