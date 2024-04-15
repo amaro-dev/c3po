@@ -1,12 +1,16 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -89,10 +93,18 @@ fun DeviceDetailsTab(currentDevice: AdbDevice?) {
 
 @Composable
 fun PackagesTab(currentDevice: AdbDevice?, packageList: List<AppPackage>) {
-    LazyColumn(Modifier.fillMaxSize()) {
-        items(packageList) { pkg ->
-            PackageRow(pkg, currentDevice) { cmd -> cmd.run() }
+    Box(Modifier.fillMaxSize().padding(10.dp)) {
+
+        val listState = rememberLazyListState()
+        LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+            items(packageList) { pkg ->
+                PackageRow(pkg, currentDevice) { cmd -> cmd.run() }
+            }
         }
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = listState)
+        )
     }
 }
 
@@ -123,7 +135,7 @@ fun DeviceAttrRow(label: String, value: String?) {
         )
         Spacer(Modifier.width(4.dp))
         Text(
-            text = value ?: "-" ,
+            text = value ?: "-",
             style = MaterialTheme.typography.subtitle2,
             modifier = Modifier.weight(7f)
         )
