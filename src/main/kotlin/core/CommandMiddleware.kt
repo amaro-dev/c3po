@@ -26,6 +26,8 @@ class CommandMiddleware: IMiddleware<AppState> {
                 processor.reduce(
                     Action.DeliverDevicePackages(ListPackagesCommand(action.device).run())
                 )
+                val activities = ListActivitiesCommand(action.device).run()
+                processor.reduce(Action.DeliverActivities(activities))
             }
             is Action.RefreshPackages -> processor.reduce(
                 Action.DeliverDevicePackages(ListPackagesCommand(state.currentDevice!!).run())

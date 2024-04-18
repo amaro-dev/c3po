@@ -10,6 +10,7 @@ class AppReducer: IReducer<AppState> {
             is Action.SelectTab -> currentState.copy(currentTab = action.tabIndex)
             is Action.DeliverDevices -> currentState.copy(devices = action.devices)
             is Action.DeliverDevicePackages -> currentState.copy(packages = action.packages)
+            is Action.DeliverActivities -> currentState.copy(activities = action.activities)
             else -> currentState
         }
     }

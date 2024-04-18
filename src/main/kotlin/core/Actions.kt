@@ -14,4 +14,5 @@ sealed interface Action: IAction {
 
     data class DeliverDevicePackages(val packages: List<AppPackage>): Action
     data class DeliverDevices(val devices: List<AdbDevice>): Action
+    data class DeliverActivities(val activities: List<String>) : Action
 }

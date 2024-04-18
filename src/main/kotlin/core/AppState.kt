@@ -8,4 +8,5 @@ data class AppState (
     val currentDevice: AdbDevice? = null,
     val packages: List<AppPackage> = emptyList(),
     val currentTab: Int = 0,
+    val activities: List<String> = emptyList()
 )

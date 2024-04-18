@@ -1,12 +1,9 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -19,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import commands.CommandResult
+import commands.StartActivityCommand
 import core.Action
 import core.App
 import models.AdbDevice
@@ -32,7 +30,7 @@ import java.io.InputStreamReader
 @Preview
 fun Render(app: App) {
     val state = app.listen().collectAsState().value
-    val tabs = listOf("Details", "Packages")
+    val tabs = listOf("Details", "Packages", "Activities")
 
     MaterialTheme {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -70,10 +68,37 @@ fun Render(app: App) {
                 when (state.currentTab) {
                     0 -> DeviceDetailsTab(state.currentDevice)
                     1 -> PackagesTab(state.currentDevice, state.packages)
+                    2 -> ActivitiesTab(state.currentDevice, state.activities)
                 }
 
             }
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ActivitiesTab(device: AdbDevice?, activities: List<String>) {
+    Box {
+        val listState = rememberLazyListState()
+        LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+            items(activities) { activity ->
+                Text(
+                    activity,
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(2.dp)
+                        .onClick {
+                            device?.run {
+                                StartActivityCommand(this, activity).run()
+                            }
+                        }
+                )
+            }
+        }
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = listState)
+        )
     }
 }
 
