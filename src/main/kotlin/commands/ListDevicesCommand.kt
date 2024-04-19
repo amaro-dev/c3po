@@ -9,7 +9,7 @@ object ListDevicesCommand : AdbCommand<List<AdbDevice>> {
         return result.content.removePrefix("List of devices attached")
             .trim()
             .split("\n")
-            .onEach { println(it.split('\t')) }
+            .filter { it.isNotEmpty() }
             .map {
                 val (id, name) = it.split('\t', limit = 2)
                 AdbDevice(id)
