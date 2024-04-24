@@ -1,12 +1,11 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import commands.CommandResult
@@ -25,14 +24,17 @@ fun Render(app: App) {
     val tabs = listOf("Details", "Packages", "Activities")
 
     MaterialTheme {
-        Row(modifier = Modifier.fillMaxSize()) {
-            Surface(color = MaterialTheme.colors.primary, modifier = Modifier.fillMaxHeight().weight(1f)) {
-                DeviceSelector(state.devices)
-            }
-
-            Column(Modifier.weight(2f).fillMaxHeight()) {
-                Surface(color = MaterialTheme.colors.primaryVariant) {
-                    TabRow(selectedTabIndex = state.currentTab) {
+        Column(Modifier.fillMaxSize()) {
+            Surface(color = MaterialTheme.colors.primary) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Box(Modifier.weight(1f).padding(4.dp)) {
+                        DeviceSelector(state.devices)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    TabRow(selectedTabIndex = state.currentTab, Modifier.weight(3f)) {
                         tabs.forEachIndexed { i, it ->
                             Tab(
                                 text = { Text(it) },
@@ -42,12 +44,11 @@ fun Render(app: App) {
                         }
                     }
                 }
-                when (state.currentTab) {
-                    0 -> DeviceDetailsTab(state.currentDevice)
-                    1 -> PackagesTab(state.currentDevice, state.packages)
-                    2 -> ActivitiesTab(state.currentDevice, state.activities)
-                }
-
+            }
+            when (state.currentTab) {
+                0 -> DeviceDetailsTab(state.currentDevice)
+                1 -> PackagesTab(state.currentDevice, state.packages)
+                2 -> ActivitiesTab(state.currentDevice, state.activities)
             }
         }
     }

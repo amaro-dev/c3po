@@ -1,11 +1,12 @@
 package commands
 
+import models.ActivityInfo
 import models.AdbDevice
 
-class ListActivitiesCommand(device: AdbDevice) : AdbCommand<List<String>> {
+class ListActivitiesCommand(device: AdbDevice) : AdbCommand<List<ActivityInfo>> {
     override val command: String = "adb -s ${device.id} shell dumpsys package"
 
-    override fun parse(result: CommandResult): List<String> {
+    override fun parse(result: CommandResult): List<ActivityInfo> {
         val lineSplitRule = Regex("\\r?\\n")
         var content = result.content.trim()
         content = content.substring(content.indexOf("Activity Resolver Table"))
@@ -17,5 +18,9 @@ class ListActivitiesCommand(device: AdbDevice) : AdbCommand<List<String>> {
             .takeWhile { it.startsWith("        ") }
             .map { removePrefix.replace(it, "") }
             .sorted()
+            .map {
+                val (pkg, activity) = it.split('/')
+                ActivityInfo(pkg, activity)
+            }
     }
 }

@@ -1,7 +1,6 @@
 package ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -23,9 +22,8 @@ fun DeviceSelector(devices: List<AdbDevice>) {
         ) {
             Row(
                 Modifier.fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colors.onPrimary, MaterialTheme.shapes.medium)
                     .background(MaterialTheme.colors.primaryVariant, MaterialTheme.shapes.medium)
-                    .padding(8.dp, 4.dp, 4.dp, 8.dp),
+                    .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 DeviceOption(devices[0], Modifier.weight(1f))
