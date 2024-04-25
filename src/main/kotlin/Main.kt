@@ -47,8 +47,8 @@ fun Render(app: App) {
             }
             when (state.currentTab) {
                 0 -> DeviceDetailsTab(state.currentDevice)
-                1 -> PackagesTab(state.currentDevice, state.packages)
-                2 -> ActivitiesTab(state.currentDevice, state.activities)
+                1 -> PackagesTab(state.packages) { app.perform(it) }
+                2 -> ActivitiesTab(state.activities) { app.perform(it) }
             }
         }
     }

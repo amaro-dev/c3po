@@ -14,34 +14,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import commands.AdbCommand
-import commands.ClearDataCommand
-import commands.StopAppCommand
-import commands.UninstallAppCommand
-import models.AdbDevice
+import core.Action
 import models.AppPackage
 
 @Composable
 fun PackageRow(
     appPackage: AppPackage,
-    currentDevice: AdbDevice?,
-    onAction: (AdbCommand<*>) -> Unit
+    onAction: (Action) -> Unit
 ) {
     Row(Modifier.padding(6.dp,2.dp), verticalAlignment = Alignment.CenterVertically) {
         ActionButton (painterResource("ic_delete_app.svg")) {
-            currentDevice?.run {
-                UninstallAppCommand(this, appPackage.packageName).run()
-            }
+            onAction(Action.UninstallApp(appPackage))
         }
         ActionButton (painterResource("ic_close_app.svg")) {
-            currentDevice?.run {
-                StopAppCommand(this, appPackage.packageName).run()
-            }
+            onAction(Action.StopApp(appPackage))
         }
         ActionButton (painterResource("ic_wipe_app.svg")) {
-            currentDevice?.run {
-                ClearDataCommand(this, appPackage).run()
-            }
+            onAction(Action.ClearAppData(appPackage))
         }
         Spacer(Modifier.width(8.dp))
         Text(appPackage.packageName)

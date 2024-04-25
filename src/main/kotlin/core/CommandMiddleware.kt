@@ -32,8 +32,21 @@ class CommandMiddleware: IMiddleware<AppState> {
             is Action.RefreshPackages -> processor.reduce(
                 Action.DeliverDevicePackages(ListPackagesCommand(state.currentDevice!!).run())
             )
-            is Action.StopApp -> StopAppCommand(state.currentDevice!!, action.app.packageName).run()
-            is Action.UninstallApp -> UninstallAppCommand(state.currentDevice!!, action.app.packageName).run()
+            is Action.StopApp -> {
+                StopAppCommand(state.currentDevice!!, action.app.packageName).run()
+            }
+
+            is Action.UninstallApp -> {
+                UninstallAppCommand(state.currentDevice!!, action.app.packageName).run()
+            }
+
+            is Action.ClearAppData -> {
+                ClearDataCommand(state.currentDevice!!, action.app).run()
+            }
+
+            is Action.StartActivity -> {
+                StartActivityCommand(state.currentDevice!!, action.activity).run()
+            }
         }
     }
 }

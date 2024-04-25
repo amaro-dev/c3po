@@ -14,12 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import commands.StartActivityCommand
+import core.Action
 import models.ActivityInfo
-import models.AdbDevice
 
 @Composable
-fun ActivitiesTab(device: AdbDevice?, activities: List<ActivityInfo>) {
+fun ActivitiesTab(activities: List<ActivityInfo>, onAction: (Action) -> Unit) {
     var searchTerm by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("") }
     searchTerm.useDebounce {
@@ -47,7 +46,7 @@ fun ActivitiesTab(device: AdbDevice?, activities: List<ActivityInfo>) {
                         if (activity.first == RowType.Header)
                             PackageHeader(activity.second as String)
                         else if (activity.first == RowType.Regular)
-                            ActivityRow(activity.second as ActivityInfo, device)
+                            ActivityRow(activity.second as ActivityInfo, onAction)
 
                     }
                 }
@@ -75,14 +74,10 @@ fun PackageHeader(packageName: String) {
 }
 
 @Composable
-fun ActivityRow(activity: ActivityInfo, device: AdbDevice?) {
+fun ActivityRow(activity: ActivityInfo, onAction: (Action) -> Unit) {
     Box(
         Modifier
-            .clickable {
-                device?.run {
-                    StartActivityCommand(this, activity.fullPath).run()
-                }
-            }
+            .clickable { onAction(Action.StartActivity(activity)) }
             .padding(6.dp)
             .fillMaxWidth()
     ) {

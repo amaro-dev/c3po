@@ -15,12 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import models.AdbDevice
+import core.Action
 import models.AppPackage
 
 
 @Composable
-fun PackagesTab(currentDevice: AdbDevice?, packageList: List<AppPackage>) {
+fun PackagesTab(packageList: List<AppPackage>, onAction: (Action) -> Unit) {
     var searchTerm by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("") }
     searchTerm.useDebounce {
@@ -43,7 +43,7 @@ fun PackagesTab(currentDevice: AdbDevice?, packageList: List<AppPackage>) {
                     items(packageList.filter {
                         filter.length < 3 || it.packageName.contains((filter))
                     }) { pkg ->
-                        PackageRow(pkg, currentDevice) { cmd -> cmd.run() }
+                        PackageRow(pkg, onAction)
                     }
                 }
                 VerticalScrollbar(
