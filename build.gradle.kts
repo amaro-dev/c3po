@@ -7,6 +7,8 @@ plugins {
 
 group = "dev.amaro"
 version = "1.0-SNAPSHOT"
+val mainClassName = "Mainkt"
+val mainClassPath = "$group.$mainClassName"
 
 repositories {
     mavenCentral()
@@ -31,6 +33,27 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "c3po"
             packageVersion = "1.0.0"
+            macOS {
+
+                iconFile.set(project.file("src/main/resources/icon.icns"))
+            }
+        }
+    }
+}
+
+tasks {
+    jar {
+        val classpath = configurations.runtimeClasspath
+        inputs.files(classpath).withNormalizer(ClasspathNormalizer::class.java)
+        manifest {
+            attributes(
+                "Class-Path" to classpath.map { cp -> cp.joinToString(" ") { it.absolutePath } }
+            )
+            attributes(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to archiveVersion,
+                "Main-Class" to mainClasses,
+            )
         }
     }
 }
