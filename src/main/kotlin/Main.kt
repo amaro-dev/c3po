@@ -31,7 +31,7 @@ fun Render(app: App) {
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Box(Modifier.weight(1f).padding(4.dp)) {
-                        DeviceSelector(state.devices)
+                        DeviceSelector(state.devices, state.currentDevice) { app.perform(Action.SelectDevice(it)) }
                     }
                     Spacer(Modifier.width(8.dp))
                     TabRow(selectedTabIndex = state.currentTab, Modifier.weight(3f)) {

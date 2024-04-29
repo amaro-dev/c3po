@@ -12,9 +12,9 @@ import models.DeviceAttrs
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DeviceSelector(devices: List<AdbDevice>) {
+fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (AdbDevice) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    var selection: AdbDevice? by remember { mutableStateOf(null) }
+
     Box(modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopEnd)) {
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -26,7 +26,7 @@ fun DeviceSelector(devices: List<AdbDevice>) {
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                DeviceOption(devices[0], Modifier.weight(1f))
+                selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text("Select a device")
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             }
             ExposedDropdownMenu(
@@ -35,9 +35,14 @@ fun DeviceSelector(devices: List<AdbDevice>) {
                 modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
             ) {
                 Surface(color = MaterialTheme.colors.primaryVariant) {
-                    devices.forEach {
-                        DropdownMenuItem({ selection = it }) {
-                            DeviceOption(it)
+                    Column(Modifier.height(300.dp)) {
+                        devices.forEach {
+                            DropdownMenuItem({
+                                onSelect(it)
+                                expanded = false
+                            }) {
+                                DeviceOption(it)
+                            }
                         }
                     }
                 }
