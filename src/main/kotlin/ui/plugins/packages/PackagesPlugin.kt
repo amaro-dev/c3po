@@ -1,4 +1,4 @@
-package ui.plugins
+package ui.plugins.packages
 
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
@@ -10,24 +10,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import commands.ListPackagesCommand
-import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
-import dev.amaro.sonic.IProcessor
 import models.AppPackage
 import ui.MySearchField
-import ui.PackageRow
+import ui.plugins.Plugin
 
 class PackagesPlugin : Plugin<List<AppPackage>> {
     sealed class Actions : IAction {
-        data object LIST : Actions()
+        data object List : Actions()
+        data class Stop(val packageInfo: AppPackage) : Actions()
+        data class Uninstall(val packageInfo: AppPackage) : Actions()
+        data class ClearData(val packageInfo: AppPackage) : Actions()
     }
 
     override val name: String = "PACKAGES"
 
-    override val mainAction: IAction = Actions.LIST
+    override val mainAction: IAction = Actions.List
 
     override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(name)
 
@@ -55,20 +55,4 @@ class PackagesPlugin : Plugin<List<AppPackage>> {
 
         }
     }
-}
-
-class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState> {
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-        when (action) {
-            is Action.StartPlugin,
-            PackagesPlugin.Actions.LIST -> {
-                state.currentDevice?.run {
-                    ListPackagesCommand(this).run()
-                }
-            }
-
-            else -> null
-        }?.run { processor.reduce(Action.DeliverPluginResult(name, this)) }
-    }
-
 }

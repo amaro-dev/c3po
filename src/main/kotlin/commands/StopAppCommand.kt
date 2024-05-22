@@ -1,12 +1,13 @@
 package commands
 
 import models.AdbDevice
+import models.AppPackage
 
 class StopAppCommand(
     device: AdbDevice,
-    packageName: String
+    appPackage: AppPackage
 ): AdbCommand<Unit> {
-    override val command: String = "adb -s ${device.id} shell am force-stop $packageName"
+    override val command: String = "adb -s ${device.id} shell am force-stop ${appPackage.packageName}"
 
     override fun parse(result: CommandResult) = Unit
 }

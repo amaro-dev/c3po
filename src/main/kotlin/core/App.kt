@@ -2,10 +2,10 @@ package core
 
 import dev.amaro.sonic.ConditionedDirectMiddleware
 import dev.amaro.sonic.IAction
-import ui.plugins.ActivitiesPlugin
-import ui.plugins.DeviceAttrsPlugin
-import ui.plugins.PackagesPlugin
 import ui.plugins.Plugin
+import ui.plugins.activities.ActivitiesPlugin
+import ui.plugins.attrs.DeviceAttrsPlugin
+import ui.plugins.packages.PackagesPlugin
 
 class App {
     val plugins: List<Plugin<out Any>> = listOf(

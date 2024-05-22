@@ -1,4 +1,4 @@
-package ui.plugins
+package ui.plugins.attrs
 
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
@@ -13,23 +13,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import commands.DeviceInfoCommand
-import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
-import dev.amaro.sonic.IProcessor
-import ui.DeviceAttrRow
 import ui.MySearchField
+import ui.plugins.Plugin
 
 
 class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
     sealed class Actions : IAction {
-        data object LIST : Actions()
+        data object List : Actions()
     }
 
     override val name: String = "DEVICE_ATTRS"
-    override val mainAction: IAction = Actions.LIST
+    override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(name)
 
     @Composable
@@ -56,24 +53,6 @@ class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         adapter = rememberScrollbarAdapter(scrollState = listState)
-                    )
-                }
-            }
-        }
-    }
-}
-
-class DeviceAttrsMiddleware(
-    private val pluginName: String
-) : IMiddleware<AppState> {
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-        when (action) {
-            is Action.StartPlugin,
-            DeviceAttrsPlugin.Actions.LIST -> {
-                state.currentDevice?.run {
-                    val deviceInfo = DeviceInfoCommand(this).run()
-                    processor.reduce(
-                        Action.DeliverPluginResult(pluginName, deviceInfo.toList().sortedBy { it.first })
                     )
                 }
             }

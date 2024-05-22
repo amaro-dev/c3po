@@ -1,4 +1,4 @@
-package ui
+package ui.plugins.attrs
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
