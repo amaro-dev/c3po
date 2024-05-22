@@ -1,63 +1,17 @@
 package ui
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import core.Action
 import models.ActivityInfo
-
-@Composable
-fun ActivitiesTab(activities: List<ActivityInfo>, onAction: (Action) -> Unit) {
-    var searchTerm by remember { mutableStateOf("") }
-    var filter by remember { mutableStateOf("") }
-    searchTerm.useDebounce {
-        filter = it
-    }
-    Box(Modifier.fillMaxSize().padding(10.dp)) {
-        Column {
-            OutlinedTextField(
-                searchTerm,
-                onValueChange = { searchTerm = it },
-                leadingIcon = { Icon(Icons.Filled.Search, "") },
-                placeholder = { Text("Type to search") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Box(Modifier.fillMaxSize().padding(10.dp)) {
-                val listState = rememberLazyListState()
-                LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
-                    items(activities.filter {
-                        filter.length < 3 || it.packageName.contains((filter))
-                    }.groupBy { it.packageName }
-                        .flatMap {
-                            listOf(Pair(RowType.Header, it.key)).plus(it.value.map { Pair(RowType.Regular, it) })
-                        }
-                    ) { activity ->
-                        if (activity.first == RowType.Header)
-                            PackageHeader(activity.second as String)
-                        else if (activity.first == RowType.Regular)
-                            ActivityRow(activity.second as ActivityInfo, onAction)
-
-                    }
-                }
-                VerticalScrollbar(
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState = listState)
-                )
-            }
-        }
-    }
-}
 
 enum class RowType {
     Header,

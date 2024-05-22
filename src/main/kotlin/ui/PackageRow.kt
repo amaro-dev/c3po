@@ -1,12 +1,11 @@
 package ui
 
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,18 +21,24 @@ fun PackageRow(
     appPackage: AppPackage,
     onAction: (Action) -> Unit
 ) {
-    Row(Modifier.padding(6.dp,2.dp), verticalAlignment = Alignment.CenterVertically) {
-        ActionButton (painterResource("ic_delete_app.svg")) {
-            onAction(Action.UninstallApp(appPackage))
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.padding(0.dp, 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(appPackage.packageName, Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
+            ActionButton(painterResource("ic_delete_app.svg")) {
+                onAction(Action.UninstallApp(appPackage))
+            }
+            ActionButton(painterResource("ic_close_app.svg")) {
+                onAction(Action.StopApp(appPackage))
+            }
+            ActionButton(painterResource("ic_wipe_app.svg")) {
+                onAction(Action.ClearAppData(appPackage))
+            }
         }
-        ActionButton (painterResource("ic_close_app.svg")) {
-            onAction(Action.StopApp(appPackage))
-        }
-        ActionButton (painterResource("ic_wipe_app.svg")) {
-            onAction(Action.ClearAppData(appPackage))
-        }
-        Spacer(Modifier.width(8.dp))
-        Text(appPackage.packageName)
+        Spacer(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colors.onSurface))
     }
 }
 
@@ -42,7 +47,12 @@ fun ActionButton(
     painter: Painter,
     onClick: () -> Unit
 ) {
-    IconButton(onClick = onClick) {
-        Icon(painter, "")
-    }
+    Icon(
+        painter = painter,
+        contentDescription = "",
+        modifier = Modifier.clickable { onClick() }
+            .size(32.dp)
+            .padding(6.dp)
+
+    )
 }

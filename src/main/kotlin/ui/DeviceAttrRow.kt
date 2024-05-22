@@ -16,13 +16,13 @@ fun DeviceAttrRow(label: String, value: String?) {
         Text(
             text = label,
             style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.weight(3f), textAlign = TextAlign.End
+            modifier = Modifier.weight(5f), textAlign = TextAlign.End
         )
         Spacer(Modifier.width(4.dp))
         Text(
             text = value ?: "-",
             style = MaterialTheme.typography.subtitle2,
-            modifier = Modifier.weight(7f)
+            modifier = Modifier.weight(8f)
         )
     }
 }

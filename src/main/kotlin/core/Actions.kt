@@ -7,7 +7,6 @@ import models.AppPackage
 
 sealed interface Action : IAction {
     data class SelectDevice(val device: AdbDevice) : Action
-    data class SelectTab(val tabIndex: Int) : Action
     data object RefreshDevices : Action
     data object RefreshPackages : Action
     data class StopApp(val app: AppPackage) : Action
@@ -18,4 +17,8 @@ sealed interface Action : IAction {
     data class DeliverDevicePackages(val packages: List<AppPackage>) : Action
     data class DeliverDevices(val devices: List<AdbDevice>) : Action
     data class DeliverActivities(val activities: List<ActivityInfo>) : Action
+    data class DeliverPluginResult(val plugin: String, val items: List<*>) : Action
+    data class StartPlugin(val pluginName: String) : Action
+    data class SelectPlugin(val pluginName: String) : Action
+    data class ClosePlugin(val pluginName: String) : Action
 }

@@ -23,6 +23,7 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation("dev.amaro:sonic:0.4.1")
+    implementation("com.composables.ui:menu:1.4.0")
 }
 
 compose.desktop {

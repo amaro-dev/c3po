@@ -20,19 +20,19 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
         ) {
-            Row(
-                Modifier.fillMaxWidth()
-                    .background(MaterialTheme.colors.primaryVariant, MaterialTheme.shapes.medium)
-                    .padding(start = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text("Select a device")
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            Surface(color = MaterialTheme.colors.primary) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text("Select a device")
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
             }
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = !expanded },
-                modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
+                modifier = Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth()
             ) {
                 Surface(color = MaterialTheme.colors.primaryVariant) {
                     Column(Modifier.height(300.dp)) {
@@ -53,7 +53,7 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
 
 @Composable
 private fun DeviceOption(device: AdbDevice, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(bottom = 4.dp)) {
         Text(
             device.details[DeviceAttrs.Name.key] ?: "<unknown>",
             style = MaterialTheme.typography.body1
