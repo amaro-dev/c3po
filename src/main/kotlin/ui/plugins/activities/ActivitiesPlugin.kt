@@ -29,6 +29,8 @@ class ActivitiesPlugin() : Plugin<List<ActivityInfo>> {
     override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(name)
 
+    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
+
     @Composable
     override fun present(items: List<ActivityInfo>, onAction: (IAction) -> Unit) {
         var filter by remember { mutableStateOf("") }

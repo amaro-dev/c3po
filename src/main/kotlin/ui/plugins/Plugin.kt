@@ -15,6 +15,8 @@ interface Plugin<T> {
 
     val middleware: IMiddleware<AppState>
 
+    fun isResponsibleFor(action: IAction): Boolean
+
     @Composable
     fun present(state: Map<String, Any>, onAction: (IAction) -> Unit) {
         val data: T? = state[name] as? T

@@ -20,6 +20,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.plugins.Plugin
+import ui.plugins.activities.ActivitiesPlugin.Actions
 import ui.plugins.activities.ActivityRow
 import ui.plugins.packages.PackageHeader
 import ui.plugins.packages.RowType
@@ -33,6 +34,8 @@ class ServicesPlugin() : Plugin<List<ActivityInfo>> {
     override val name: String = "SERVICES"
     override val mainAction: IAction = Actions.LIST
     override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(name)
+
+    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
     override fun present(items: List<ActivityInfo>, onAction: (IAction) -> Unit) {

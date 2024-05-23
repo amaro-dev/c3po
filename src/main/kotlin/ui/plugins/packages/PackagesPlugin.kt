@@ -16,6 +16,7 @@ import dev.amaro.sonic.IMiddleware
 import models.AppPackage
 import ui.MySearchField
 import ui.plugins.Plugin
+import ui.plugins.activities.ActivitiesPlugin.Actions
 
 class PackagesPlugin : Plugin<List<AppPackage>> {
     sealed class Actions : IAction {
@@ -30,6 +31,8 @@ class PackagesPlugin : Plugin<List<AppPackage>> {
     override val mainAction: IAction = Actions.List
 
     override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(name)
+
+    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
     override fun present(items: List<AppPackage>, onAction: (IAction) -> Unit) {
