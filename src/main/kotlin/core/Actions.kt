@@ -8,8 +8,7 @@ import models.AppPackage
 sealed interface Action : IAction {
     data class SelectDevice(val device: AdbDevice) : Action
     data object RefreshDevices : Action
-    data class ClearAppData(val app: AppPackage) : Action
-    data class StartActivity(val activity: ActivityInfo) : Action
+    data class CopyText(val content: String) : Action
 
     data class DeliverDevicePackages(val packages: List<AppPackage>) : Action
     data class DeliverDevices(val devices: List<AdbDevice>) : Action

@@ -2,12 +2,10 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -15,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import commands.CommandResult
 import core.Action
@@ -23,6 +22,7 @@ import dev.amaro.sonic.IAction
 import ui.DeviceSelector
 import ui.PluginSelector
 import ui.plugins.Plugin
+import java.awt.Toolkit
 import java.io.InputStreamReader
 
 @Composable
@@ -41,9 +41,11 @@ fun Render(app: App) {
                         DeviceSelector(state.devices, state.currentDevice) { app.perform(Action.SelectDevice(it)) }
                     }
                     Spacer(Modifier.width(8.dp))
-
+                    IconButton(onClick = { app.perform(Action.RefreshDevices) }) {
+                        Icon(Icons.Filled.Refresh, "")
+                    }
+                    Spacer(Modifier.width(8.dp))
                     PluginSelector(app.plugins) { app.perform(it) }
-
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.weight(8f).fillMaxHeight()) {
                         Workspace(
@@ -64,9 +66,14 @@ fun Render(app: App) {
 }
 
 fun main() = application {
-    val myApp = App()
+    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+    val myApp = App(clipboard)
     myApp.perform(Action.RefreshDevices)
-    Window(onCloseRequest = ::exitApplication, title = "C3PO - The Android Explorer") {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "C3PO - The Android Explorer",
+        state = WindowState(width = 1024.dp, height = 800.dp)
+    ) {
         Render(myApp)
     }
 }
@@ -74,7 +81,7 @@ fun main() = application {
 
 object CommandRunner {
     fun run(command: String): CommandResult {
-        println("Command: '$command'")
+        //println("Command: '$command'")
         val process = ProcessBuilder().command(command.split(' ')).start()
         return CommandResult(InputStreamReader(process.inputStream.buffered()).readText().trim())
     }

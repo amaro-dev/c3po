@@ -47,9 +47,11 @@ class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {
-                            filter.length < 3 || it.first.contains(filter, ignoreCase = true)
+                            filter.length < 2
+                                    || it.first.contains(filter, ignoreCase = true)
+                                    || it.second.contains(filter, ignoreCase = true)
                         }) {
-                            DeviceAttrRow("${it.first}:", it.second)
+                            DeviceAttrRow("${it.first}:", it.second, onAction)
                             Spacer(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colors.onBackground))
                         }
                     }

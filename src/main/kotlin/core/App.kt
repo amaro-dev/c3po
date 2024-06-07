@@ -6,8 +6,9 @@ import ui.plugins.Plugin
 import ui.plugins.activities.ActivitiesPlugin
 import ui.plugins.attrs.DeviceAttrsPlugin
 import ui.plugins.packages.PackagesPlugin
+import java.awt.datatransfer.Clipboard
 
-class App {
+class App(clipboard: Clipboard) {
     val plugins: List<Plugin<out Any>> = listOf(
         ActivitiesPlugin(),
         PackagesPlugin(),
@@ -17,6 +18,7 @@ class App {
     private val stateManager = AppStateManager(
         CommandMiddleware(),
         PluginSelectorMiddleware(plugins),
+        ClipboardMiddleware(clipboard),
         ConditionedDirectMiddleware(
             Action.SelectPlugin::class,
             Action.ClosePlugin::class

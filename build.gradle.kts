@@ -17,10 +17,6 @@ repositories {
 }
 
 dependencies {
-    // Note, if you develop a library, you should use compose.desktop.common.
-    // compose.desktop.currentOs should be used in launcher-sourceSet
-    // (in a separate module for demo project and in testMain).
-    // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation("dev.amaro:sonic:0.4.1")
     implementation("com.composables.ui:menu:1.4.0")
@@ -31,11 +27,11 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
             packageVersion = "1.0.0"
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             macOS {
-
                 iconFile.set(project.file("src/main/resources/icon.icns"))
             }
         }
