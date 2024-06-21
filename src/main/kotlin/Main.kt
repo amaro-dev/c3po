@@ -23,6 +23,7 @@ import ui.DeviceSelector
 import ui.PluginSelector
 import ui.plugins.Plugin
 import java.awt.Toolkit
+import java.io.File
 import java.io.InputStreamReader
 
 @Composable
@@ -67,6 +68,8 @@ fun Render(app: App) {
 
 fun main() = application {
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+    val resourceRoot = File(System.getProperty("compose.application.resources.dir"))
+    println("Resource path: $resourceRoot")
     val myApp = App(clipboard)
     myApp.perform(Action.RefreshDevices)
     Window(

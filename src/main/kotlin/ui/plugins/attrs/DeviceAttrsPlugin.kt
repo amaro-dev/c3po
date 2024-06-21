@@ -2,7 +2,6 @@ package ui.plugins.attrs
 
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,8 +40,12 @@ class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .padding(20.dp)
-                        .border(width = 1.dp, color = MaterialTheme.colors.onBackground)
+                        .padding(
+                            start = 20.dp,
+                            top = 20.dp,
+                            bottom = 20.dp,
+                            end = 10.dp,
+                        )
                 ) {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
