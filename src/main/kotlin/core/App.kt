@@ -9,6 +9,7 @@ import ui.plugins.attrs.DeviceAttrsPlugin
 import ui.plugins.packages.PackagesPlugin
 import java.awt.datatransfer.Clipboard
 import java.io.File
+import java.nio.file.Files
 
 class App(clipboard: Clipboard) {
     val plugins: List<Plugin<out Any>> = listOf(
@@ -21,7 +22,9 @@ class App(clipboard: Clipboard) {
         if (Settings.isDebug())
             File(System.getProperty(Settings.RESOURCES_PROP)).parentFile
         else
-            File(System.getProperty(Settings.RESOURCES_PROP))
+            File(Settings.productionSettingsFolder()).apply {
+                if (!exists()) Files.createDirectory(toPath())
+            }
 
     private val stateManager = AppStateManager(
         CommandMiddleware(),
