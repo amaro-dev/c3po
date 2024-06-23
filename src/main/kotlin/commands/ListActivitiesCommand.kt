@@ -4,7 +4,7 @@ import models.ActivityInfo
 import models.AdbDevice
 
 class ListActivitiesCommand(device: AdbDevice) : AdbCommand<List<ActivityInfo>> {
-    override val command: String = "adb -s ${device.id} shell dumpsys package"
+    override val command: String = "-s ${device.id} shell dumpsys package"
 
     override fun parse(result: CommandResult): List<ActivityInfo> {
         val lineSplitRule = Regex("\\r?\\n")

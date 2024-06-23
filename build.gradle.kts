@@ -30,9 +30,10 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
             packageVersion = "1.0.0"
-            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))
+                entitlementsFile.set(project.file("src/default.entitlements"))
             }
         }
     }

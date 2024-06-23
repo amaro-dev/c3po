@@ -3,7 +3,7 @@ package commands
 import models.AdbDevice
 
 class DeviceInfoCommand(device: AdbDevice) : AdbCommand<Map<String, String>> {
-    override val command: String ="adb -s ${device.id} shell getprop | grep ro."
+    override val command: String = "-s ${device.id} shell getprop | grep ro."
 
     override fun parse(result: CommandResult): Map<String, String> {
         val lineSplitRule = Regex("\\r?\\n")

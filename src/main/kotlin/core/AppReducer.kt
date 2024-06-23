@@ -16,7 +16,14 @@ class AppReducer : IReducer<AppState> {
                     currentPlugin = action.plugin
                 )
             }
+            is Action.LoadSettingsIntoState -> currentState.copy(
+                settings = action.props,
+                settingsState = SettingsState.Initialized
+            )
 
+            is Action.SettingsNotFound -> currentState.copy(
+                settingsState = SettingsState.NotFound
+            )
             is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
             is Action.ClosePlugin -> currentState.copy(
                 windows = currentState.windows.minus(action.pluginName),

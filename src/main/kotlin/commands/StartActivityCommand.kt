@@ -8,7 +8,7 @@ class StartActivityCommand(
     activityInfo: ActivityInfo
 ) : AdbCommand<Unit> {
     override val command: String =
-        "adb -s ${device.id} shell am start -n ${activityInfo.fullPath.replace("\$", "\\\$")}"
+        "-s ${device.id} shell am start -n ${activityInfo.fullPath.replace("\$", "\\\$")}"
 
     override fun parse(result: CommandResult) {
 

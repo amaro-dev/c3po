@@ -7,7 +7,7 @@ class UninstallAppCommand(
     device: AdbDevice,
     appPackage: AppPackage
 ):AdbCommand<Unit> {
-    override val command: String = "adb -s ${device.id} uninstall ${appPackage.packageName}"
+    override val command: String = "-s ${device.id} uninstall ${appPackage.packageName}"
 
     override fun parse(result: CommandResult) = Unit
 }

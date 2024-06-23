@@ -3,7 +3,7 @@ package commands
 import models.AdbDevice
 
 object ListDevicesCommand : AdbCommand<List<AdbDevice>> {
-    override val command: String = "adb devices"
+    override val command: String = "devices"
 
     override fun parse(result: CommandResult): List<AdbDevice> {
         return result.content.removePrefix("List of devices attached")

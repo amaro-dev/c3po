@@ -7,8 +7,12 @@ interface AdbCommand<T> {
 
     fun parse(result: CommandResult) : T
 
-    fun run(): T {
-        return parse(CommandRunner.run(command.trim()))
+    fun run(adbPath: String): T {
+        return parse(
+            CommandRunner.run(
+                "$adbPath ${command.trim()}"
+            )
+        )
     }
 
 }

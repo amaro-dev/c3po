@@ -1,5 +1,6 @@
 package ui.plugins.activities
 
+import Settings
 import commands.ListActivitiesCommand
 import commands.StartActivityCommand
 import core.Action
@@ -17,12 +18,14 @@ class ActivitiesPluginMiddleware(
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+
         when (action) {
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        val activities = ListActivitiesCommand(this).run()
+                        val activities = ListActivitiesCommand(this).run(adbPath)
                         processor.reduce(Action.DeliverPluginResult(pluginName, activities))
                     }
                 }
@@ -31,7 +34,7 @@ class ActivitiesPluginMiddleware(
             is ActivitiesPlugin.Actions.Launch -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        StartActivityCommand(this, action.activityInfo).run()
+                        StartActivityCommand(this, action.activityInfo).run(adbPath)
                     }
                 }
             }

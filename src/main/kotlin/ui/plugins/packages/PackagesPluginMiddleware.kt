@@ -1,5 +1,6 @@
 package ui.plugins.packages
 
+import Settings
 import commands.ClearDataCommand
 import commands.ListPackagesCommand
 import commands.StopAppCommand
@@ -16,14 +17,14 @@ import kotlinx.coroutines.launch
 class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState> {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-
+        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         when (action) {
             is Action.StartPlugin,
             PackagesPlugin.Actions.List -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
                         processor.reduce(
-                            Action.DeliverPluginResult(name, ListPackagesCommand(this).run())
+                            Action.DeliverPluginResult(name, ListPackagesCommand(this).run(adbPath))
                         )
                     }
                 }
@@ -32,7 +33,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
             is PackagesPlugin.Actions.Stop -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        StopAppCommand(this, action.packageInfo).run()
+                        StopAppCommand(this, action.packageInfo).run(adbPath)
                     }
                 }
             }
@@ -40,7 +41,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
             is PackagesPlugin.Actions.Uninstall -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        UninstallAppCommand(this, action.packageInfo).run()
+                        UninstallAppCommand(this, action.packageInfo).run(adbPath)
                     }
                 }
             }
@@ -48,7 +49,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
             is PackagesPlugin.Actions.ClearData -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        ClearDataCommand(this, action.packageInfo).run()
+                        ClearDataCommand(this, action.packageInfo).run(adbPath)
                     }
                 }
             }

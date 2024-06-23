@@ -6,8 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -18,12 +17,12 @@ import androidx.compose.ui.window.application
 import commands.CommandResult
 import core.Action
 import core.App
+import core.SettingsState
 import dev.amaro.sonic.IAction
 import ui.DeviceSelector
 import ui.PluginSelector
 import ui.plugins.Plugin
 import java.awt.Toolkit
-import java.io.File
 import java.io.InputStreamReader
 
 @Composable
@@ -62,16 +61,17 @@ fun Render(app: App) {
                     present(state.windows) { app.perform(it) }
                 }
             }
+            if (state.settingsState == SettingsState.NotFound) {
+                SettingsBox { app.perform(it) }
+            }
         }
     }
 }
 
 fun main() = application {
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-    val resourceRoot = File(System.getProperty("compose.application.resources.dir"))
-    println("Resource path: $resourceRoot")
     val myApp = App(clipboard)
-    myApp.perform(Action.RefreshDevices)
+    myApp.perform(Action.LoadSettings)
     Window(
         onCloseRequest = ::exitApplication,
         title = "C3PO - The Android Explorer",
@@ -111,6 +111,26 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
                     },
                     tint = MaterialTheme.colors.onPrimary
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsBox(onAction: (Action) -> Unit) {
+    var adbPathValue by remember { mutableStateOf("") }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.fillMaxWidth(0.5f),
+        ) {
+            TextField(
+                adbPathValue,
+                { adbPathValue = it },
+                placeholder = { Text("ADB Path") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button({ onAction(Action.SaveSettings(adbPathValue)) }, modifier = Modifier.align(Alignment.End)) {
+                Text("Save")
             }
         }
     }
