@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.Action.CommandAction
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
@@ -20,10 +21,10 @@ import ui.plugins.activities.ActivitiesPlugin.Actions
 
 class PackagesPlugin : Plugin<List<AppPackage>> {
     sealed class Actions : IAction {
-        data object List : Actions()
-        data class Stop(val packageInfo: AppPackage) : Actions()
-        data class Uninstall(val packageInfo: AppPackage) : Actions()
-        data class ClearData(val packageInfo: AppPackage) : Actions()
+        data object List : Actions(), CommandAction
+        data class Stop(val packageInfo: AppPackage) : Actions(), CommandAction
+        data class Uninstall(val packageInfo: AppPackage) : Actions(), CommandAction
+        data class ClearData(val packageInfo: AppPackage) : Actions(), CommandAction
     }
 
     override val name: String = "PACKAGES"

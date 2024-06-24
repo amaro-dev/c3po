@@ -19,6 +19,7 @@ import core.Action
 import core.App
 import core.SettingsState
 import dev.amaro.sonic.IAction
+import ui.CommandStatus
 import ui.DeviceSelector
 import ui.PluginSelector
 import ui.plugins.Plugin
@@ -55,14 +56,24 @@ fun Render(app: App) {
                     }
                 }
             }
-
-            state.currentPlugin?.let { name ->
-                app.plugins.first { it.name == name }.run {
-                    present(state.windows) { app.perform(it) }
+            Box(Modifier.fillMaxWidth().weight(1f)) {
+                state.currentPlugin?.let { name ->
+                    app.plugins.first { it.name == name }.run {
+                        present(state.windows) { app.perform(it) }
+                    }
+                }
+                if (state.settingsState == SettingsState.NotFound) {
+                    SettingsBox { app.perform(it) }
                 }
             }
-            if (state.settingsState == SettingsState.NotFound) {
-                SettingsBox { app.perform(it) }
+
+            Row(
+                Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth().padding(12.dp, 4.dp)
+                    .height(32.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                CommandStatus(state.commandStatus)
             }
         }
     }

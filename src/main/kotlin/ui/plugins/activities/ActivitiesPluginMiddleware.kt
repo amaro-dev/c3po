@@ -36,6 +36,7 @@ class ActivitiesPluginMiddleware(
                     state.currentDevice?.run {
                         StartActivityCommand(this, action.activityInfo).run(adbPath)
                     }
+                    processor.reduce(Action.SetCommandCompleted)
                 }
             }
         }

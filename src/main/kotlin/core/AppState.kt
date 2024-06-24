@@ -13,11 +13,18 @@ data class AppState (
     val activities: List<ActivityInfo> = emptyList(),
     val windows: Map<String, Any> = emptyMap(),
     val settings: Properties = Properties(),
-    val settingsState: SettingsState = SettingsState.NotInitialized
+    val settingsState: SettingsState = SettingsState.NotInitialized,
+    val commandStatus: CommandStatus = CommandStatus.Completed
 )
 
 enum class SettingsState {
     NotInitialized,
     NotFound,
     Initialized
+}
+
+enum class CommandStatus {
+    Running,
+    Completed,
+    Failed
 }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.Action.CommandAction
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
@@ -22,7 +23,7 @@ import ui.plugins.activities.ActivitiesPlugin.Actions
 
 class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
     sealed class Actions : IAction {
-        data object List : Actions()
+        data object List : Actions(), CommandAction
     }
 
     override val name: String = "DEVICE_ATTRS"

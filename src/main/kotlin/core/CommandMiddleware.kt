@@ -10,6 +10,7 @@ import dev.amaro.sonic.IProcessor
 class CommandMiddleware : IMiddleware<AppState> {
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+        if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
                 val devices = ListDevicesCommand.run(adbPath)
@@ -29,5 +30,6 @@ class CommandMiddleware : IMiddleware<AppState> {
                 processor.reduce(Action.DeliverDevices(fixedList))
             }
         }
+
     }
 }

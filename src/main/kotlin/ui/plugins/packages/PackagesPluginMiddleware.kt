@@ -35,6 +35,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
                     state.currentDevice?.run {
                         StopAppCommand(this, action.packageInfo).run(adbPath)
                     }
+                    processor.reduce(Action.SetCommandCompleted)
                 }
             }
 
@@ -43,6 +44,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
                     state.currentDevice?.run {
                         UninstallAppCommand(this, action.packageInfo).run(adbPath)
                     }
+                    processor.reduce(Action.SetCommandCompleted)
                 }
             }
 
@@ -51,6 +53,7 @@ class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState>
                     state.currentDevice?.run {
                         ClearDataCommand(this, action.packageInfo).run(adbPath)
                     }
+                    processor.reduce(Action.SetCommandCompleted)
                 }
             }
         }

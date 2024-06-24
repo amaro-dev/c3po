@@ -10,6 +10,7 @@ class PluginSelectorMiddleware(plugins: List<Plugin<*>>) : IMiddleware<AppState>
 
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         if (action is Action.StartPlugin) {
+            processor.reduce(Action.SetCommandRunning)
             registeredPlugins[action.pluginName]?.middleware?.process(action, state, processor)
         } else {
             registeredPlugins.forEach {
