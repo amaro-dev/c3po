@@ -18,17 +18,17 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import ui.MySearchField
 import ui.plugins.Plugin
-import ui.plugins.activities.ActivitiesPlugin.Actions
 
 
-class DeviceAttrsPlugin() : Plugin<List<Pair<String, String>>> {
+class DeviceAttrsPlugin : Plugin<List<Pair<String, String>>> {
     sealed class Actions : IAction {
         data object List : Actions(), CommandAction
     }
 
-    override val name: String = "DEVICE_ATTRS"
+    override val name: String = "Device attributes"
+    override val id: String = "DEVICE_ATTRS"
     override val mainAction: IAction = Actions.List
-    override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(name)
+    override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(id)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

@@ -17,7 +17,6 @@ import dev.amaro.sonic.IMiddleware
 import models.AppPackage
 import ui.MySearchField
 import ui.plugins.Plugin
-import ui.plugins.activities.ActivitiesPlugin.Actions
 
 class PackagesPlugin : Plugin<List<AppPackage>> {
     sealed class Actions : IAction {
@@ -27,11 +26,13 @@ class PackagesPlugin : Plugin<List<AppPackage>> {
         data class ClearData(val packageInfo: AppPackage) : Actions(), CommandAction
     }
 
-    override val name: String = "PACKAGES"
+    override val name: String = "Installed packages"
+
+    override val id: String = "PACKAGES"
 
     override val mainAction: IAction = Actions.List
 
-    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(name)
+    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

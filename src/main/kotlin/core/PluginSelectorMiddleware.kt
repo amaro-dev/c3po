@@ -6,7 +6,7 @@ import dev.amaro.sonic.IProcessor
 import ui.plugins.Plugin
 
 class PluginSelectorMiddleware(plugins: List<Plugin<*>>) : IMiddleware<AppState> {
-    private val registeredPlugins = plugins.associateBy { it.name }
+    private val registeredPlugins = plugins.associateBy { it.id }
 
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         if (action is Action.StartPlugin) {

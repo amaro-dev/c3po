@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -25,10 +24,9 @@ import core.Action
 import dev.amaro.sonic.IAction
 import ui.plugins.Plugin
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
-    Column() {
+    Column {
         Menu(Modifier.align(Alignment.End)) {
             MenuButton(
                 Modifier
@@ -57,7 +55,7 @@ fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
                 plugins.forEach {
                     MenuItem(
                         modifier = Modifier.clip(RoundedCornerShape(4.dp)),
-                        onClick = { onSelect(Action.StartPlugin(it.name)) }
+                        onClick = { onSelect(Action.StartPlugin(it.id)) }
                     ) {
                         BasicText(
                             it.name,

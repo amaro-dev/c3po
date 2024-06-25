@@ -20,15 +20,16 @@ import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 import ui.plugins.packages.RowType
 
-class ActivitiesPlugin() : Plugin<List<ActivityInfo>> {
+class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
     sealed class Actions : IAction {
         data object List : Actions(), CommandAction
         data class Launch(val activityInfo: ActivityInfo) : Actions(), CommandAction
     }
 
-    override val name: String = "ACTIVITIES"
+    override val name: String = "Activities"
+    override val id: String = "ACTIVITIES"
     override val mainAction: IAction = Actions.List
-    override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(name)
+    override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

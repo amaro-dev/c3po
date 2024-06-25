@@ -50,7 +50,7 @@ fun Render(app: App) {
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.weight(8f).fillMaxHeight()) {
                         Workspace(
-                            app.plugins.filter { it.name in state.windows.keys },
+                            app.plugins.filter { it.id in state.windows.keys },
                             state.currentPlugin
                         ) { app.perform(it) }
                     }
@@ -58,7 +58,7 @@ fun Render(app: App) {
             }
             Box(Modifier.fillMaxWidth().weight(1f)) {
                 state.currentPlugin?.let { name ->
-                    app.plugins.first { it.name == name }.run {
+                    app.plugins.first { it.id == name }.run {
                         present(state.windows) { app.perform(it) }
                     }
                 }
@@ -106,19 +106,19 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
     Row(Modifier.fillMaxSize()) {
         openPlugins.map {
             val color =
-                if (currentPlugin == it.name) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.primary
+                if (currentPlugin == it.id) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.primary
             Box(
                 Modifier.weight(1f)
                     .background(color)
                     .fillMaxHeight()
                     .padding(4.dp)
-                    .clickable { onSelect(Action.SelectPlugin(it.name)) }
+                    .clickable { onSelect(Action.SelectPlugin(it.id)) }
             ) {
                 Text(it.name, Modifier.fillMaxWidth(1f).padding(4.dp, 8.dp), textAlign = TextAlign.Center)
                 Icon(
                     Icons.Filled.Clear, null,
                     modifier = Modifier.align(Alignment.TopEnd).clickable {
-                        onSelect(Action.ClosePlugin(it.name))
+                        onSelect(Action.ClosePlugin(it.id))
                     },
                     tint = MaterialTheme.colors.onPrimary
                 )

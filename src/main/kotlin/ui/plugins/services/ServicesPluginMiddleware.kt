@@ -23,7 +23,8 @@ class ServicesPluginMiddleware(
             ServicesPlugin.Actions.LIST -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        val activities = ListServicesCommand(this).run(adbPath)
+                        val activities = ListServicesCommand(this).run(adbPath).toList().sortedBy { it.first }
+                        println(activities)
                         processor.reduce(Action.DeliverPluginResult(pluginName, activities))
                     }
                 }

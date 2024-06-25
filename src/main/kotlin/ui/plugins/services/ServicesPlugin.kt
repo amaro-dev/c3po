@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -21,25 +22,24 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.plugins.Plugin
-import ui.plugins.activities.ActivitiesPlugin.Actions
-import ui.plugins.activities.ActivityRow
 import ui.plugins.packages.PackageHeader
 import ui.plugins.packages.RowType
 import ui.useDebounce
 
-class ServicesPlugin() : Plugin<List<ActivityInfo>> {
+class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
     sealed class Actions : IAction {
         data object LIST : Actions(), CommandAction
     }
 
-    override val name: String = "SERVICES"
+    override val name: String = "Services / Action"
+    override val id: String = "SERVICES"
     override val mainAction: IAction = Actions.LIST
-    override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(name)
+    override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(items: List<ActivityInfo>, onAction: (IAction) -> Unit) {
+    override fun present(items: List<Pair<String, List<ActivityInfo>>>, onAction: (IAction) -> Unit) {
         var searchTerm by remember { mutableStateOf("") }
         var filter by remember { mutableStateOf("") }
         searchTerm.useDebounce {
@@ -58,16 +58,15 @@ class ServicesPlugin() : Plugin<List<ActivityInfo>> {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {
-                            filter.length < 3 || it.packageName.contains((filter))
-                        }.groupBy { it.packageName }
-                            .flatMap {
-                                listOf(Pair(RowType.Header, it.key)).plus(it.value.map { Pair(RowType.Regular, it) })
+                            filter.length < 3 || it.first.contains((filter))
+                        }.flatMap {
+                            listOf(Pair(RowType.Header, it.first)).plus(it.second.map { Pair(RowType.Regular, it) })
                             }
                         ) { activity ->
                             if (activity.first == RowType.Header)
                                 PackageHeader(activity.second as String)
                             else if (activity.first == RowType.Regular)
-                                ActivityRow(activity.second as ActivityInfo, onAction)
+                                RegularRow((activity.second as ActivityInfo).fullPath)
 
                         }
                     }
@@ -78,5 +77,19 @@ class ServicesPlugin() : Plugin<List<ActivityInfo>> {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun RegularRow(content: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .padding(6.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            content,
+            style = MaterialTheme.typography.body2,
+        )
     }
 }

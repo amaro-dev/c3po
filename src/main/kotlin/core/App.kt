@@ -7,6 +7,7 @@ import ui.plugins.Plugin
 import ui.plugins.activities.ActivitiesPlugin
 import ui.plugins.attrs.DeviceAttrsPlugin
 import ui.plugins.packages.PackagesPlugin
+import ui.plugins.services.ServicesPlugin
 import java.awt.datatransfer.Clipboard
 import java.io.File
 import java.nio.file.Files
@@ -15,7 +16,8 @@ class App(clipboard: Clipboard) {
     val plugins: List<Plugin<out Any>> = listOf(
         ActivitiesPlugin(),
         PackagesPlugin(),
-        DeviceAttrsPlugin()
+        DeviceAttrsPlugin(),
+        ServicesPlugin()
     )
 
     private val resourcesPath =
