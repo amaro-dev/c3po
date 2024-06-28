@@ -6,6 +6,7 @@ import dev.amaro.sonic.IAction
 import ui.plugins.Plugin
 import ui.plugins.activities.ActivitiesPlugin
 import ui.plugins.attrs.DeviceAttrsPlugin
+import ui.plugins.intents.pending.PendingIntentsPlugin
 import ui.plugins.packages.PackagesPlugin
 import ui.plugins.services.ServicesPlugin
 import java.awt.datatransfer.Clipboard
@@ -17,7 +18,8 @@ class App(clipboard: Clipboard) {
         ActivitiesPlugin(),
         PackagesPlugin(),
         DeviceAttrsPlugin(),
-        ServicesPlugin()
+        ServicesPlugin(),
+        PendingIntentsPlugin()
     )
 
     private val resourcesPath =

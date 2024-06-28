@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PackageHeader(packageName: String) {
-    Surface(color = MaterialTheme.colors.primary, shape = MaterialTheme.shapes.small) {
-        Box(Modifier.fillMaxWidth().padding(8.dp, 4.dp)) {
-            Text(packageName, style = MaterialTheme.typography.caption)
+    Surface(color = MaterialTheme.colors.primary) {
+        Box(Modifier.fillMaxWidth().padding(20.dp, 6.dp)) {
+            Text(packageName, style = MaterialTheme.typography.subtitle1)
         }
     }
 }
