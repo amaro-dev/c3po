@@ -38,16 +38,7 @@ class DeviceAttrsPlugin : Plugin<List<Pair<String, String>>> {
         Box(Modifier.fillMaxSize()) {
             Column {
                 MySearchField { filter = it }
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = 20.dp,
-                            top = 20.dp,
-                            bottom = 20.dp,
-                            end = 10.dp,
-                        )
-                ) {
+                Box(Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {

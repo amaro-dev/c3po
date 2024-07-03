@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +17,9 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.AppPackage
+import ui.ActionableRow
 import ui.MySearchField
+import ui.RowAction
 import ui.plugins.Plugin
 
 class PackagesPlugin : Plugin<List<AppPackage>> {
@@ -42,13 +46,25 @@ class PackagesPlugin : Plugin<List<AppPackage>> {
         Box(Modifier.fillMaxSize()) {
             Column {
                 MySearchField { filter = it }
-                Box(Modifier.padding(20.dp)) {
+                Box {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {
                             filter.length < 3 || it.packageName.contains((filter))
                         }) { pkg ->
-                            PackageRow(pkg, onAction)
+                            ActionableRow(
+                                pkg.packageName,
+                                listOf(
+                                    RowAction("ic_delete_app.svg", "", Actions.Uninstall(pkg)),
+                                    RowAction("ic_close_app.svg", "", Actions.Stop(pkg)),
+                                    RowAction("ic_wipe_app.svg", "", Actions.ClearData(pkg))
+                                ),
+                                onAction
+                            )
+                            Divider(
+                                color = MaterialTheme.colors.onBackground,
+                                modifier = Modifier.height(1.dp).fillMaxWidth()
+                            )
                         }
                     }
                     VerticalScrollbar(

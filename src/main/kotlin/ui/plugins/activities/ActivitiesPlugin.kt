@@ -1,11 +1,14 @@
 package ui.plugins.activities
 
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,9 +18,10 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
+import ui.HeaderRow
 import ui.MySearchField
+import ui.RegularRow
 import ui.plugins.Plugin
-import ui.plugins.packages.PackageHeader
 import ui.plugins.packages.RowType
 
 class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
@@ -39,7 +43,7 @@ class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
         Box(Modifier.fillMaxSize()) {
             Column {
                 MySearchField { filter = it }
-                Box(Modifier.fillMaxSize().padding(20.dp)) {
+                Box {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {
@@ -50,10 +54,19 @@ class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
                             }
                         ) { activity ->
                             if (activity.first == RowType.Header)
-                                PackageHeader(activity.second as String)
-                            else if (activity.first == RowType.Regular)
-                                ActivityRow(activity.second as ActivityInfo, onAction)
-
+                                HeaderRow(activity.second as String)
+                            else if (activity.first == RowType.Regular) {
+                                (activity.second as ActivityInfo).let {
+                                    RegularRow(
+                                        it.activityPath,
+                                        Modifier.clickable { onAction(Actions.Launch(it)) }
+                                    )
+                                }
+                                Divider(
+                                    color = MaterialTheme.colors.onBackground,
+                                    modifier = Modifier.height(1.dp).fillMaxWidth()
+                                )
+                            }
                         }
                     }
                     VerticalScrollbar(

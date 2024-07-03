@@ -6,12 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,10 +15,11 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
+import ui.MySearchField
+import ui.RegularRow
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 import ui.plugins.packages.RowType
-import ui.useDebounce
 
 class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
     sealed class Actions : IAction {
@@ -40,21 +35,11 @@ class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
 
     @Composable
     override fun present(items: List<Pair<String, List<ActivityInfo>>>, onAction: (IAction) -> Unit) {
-        var searchTerm by remember { mutableStateOf("") }
         var filter by remember { mutableStateOf("") }
-        searchTerm.useDebounce {
-            filter = it
-        }
-        Box(Modifier.fillMaxSize().padding(10.dp)) {
+        Box(Modifier.fillMaxSize()) {
             Column {
-                OutlinedTextField(
-                    searchTerm,
-                    onValueChange = { searchTerm = it },
-                    leadingIcon = { Icon(Icons.Filled.Search, "") },
-                    placeholder = { Text("Type to search") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Box(Modifier.fillMaxSize().padding(10.dp)) {
+                MySearchField { filter = it }
+                Box(Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
                     LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
                         items(items.filter {
@@ -77,19 +62,5 @@ class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun RegularRow(content: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .padding(6.dp)
-            .fillMaxWidth()
-    ) {
-        Text(
-            content,
-            style = MaterialTheme.typography.body2,
-        )
     }
 }
