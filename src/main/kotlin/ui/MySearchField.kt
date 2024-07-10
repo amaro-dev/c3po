@@ -27,6 +27,7 @@ fun MySearchField(onChangeFilter: (String) -> Unit) {
             BasicTextField(
                 searchTerm,
                 onValueChange = { searchTerm = it },
+                maxLines = 1,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
