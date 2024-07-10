@@ -18,9 +18,12 @@ fun MySearchField(onChangeFilter: (String) -> Unit) {
     searchTerm.useDebounce { onChangeFilter(it) }
 //    placeholder = { Text("Type to search") },
     Surface(color = MaterialTheme.colors.background) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
-            Icon(Icons.Filled.Search, "", Modifier.size(24.dp))
-            Spacer(Modifier.width(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+        ) {
+            Icon(Icons.Filled.Search, "", Modifier.size(Dimens.ICON_SIZE_REGULAR.dp))
+            Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
             BasicTextField(
                 searchTerm,
                 onValueChange = { searchTerm = it },

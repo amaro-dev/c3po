@@ -18,6 +18,7 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
+import ui.Dimens
 import ui.HeaderRow
 import ui.MySearchField
 import ui.RegularRow
@@ -45,7 +46,7 @@ class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
                 MySearchField { filter = it }
                 Box {
                     val listState = rememberLazyListState()
-                    LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+                    LazyColumn(Modifier.fillMaxSize().padding(end = Dimens.SCROLL_BAR_MARGIN.dp), state = listState) {
                         items(items.filter {
                             filter.length < 3 || it.packageName.contains(filter, ignoreCase = true)
                         }.groupBy { it.packageName }
@@ -64,7 +65,7 @@ class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
                                 }
                                 Divider(
                                     color = MaterialTheme.colors.onBackground,
-                                    modifier = Modifier.height(1.dp).fillMaxWidth()
+                                    modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth()
                                 )
                             }
                         }

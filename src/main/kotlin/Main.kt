@@ -1,30 +1,25 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import commands.CommandResult
 import core.Action
 import core.App
 import core.SettingsState
-import dev.amaro.sonic.IAction
-import ui.CommandStatus
-import ui.DeviceSelector
-import ui.PluginSelector
-import ui.plugins.Plugin
+import ui.*
 import java.awt.Toolkit
-import java.io.InputStreamReader
 
 @Composable
 @Preview
@@ -35,19 +30,19 @@ fun Render(app: App) {
         Column(Modifier.fillMaxSize()) {
             Surface(color = MaterialTheme.colors.primary) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(Dimens.ROW_HEIGHT_EXTRA_LARGE.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(Modifier.weight(3f)) {
                         DeviceSelector(state.devices, state.currentDevice) { app.perform(Action.SelectDevice(it)) }
                     }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     IconButton(onClick = { app.perform(Action.RefreshDevices) }) {
                         Icon(Icons.Filled.Refresh, "")
                     }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     PluginSelector(app.plugins) { app.perform(it) }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     Box(Modifier.weight(8f).fillMaxHeight()) {
                         Workspace(
                             app.plugins.filter { it.id in state.windows.keys },
@@ -68,8 +63,10 @@ fun Render(app: App) {
             }
 
             Row(
-                Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth().padding(12.dp, 4.dp)
-                    .height(32.dp),
+                Modifier.background(MaterialTheme.colors.primaryVariant)
+                    .fillMaxWidth()
+                    .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+                    .height(Dimens.ROW_HEIGHT_REGULAR.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
@@ -86,63 +83,11 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "C3PO - The Android Explorer",
-        state = WindowState(width = 1024.dp, height = 800.dp)
+        state = WindowState(
+            width = Dimens.WINDOW_WIDTH.dp,
+            height = Dimens.WINDOW_HEIGHT.dp
+        )
     ) {
         Render(myApp)
-    }
-}
-
-
-object CommandRunner {
-    fun run(command: String): CommandResult {
-        //println("Command: '$command'")
-        val process = ProcessBuilder().command(command.split(' ')).start()
-        return CommandResult(InputStreamReader(process.inputStream.buffered()).readText().trim())
-    }
-}
-
-@Composable
-fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (IAction) -> Unit) {
-    Row(Modifier.fillMaxSize()) {
-        openPlugins.map {
-            val color =
-                if (currentPlugin == it.id) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.primary
-            Box(
-                Modifier.weight(1f)
-                    .background(color)
-                    .fillMaxHeight()
-                    .padding(4.dp)
-                    .clickable { onSelect(Action.SelectPlugin(it.id)) }
-            ) {
-                Text(it.name, Modifier.fillMaxWidth(1f).padding(4.dp, 8.dp), textAlign = TextAlign.Center)
-                Icon(
-                    Icons.Filled.Clear, null,
-                    modifier = Modifier.align(Alignment.TopEnd).clickable {
-                        onSelect(Action.ClosePlugin(it.id))
-                    },
-                    tint = MaterialTheme.colors.onPrimary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SettingsBox(onAction: (Action) -> Unit) {
-    var adbPathValue by remember { mutableStateOf("") }
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            Modifier.fillMaxWidth(0.5f),
-        ) {
-            TextField(
-                adbPathValue,
-                { adbPathValue = it },
-                placeholder = { Text("ADB Path") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button({ onAction(Action.SaveSettings(adbPathValue)) }, modifier = Modifier.align(Alignment.End)) {
-                Text("Save")
-            }
-        }
     }
 }

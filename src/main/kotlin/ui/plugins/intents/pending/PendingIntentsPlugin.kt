@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import models.PendingIntent
+import ui.Dimens
 import ui.MySearchField
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
@@ -55,7 +56,7 @@ class PendingIntentsPlugin : Plugin<List<Pair<String, List<PendingIntent>>>> {
                 MySearchField { filter = it }
                 Box {
                     val listState = rememberLazyListState()
-                    LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+                    LazyColumn(Modifier.fillMaxSize().padding(end = Dimens.SCROLL_BAR_MARGIN.dp), state = listState) {
                         items(filteredItems) { pkg ->
                             PackageHeader(pkg.first)
                             pkg.second.map {
@@ -78,7 +79,7 @@ class PendingIntentsPlugin : Plugin<List<Pair<String, List<PendingIntent>>>> {
 @Composable
 fun PendingIntentRow(intent: PendingIntent) {
     Column {
-        Row(Modifier.fillMaxWidth().padding(20.dp, 8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)) {
             Text(
                 text = "Id: ",
                 style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold),
@@ -117,7 +118,10 @@ fun PendingIntentRow(intent: PendingIntent) {
                 modifier = Modifier.weight(0.15f)
             )
         }
-        Column(Modifier.background(Color.Black.copy(alpha = 0.1f)).padding(20.dp, 8.dp)) {
+        Column(
+            Modifier.background(Color.Black.copy(alpha = 0.1f))
+                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+        ) {
             Row {
                 Text(
                     text = "Action: ",

@@ -18,8 +18,8 @@ fun ActionButton(
         painter = painter,
         contentDescription = "",
         modifier = Modifier.clickable { onClick() }
-            .size(32.dp)
-            .padding(6.dp)
+            .size(Dimens.SQUARE_BUTTON_SIZE_REGULAR.dp)
+            .padding(Dimens.SQUARE_BUTTON_PADDING.dp)
 
     )
 }

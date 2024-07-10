@@ -22,7 +22,7 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
         ) {
             Surface(color = MaterialTheme.colors.primary) {
                 Row(
-                    Modifier.fillMaxWidth().padding(start = 8.dp),
+                    Modifier.fillMaxWidth().padding(start = Dimens.HORIZONTAL_SPACER.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text("Select a device")
@@ -53,7 +53,7 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
 
 @Composable
 private fun DeviceOption(device: AdbDevice, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(bottom = 4.dp)) {
+    Column(modifier = modifier.padding(bottom = Dimens.VERTICAL_SPACER.dp)) {
         Text(
             device.details[DeviceAttrs.Name.key] ?: "<unknown>",
             style = MaterialTheme.typography.body1

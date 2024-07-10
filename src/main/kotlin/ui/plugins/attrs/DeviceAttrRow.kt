@@ -4,7 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import core.Action
 import dev.amaro.sonic.IAction
+import ui.Dimens
 
 
 @Composable
@@ -30,18 +31,21 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
     var isHoveringAttr: Boolean by remember { mutableStateOf(false) }
     var isHoveringValue: Boolean by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-        Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth().height(Dimens.ROW_HEIGHT_LARGE.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(5f)
-                    .padding(start = 10.dp)
+                    .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
                     .onHover { isHoveringAttr = it },
                 textAlign = TextAlign.End
             )
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
             Box(Modifier.weight(8f), contentAlignment = Alignment.CenterEnd) {
                 Text(
                     text = value ?: "-",
@@ -54,9 +58,9 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
                     exit = slideOutHorizontallyToRight()
                 ) {
                     Box(
-                        Modifier.padding(end = 10.dp)
+                        Modifier.padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
                             .onHover { isHoveringValue = it }
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(CircleShape)
                     ) {
                         Icon(
                             painterResource("ic_copy.svg"),
@@ -70,9 +74,9 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
         }
         AnimatedVisibility(isHoveringAttr, enter = slideInHorizontally(), exit = slideOutHorizontally()) {
             Box(
-                modifier = Modifier.padding(start = 10.dp)
+                modifier = Modifier.padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
                     .onHover { isHoveringAttr = it }
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(CircleShape)
             ) {
                 Icon(
                     painterResource("ic_copy.svg"),
@@ -102,7 +106,7 @@ fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width
 @Composable
 fun Modifier.withIconStyle(): Modifier = this.background(
     color = MaterialTheme.colors.background,
-    shape = RoundedCornerShape(16.dp)
+    shape = CircleShape
 )
-    .padding(6.dp)
-    .clip(shape = RoundedCornerShape(16.dp))
+    .padding(Dimens.HORIZONTAL_SPACER.dp)
+    .clip(shape = CircleShape)

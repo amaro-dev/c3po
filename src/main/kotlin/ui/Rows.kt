@@ -15,8 +15,8 @@ import dev.amaro.sonic.IAction
 fun RegularRow(content: String, modifier: Modifier = Modifier) {
     Row(
         modifier
-            .padding(10.dp, 6.dp)
-            .defaultMinSize(minHeight = 32.dp)
+            .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+            .defaultMinSize(minHeight = Dimens.ROW_HEIGHT_REGULAR.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -31,7 +31,7 @@ fun RegularRow(content: String, modifier: Modifier = Modifier) {
 fun ActionableRow(content: String, actions: List<RowAction>, onAction: (IAction) -> Unit) {
     Row(
         Modifier
-            .padding(10.dp, 6.dp)
+            .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -40,7 +40,7 @@ fun ActionableRow(content: String, actions: List<RowAction>, onAction: (IAction)
             style = MaterialTheme.typography.body2,
             modifier = Modifier.weight(1f)
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
         actions.map {
             ActionButton(painterResource(it.icon)) {
                 onAction(it.action)
@@ -60,7 +60,8 @@ data class RowAction(
 fun HeaderRow(content: String) {
     Surface(color = MaterialTheme.colors.primary) {
         Row(
-            Modifier.fillMaxWidth().padding(20.dp, 6.dp),
+            Modifier.fillMaxWidth()
+                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(content, style = MaterialTheme.typography.subtitle1)

@@ -16,6 +16,7 @@ import core.Action.CommandAction
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
+import ui.Dimens
 import ui.MySearchField
 import ui.plugins.Plugin
 
@@ -40,14 +41,17 @@ class DeviceAttrsPlugin : Plugin<List<Pair<String, String>>> {
                 MySearchField { filter = it }
                 Box(Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
-                    LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+                    LazyColumn(Modifier.fillMaxSize().padding(end = Dimens.SCROLL_BAR_MARGIN.dp), state = listState) {
                         items(items.filter {
                             filter.length < 2
                                     || it.first.contains(filter, ignoreCase = true)
                                     || it.second.contains(filter, ignoreCase = true)
                         }) {
                             DeviceAttrRow("${it.first}:", it.second, onAction)
-                            Spacer(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colors.onBackground))
+                            Spacer(
+                                Modifier.fillMaxWidth().height(Dimens.BORDER_REGULAR.dp)
+                                    .background(MaterialTheme.colors.onBackground)
+                            )
                         }
                     }
                     VerticalScrollbar(

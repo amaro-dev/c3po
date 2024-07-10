@@ -15,6 +15,7 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
+import ui.Dimens
 import ui.MySearchField
 import ui.RegularRow
 import ui.plugins.Plugin
@@ -41,7 +42,7 @@ class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
                 MySearchField { filter = it }
                 Box(Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
-                    LazyColumn(Modifier.fillMaxSize().padding(end = 12.dp), state = listState) {
+                    LazyColumn(Modifier.fillMaxSize().padding(end = Dimens.SCROLL_BAR_MARGIN.dp), state = listState) {
                         items(items.filter {
                             filter.length < 3 || it.first.contains((filter))
                         }.flatMap {

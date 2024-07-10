@@ -30,12 +30,21 @@ fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
         Menu(Modifier.align(Alignment.End)) {
             MenuButton(
                 Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .border(1.dp, MaterialTheme.colors.onPrimary, RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
+                    .border(
+                        Dimens.BORDER_REGULAR.dp,
+                        MaterialTheme.colors.onPrimary,
+                        RoundedCornerShape(
+                            Dimens.ROUNDED_CORNER.dp
+                        )
+                    )
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    modifier = Modifier.padding(
+                        horizontal = Dimens.ROW_HORIZONTAL_MARGIN.dp,
+                        vertical = Dimens.ROW_VERTICAL_MARGIN.dp
+                    )
                 ) {
                     Image(
                         Icons.Filled.Add, null,
@@ -46,22 +55,26 @@ fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
 
             MenuContent(
                 modifier = Modifier.width(320.dp)
-                    .border(1.dp, MaterialTheme.colors.onSurface, RoundedCornerShape(4.dp))
+                    .border(
+                        Dimens.BORDER_REGULAR.dp,
+                        MaterialTheme.colors.onSurface,
+                        RoundedCornerShape(Dimens.ROUNDED_CORNER.dp)
+                    )
                     .background(MaterialTheme.colors.surface)
-                    .clip(RoundedCornerShape(4.dp))
-                    .padding(4.dp),
+                    .clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
+                    .padding(Dimens.ROUNDED_CORNER.dp),
                 hideTransition = fadeOut()
             ) {
                 plugins.forEach {
                     MenuItem(
-                        modifier = Modifier.clip(RoundedCornerShape(4.dp)),
+                        modifier = Modifier.clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp)),
                         onClick = { onSelect(Action.StartPlugin(it.id)) }
                     ) {
                         BasicText(
                             it.name,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp, horizontal = 6.dp)
+                                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
                         )
                     }
                 }
