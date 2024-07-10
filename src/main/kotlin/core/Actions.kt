@@ -8,6 +8,7 @@ sealed interface Action : IAction {
     interface CommandAction : Action
     data class SelectDevice(val device: AdbDevice) : Action
     data object RefreshDevices : CommandAction
+    data object ClearPlugins : Action
     data class CopyText(val content: String) : Action
     data object SetCommandRunning : Action
     data object SetCommandCompleted : Action

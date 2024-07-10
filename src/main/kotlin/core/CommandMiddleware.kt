@@ -15,7 +15,10 @@ class CommandMiddleware : IMiddleware<AppState> {
             is Action.RefreshDevices -> {
                 val devices = ListDevicesCommand.run(adbPath)
                 processor.reduce(Action.DeliverDevices(devices))
-                if (devices.size == 1) processor.perform(Action.SelectDevice(devices[0]))
+                if (devices.size == 1) {
+                    if (devices[0] != state.currentDevice) processor.reduce(Action.ClearPlugins)
+                    processor.perform(Action.SelectDevice(devices[0]))
+                }
             }
 
             is Action.SelectDevice -> {

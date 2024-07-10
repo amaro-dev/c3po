@@ -26,6 +26,7 @@ class AppReducer : IReducer<AppState> {
             is Action.SettingsNotFound -> currentState.copy(
                 settingsState = SettingsState.NotFound
             )
+            is Action.ClearPlugins -> currentState.copy(windows = emptyMap())
             is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
             is Action.ClosePlugin -> currentState.copy(
                 windows = currentState.windows.minus(action.pluginName),
