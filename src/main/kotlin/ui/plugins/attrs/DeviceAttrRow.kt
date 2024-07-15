@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import core.Action
 import dev.amaro.sonic.IAction
 import ui.Dimens
+import ui.Icons
+import ui.Texts
 
 
 @Composable
@@ -48,7 +50,7 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
             Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
             Box(Modifier.weight(8f), contentAlignment = Alignment.CenterEnd) {
                 Text(
-                    text = value ?: "-",
+                    text = value ?: Texts.NO_VALUE,
                     style = MaterialTheme.typography.subtitle2,
                     modifier = Modifier.onHover { isHoveringValue = it }.fillMaxWidth(),
                 )
@@ -63,9 +65,9 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
                             .clip(CircleShape)
                     ) {
                         Icon(
-                            painterResource("ic_copy.svg"),
-                            contentDescription = "",
-                            modifier = Modifier.clickable { onAction(Action.CopyText(value ?: "")) }
+                            painterResource(Icons.COPY),
+                            contentDescription = Texts.EMPTY,
+                            modifier = Modifier.clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
                                 .withIconStyle()
                         )
                     }
@@ -79,9 +81,10 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
                     .clip(CircleShape)
             ) {
                 Icon(
-                    painterResource("ic_copy.svg"),
-                    contentDescription = "",
-                    modifier = Modifier.clickable { onAction(Action.CopyText(label.removeSuffix(":"))) }
+                    painterResource(Icons.COPY),
+                    contentDescription = Texts.EMPTY,
+                    modifier = Modifier
+                        .clickable { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) }
                         .withIconStyle()
 
                 )

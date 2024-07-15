@@ -1,4 +1,4 @@
-package ui.plugins.packages
+package ui
 
 enum class RowType {
     Header,

@@ -38,7 +38,7 @@ fun Render(app: App) {
                     }
                     Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     IconButton(onClick = { app.perform(Action.RefreshDevices) }) {
-                        Icon(Icons.Filled.Refresh, "")
+                        Icon(Icons.Filled.Refresh, Texts.EMPTY)
                     }
                     Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     PluginSelector(app.plugins) { app.perform(it) }

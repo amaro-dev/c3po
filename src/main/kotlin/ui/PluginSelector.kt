@@ -81,5 +81,4 @@ fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
             }
         }
     }
-
 }

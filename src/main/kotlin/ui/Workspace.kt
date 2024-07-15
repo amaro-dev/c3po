@@ -32,12 +32,19 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
                     .padding(SQUARE_BUTTON_PADDING.dp)
                     .clickable { onSelect(Action.SelectPlugin(it.id)) }
             ) {
-                Text(it.name, Modifier.fillMaxWidth(1f).padding(HORIZONTAL_SPACER.dp), textAlign = TextAlign.Center)
+                Text(
+                    it.name,
+                    Modifier.fillMaxWidth(1f)
+                        .padding(HORIZONTAL_SPACER.dp),
+                    textAlign = TextAlign.Center
+                )
                 Icon(
                     Icons.Filled.Clear, null,
-                    modifier = Modifier.align(Alignment.TopEnd).clickable {
-                        onSelect(Action.ClosePlugin(it.id))
-                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .clickable {
+                            onSelect(Action.ClosePlugin(it.id))
+                        },
                     tint = MaterialTheme.colors.onPrimary
                 )
             }

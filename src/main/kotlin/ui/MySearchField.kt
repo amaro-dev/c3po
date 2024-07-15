@@ -14,24 +14,22 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MySearchField(onChangeFilter: (String) -> Unit) {
-    var searchTerm by remember { mutableStateOf("") }
+    var searchTerm by remember { mutableStateOf(Texts.EMPTY) }
     searchTerm.useDebounce { onChangeFilter(it) }
-//    placeholder = { Text("Type to search") },
+
     Surface(color = MaterialTheme.colors.background) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
         ) {
-            Icon(Icons.Filled.Search, "", Modifier.size(Dimens.ICON_SIZE_REGULAR.dp))
+            Icon(Icons.Filled.Search, Texts.EMPTY, Modifier.size(Dimens.ICON_SIZE_REGULAR.dp))
             Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
             BasicTextField(
                 searchTerm,
                 onValueChange = { searchTerm = it },
-                maxLines = 1,
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
             )
         }
     }
-
-
 }

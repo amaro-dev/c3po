@@ -10,8 +10,6 @@ class StartActivityCommand(
     override val command: String =
         "-s ${device.id} shell am start -n ${activityInfo.fullPath.replace("\$", "\\\$")}"
 
-    override fun parse(result: CommandResult) {
-
-    }
+    override fun parse(result: CommandResult) = Unit
 
 }

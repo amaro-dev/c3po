@@ -18,5 +18,4 @@ interface Dimens {
         const val ROUNDED_CORNER = 4
         const val BORDER_REGULAR = 1
     }
-
 }

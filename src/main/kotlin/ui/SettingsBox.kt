@@ -11,11 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import core.Action
+import ui.Texts.Companion.ADB_PATH
 
 
 @Composable
 fun SettingsBox(onAction: (Action) -> Unit) {
-    var adbPathValue by remember { mutableStateOf("") }
+    var adbPathValue by remember { mutableStateOf(Texts.EMPTY) }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             Modifier.fillMaxWidth(0.5f),
@@ -23,11 +24,11 @@ fun SettingsBox(onAction: (Action) -> Unit) {
             TextField(
                 adbPathValue,
                 { adbPathValue = it },
-                placeholder = { Text("ADB Path") },
+                placeholder = { Text(ADB_PATH) },
                 modifier = Modifier.fillMaxWidth()
             )
             Button({ onAction(Action.SaveSettings(adbPathValue)) }, modifier = Modifier.align(Alignment.End)) {
-                Text("Save")
+                Text(Texts.SAVE)
             }
         }
     }

@@ -16,7 +16,7 @@ fun ActionButton(
 ) {
     Icon(
         painter = painter,
-        contentDescription = "",
+        contentDescription = Texts.EMPTY,
         modifier = Modifier.clickable { onClick() }
             .size(Dimens.SQUARE_BUTTON_SIZE_REGULAR.dp)
             .padding(Dimens.SQUARE_BUTTON_PADDING.dp)

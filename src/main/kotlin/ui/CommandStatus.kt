@@ -25,14 +25,14 @@ fun CommandStatus(status: CommandStatus) {
         )
         Icon(
             Icons.Filled.Settings,
-            "",
+            Texts.EMPTY,
             tint = MaterialTheme.colors.onPrimary,
             modifier = Modifier.rotate(degrees)
         )
     } else if (status == CommandStatus.Completed) {
         Icon(
             Icons.Filled.Check,
-            "",
+            Texts.EMPTY,
             tint = MaterialTheme.colors.onPrimary
         )
     }
