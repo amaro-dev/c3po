@@ -12,6 +12,8 @@ import ui.plugins.services.ServicesPlugin
 import java.awt.datatransfer.Clipboard
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 class App(clipboard: Clipboard) {
     val plugins: List<Plugin<out Any>> = listOf(
@@ -24,7 +26,7 @@ class App(clipboard: Clipboard) {
 
     private val resourcesPath =
         if (Settings.isDebug())
-            File(System.getProperty(Settings.RESOURCES_PROP)).parentFile
+            File(Paths.get("").absolutePathString())
         else
             File(Settings.productionSettingsFolder()).apply {
                 if (!exists()) Files.createDirectory(toPath())
