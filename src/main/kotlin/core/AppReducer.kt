@@ -11,13 +11,20 @@ class AppReducer : IReducer<AppState> {
                 devices = action.devices,
                 commandStatus = CommandStatus.Completed
             )
+
             is Action.DeliverPluginResult -> {
                 currentState.copy(
-                    windows = currentState.windows.plus(Pair(action.plugin, action.items)),
+                    windows = currentState.windows.plus(
+                        Pair(
+                            action.plugin,
+                            WindowResult(action.searchTerm, action.items)
+                        )
+                    ),
                     currentPlugin = action.plugin,
                     commandStatus = CommandStatus.Completed
                 )
             }
+
             is Action.LoadSettingsIntoState -> currentState.copy(
                 settings = action.props,
                 settingsState = SettingsState.Initialized
@@ -26,6 +33,7 @@ class AppReducer : IReducer<AppState> {
             is Action.SettingsNotFound -> currentState.copy(
                 settingsState = SettingsState.NotFound
             )
+
             is Action.ClearPlugins -> currentState.copy(windows = emptyMap())
             is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
             is Action.ClosePlugin -> currentState.copy(
@@ -35,9 +43,17 @@ class AppReducer : IReducer<AppState> {
                 else
                     currentState.currentPlugin
             )
+
             is Action.SetCommandRunning -> currentState.copy(commandStatus = CommandStatus.Running)
             is Action.SetCommandCompleted -> currentState.copy(commandStatus = CommandStatus.Completed)
-
+            is Action.ChangeFilter ->  currentState.copy(
+                windows = currentState.windows.plus(
+                    Pair(
+                    action.pluginName,
+                        WindowResult(action.searchTerm, currentState.windows[action.pluginName]?.result ?: emptyList())
+                    )
+                )
+            )
             else -> currentState
         }
     }

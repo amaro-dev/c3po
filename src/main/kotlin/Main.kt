@@ -19,6 +19,7 @@ import core.Action
 import core.App
 import core.SettingsState
 import ui.*
+import ui.plugins.Plugin
 import java.awt.Toolkit
 
 @Composable
@@ -53,9 +54,8 @@ fun Render(app: App) {
             }
             Box(Modifier.fillMaxWidth().weight(1f)) {
                 state.currentPlugin?.let { name ->
-                    app.plugins.first { it.id == name }.run {
-                        present(state.windows) { app.perform(it) }
-                    }
+                    val selectedPlugin: Plugin<*>? = app.plugins.find { it.id == name }
+                    selectedPlugin?.render(state.windows) { app.perform(it) }
                 }
                 if (state.settingsState == SettingsState.NotFound) {
                     SettingsBox { app.perform(it) }

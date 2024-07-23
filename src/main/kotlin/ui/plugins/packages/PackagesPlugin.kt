@@ -5,23 +5,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.Action
 import core.Action.CommandAction
 import core.AppState
+import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.AppPackage
 import ui.*
 import ui.plugins.Plugin
 
-class PackagesPlugin : Plugin<List<AppPackage>> {
-    sealed class Actions : IAction {
-        data object List : Actions(), CommandAction
-        data class Stop(val packageInfo: AppPackage) : Actions(), CommandAction
-        data class Uninstall(val packageInfo: AppPackage) : Actions(), CommandAction
-        data class ClearData(val packageInfo: AppPackage) : Actions(), CommandAction
+class PackagesPlugin : Plugin<AppPackage> {
+    sealed interface Actions : IAction {
+        data object List : Actions, CommandAction
+        data class Stop(val packageInfo: AppPackage) : Actions, CommandAction
+        data class Uninstall(val packageInfo: AppPackage) : Actions, CommandAction
+        data class ClearData(val packageInfo: AppPackage) : Actions, CommandAction
     }
 
     override val name: String = "Installed packages"
@@ -35,9 +37,10 @@ class PackagesPlugin : Plugin<List<AppPackage>> {
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(items: List<AppPackage>, onAction: (IAction) -> Unit) {
-        var filter by remember { mutableStateOf(Texts.EMPTY) }
-        ContentBox({ filter = it }) {
+    override fun present(result: WindowResult<AppPackage>, onAction: (IAction) -> Unit) {
+        val items: List<AppPackage> = result.result
+        val filter = result.searchTerm
+        ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
             items(items.filter {
                 filter.length < 3 || it.packageName.contains((filter))
             }) { pkg ->

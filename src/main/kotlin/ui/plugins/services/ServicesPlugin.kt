@@ -1,22 +1,23 @@
 package ui.plugins.services
 
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import core.Action
 import core.Action.CommandAction
 import core.AppState
+import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.ContentBox
 import ui.RegularRow
 import ui.RowType
-import ui.Texts
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 
-class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
-    sealed class Actions : IAction {
-        data object LIST : Actions(), CommandAction
+class ServicesPlugin : Plugin<Pair<String, List<ActivityInfo>>> {
+    sealed interface Actions : IAction {
+        data object LIST : Actions, CommandAction
     }
 
     override val name: String = "Services / Action"
@@ -27,9 +28,10 @@ class ServicesPlugin : Plugin<List<Pair<String, List<ActivityInfo>>>> {
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(items: List<Pair<String, List<ActivityInfo>>>, onAction: (IAction) -> Unit) {
-        var filter by remember { mutableStateOf(Texts.EMPTY) }
-        ContentBox({ filter = it }) {
+    override fun present(result: WindowResult<Pair<String, List<ActivityInfo>>>, onAction: (IAction) -> Unit) {
+        val items: List<Pair<String, List<ActivityInfo>>> = result.result
+        val filter = result.searchTerm
+        ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
             items(items.filter {
                 filter.length < 3 || it.first.contains((filter))
             }.flatMap {

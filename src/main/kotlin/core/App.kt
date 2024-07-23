@@ -16,7 +16,7 @@ import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
 class App(clipboard: Clipboard) {
-    val plugins: List<Plugin<out Any>> = listOf(
+    val plugins: List<Plugin<*>> = listOf(
         ActivitiesPlugin(),
         PackagesPlugin(),
         DeviceAttrsPlugin(),
@@ -26,7 +26,7 @@ class App(clipboard: Clipboard) {
 
     private val resourcesPath =
         if (Settings.isDebug())
-            File(Paths.get("").absolutePathString())
+            File(Paths.get("build").absolutePathString())
         else
             File(Settings.productionSettingsFolder()).apply {
                 if (!exists()) Files.createDirectory(toPath())
@@ -38,7 +38,8 @@ class App(clipboard: Clipboard) {
         ClipboardMiddleware(clipboard),
         ConditionedDirectMiddleware(
             Action.SelectPlugin::class,
-            Action.ClosePlugin::class
+            Action.ClosePlugin::class,
+            Action.ChangeFilter::class
         ),
         SettingsMiddleware(resourcesPath, Settings.FILE_NAME)
     )

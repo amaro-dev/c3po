@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MySearchField(onChangeFilter: (String) -> Unit) {
-    var searchTerm by remember { mutableStateOf(Texts.EMPTY) }
+fun MySearchField(initialValue: String, onChangeFilter: (String) -> Unit) {
+    var searchTerm by remember { mutableStateOf(initialValue) }
     searchTerm.useDebounce { onChangeFilter(it) }
 
     Surface(color = MaterialTheme.colors.background) {

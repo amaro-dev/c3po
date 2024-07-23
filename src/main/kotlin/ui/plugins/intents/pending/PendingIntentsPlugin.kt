@@ -8,12 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import core.AppState
+import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.PendingIntent
@@ -23,33 +24,33 @@ import ui.Texts
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 
-class PendingIntentsPlugin : Plugin<List<Pair<String, List<PendingIntent>>>> {
-    sealed interface Action : IAction {
-        data object List : Action
+class PendingIntentsPlugin : Plugin<Pair<String, List<PendingIntent>>> {
+    sealed interface Actions : IAction {
+        data object List : Actions
     }
 
     override val id: String = "PENDING_INTENT"
     override val name: String = "Pending intents"
-    override val mainAction: IAction = Action.List
+    override val mainAction: IAction = Actions.List
 
     override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id)
 
 
-    override fun isResponsibleFor(action: IAction): Boolean = action is Action
+    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(items: List<Pair<String, List<PendingIntent>>>, onAction: (IAction) -> Unit) {
-        var filter by remember { mutableStateOf(Texts.EMPTY) }
+    override fun present(result: WindowResult<Pair<String, List<PendingIntent>>>, onAction: (IAction) -> Unit) {
+        val items: List<Pair<String, List<PendingIntent>>> = result.result
+        val filter = result.searchTerm
         val filteredItems = items.filter {
             filter.length < 3 || it.first.contains((filter))
         }
-        ContentBox({ filter = it }) {
+        ContentBox(filter, { onAction(core.Action.ChangeFilter(id, it)) }) {
             items(filteredItems) { pkg ->
                 PackageHeader(pkg.first)
                 pkg.second.map {
                     PendingIntentRow(it)
                 }
-
             }
         }
     }

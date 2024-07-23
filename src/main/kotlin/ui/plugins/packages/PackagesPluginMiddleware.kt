@@ -8,14 +8,16 @@ import commands.UninstallAppCommand
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
-import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ui.plugins.PluginMiddleware
 
-class PackagesPluginMiddleware(private val name: String) : IMiddleware<AppState> {
+class PackagesPluginMiddleware(private val name: String) : PluginMiddleware(name) {
+
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         when (action) {

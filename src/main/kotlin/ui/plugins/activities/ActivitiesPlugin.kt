@@ -9,18 +9,20 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.Action
 import core.Action.CommandAction
 import core.AppState
+import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.*
 import ui.plugins.Plugin
 
-class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
-    sealed class Actions : IAction {
-        data object List : Actions(), CommandAction
-        data class Launch(val activityInfo: ActivityInfo) : Actions(), CommandAction
+class ActivitiesPlugin : Plugin<ActivityInfo> {
+    sealed interface Actions : IAction {
+        data object List : Actions, CommandAction
+        data class Launch(val activityInfo: ActivityInfo) : Actions, CommandAction
     }
 
     override val name: String = "Activities"
@@ -31,9 +33,10 @@ class ActivitiesPlugin : Plugin<List<ActivityInfo>> {
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(items: List<ActivityInfo>, onAction: (IAction) -> Unit) {
-        var filter by remember { mutableStateOf(Texts.EMPTY) }
-        ContentBox({ filter = it }) {
+    override fun present(result : WindowResult<ActivityInfo>, onAction: (IAction) -> Unit) {
+        val items: List<ActivityInfo> = result.result
+        val filter = result.searchTerm
+        ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
             items(items.filter {
                 filter.length < 3 || it.packageName.contains(filter, ignoreCase = true)
             }.groupBy { it.packageName }

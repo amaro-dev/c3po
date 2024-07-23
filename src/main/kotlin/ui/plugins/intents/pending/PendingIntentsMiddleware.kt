@@ -5,13 +5,13 @@ import commands.ListPendingActivityIntentsCommand
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
-import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ui.plugins.PluginMiddleware
 
-class PendingIntentsMiddleware(private val name: String) : IMiddleware<AppState> {
+class PendingIntentsMiddleware(private val name: String) : PluginMiddleware(name) {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -19,7 +19,7 @@ class PendingIntentsMiddleware(private val name: String) : IMiddleware<AppState>
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         when (action) {
             is Action.StartPlugin,
-            PendingIntentsPlugin.Action.List -> {
+            PendingIntentsPlugin.Actions.List -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
                         val results = ListPendingActivityIntentsCommand(this).run(adbPath)

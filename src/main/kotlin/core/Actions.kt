@@ -19,8 +19,9 @@ sealed interface Action : IAction {
     data class LoadSettingsIntoState(val props: Properties) : Action
 
     data class DeliverDevices(val devices: List<AdbDevice>) : Action
-    data class DeliverPluginResult(val plugin: String, val items: List<*>) : Action
+    data class DeliverPluginResult(val plugin: String, val items: List<*>, val searchTerm: String = "") : Action
     data class StartPlugin(val pluginName: String) : Action
     data class SelectPlugin(val pluginName: String) : Action
     data class ClosePlugin(val pluginName: String) : Action
+    data class ChangeFilter(val pluginName: String, val searchTerm: String) : Action
 }

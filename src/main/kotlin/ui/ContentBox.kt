@@ -12,10 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ContentBox(onSearch: ((String) -> Unit), content: LazyListScope.() -> Unit) {
+fun ContentBox(searchTerm: String, onSearch: ((String) -> Unit), content: LazyListScope.() -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Column {
-            MySearchField { onSearch(it) }
+            MySearchField(searchTerm) { onSearch(it) }
             Box(Modifier.fillMaxSize()) {
                 val listState = rememberLazyListState()
                 LazyColumn(Modifier.fillMaxSize().padding(end = Dimens.SCROLL_BAR_MARGIN.dp), state = listState) {

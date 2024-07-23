@@ -2,11 +2,12 @@ package ui.plugins
 
 import androidx.compose.runtime.Composable
 import core.AppState
+import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 
 
-interface Plugin<T> {
+interface Plugin<in T> {
     // As a good practice actions should be declared in here
 
     val id: String
@@ -20,11 +21,10 @@ interface Plugin<T> {
     fun isResponsibleFor(action: IAction): Boolean
 
     @Composable
-    fun present(state: Map<String, Any>, onAction: (IAction) -> Unit) {
-        val data: T? = state[id] as? T
-        data?.run { present(this, onAction) }
+    fun render(state: Map<String, WindowResult<*>>, onAction: (IAction) -> Unit) {
+        state[id]?.run { present(this as WindowResult<T>, onAction) }
     }
 
     @Composable
-    fun present(items: T, onAction: (IAction) -> Unit)
+    fun present(result: WindowResult<T>, onAction: (IAction) -> Unit)
 }
