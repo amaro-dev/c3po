@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.plugins.PluginMiddleware
 
-class PendingIntentsMiddleware(private val name: String) : PluginMiddleware(name) {
+class PendingIntentsMiddleware(private val pluginName: String) : PluginMiddleware(pluginName) {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -21,10 +21,15 @@ class PendingIntentsMiddleware(private val name: String) : PluginMiddleware(name
             is Action.StartPlugin,
             PendingIntentsPlugin.Actions.List -> {
                 coroutineScope.launch {
+                    val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                     state.currentDevice?.run {
                         val results = ListPendingActivityIntentsCommand(this).run(adbPath)
                         processor.reduce(
-                            Action.DeliverPluginResult(name, results.groupBy { it.packageName }.toList())
+                            Action.DeliverPluginResult(
+                                pluginName,
+                                results.groupBy { it.packageName }.toList(),
+                                searchTerm
+                            )
                         )
                     }
                 }

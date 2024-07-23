@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.plugins.PluginMiddleware
 
-class PackagesPluginMiddleware(private val name: String) : PluginMiddleware(name) {
+class PackagesPluginMiddleware(private val pluginName: String) : PluginMiddleware(pluginName) {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -23,10 +23,15 @@ class PackagesPluginMiddleware(private val name: String) : PluginMiddleware(name
         when (action) {
             is Action.StartPlugin,
             PackagesPlugin.Actions.List -> {
+                val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 coroutineScope.launch {
                     state.currentDevice?.run {
                         processor.reduce(
-                            Action.DeliverPluginResult(name, ListPackagesCommand(this).run(adbPath))
+                            Action.DeliverPluginResult(
+                                pluginName,
+                                ListPackagesCommand(this).run(adbPath),
+                                searchTerm
+                            )
                         )
                     }
                 }

@@ -23,10 +23,11 @@ class ActivitiesPluginMiddleware(
         when (action) {
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List -> {
+                val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 coroutineScope.launch {
                     state.currentDevice?.run {
                         val activities = ListActivitiesCommand(this).run(adbPath)
-                        processor.reduce(Action.DeliverPluginResult(pluginName, activities))
+                        processor.reduce(Action.DeliverPluginResult(pluginName, activities, searchTerm))
                     }
                 }
             }

@@ -20,11 +20,12 @@ class DeviceAttrsMiddleware(
         when (action) {
             is Action.StartPlugin,
             DeviceAttrsPlugin.Actions.List -> {
+                val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 coroutineScope.launch {
                     state.currentDevice?.run {
                         val deviceInfo = DeviceInfoCommand(this@run).run(adbPath)
                         processor.reduce(
-                            Action.DeliverPluginResult(pluginName, deviceInfo.toList().sortedBy { it.first })
+                            Action.DeliverPluginResult(pluginName, deviceInfo.toList().sortedBy { it.first }, searchTerm)
                         )
                     }
                 }
