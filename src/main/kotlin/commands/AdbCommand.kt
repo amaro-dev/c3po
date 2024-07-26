@@ -14,5 +14,4 @@ interface AdbCommand<T> {
             )
         )
     }
-
 }

@@ -13,6 +13,17 @@ import dev.amaro.sonic.IAction
 
 @Composable
 fun RegularRow(content: String, modifier: Modifier = Modifier) {
+    CustomRow(modifier) {
+        Text(
+            content,
+            style = MaterialTheme.typography.body2,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun CustomRow(modifier: Modifier = Modifier, content:  @Composable RowScope.() -> Unit) {
     Row(
         modifier
             .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
@@ -20,26 +31,17 @@ fun RegularRow(content: String, modifier: Modifier = Modifier) {
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            content,
-            style = MaterialTheme.typography.body2,
-        )
+        content()
     }
 }
 
+
 @Composable
-fun ActionableRow(content: String, actions: List<RowAction>, onAction: (IAction) -> Unit) {
-    Row(
-        Modifier
-            .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = content,
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.weight(1f)
-        )
+fun ActionableRow(actions: List<RowAction>, onAction: (IAction) -> Unit, content: @Composable () -> Unit) {
+    CustomRow {
+        Box(Modifier.weight(1f)) {
+            content()
+        }
         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
         actions.map {
             ActionButton(painterResource(it.icon)) {

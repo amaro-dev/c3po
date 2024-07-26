@@ -1,10 +1,12 @@
 package ui.plugins.packages
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -45,14 +47,25 @@ class PackagesPlugin : Plugin<AppPackage> {
                 filter.length < 3 || it.packageName.contains((filter))
             }) { pkg ->
                 ActionableRow(
-                    pkg.packageName,
                     listOf(
                         RowAction(Icons.DELETE, Texts.EMPTY, Actions.Uninstall(pkg)),
                         RowAction(Icons.CLOSE, Texts.EMPTY, Actions.Stop(pkg)),
                         RowAction(Icons.WIPE, Texts.EMPTY, Actions.ClearData(pkg))
                     ),
                     onAction
-                )
+                ) {
+                    Column {
+                        Text(
+                            text = pkg.packageName,
+                            style = MaterialTheme.typography.body2,
+                        )
+                        Text(
+                            text = "${pkg.versionName} (${pkg.versionCode})" ,
+                            style = MaterialTheme.typography.overline,
+                        )
+                    }
+
+                }
                 Divider(
                     color = MaterialTheme.colors.onBackground,
                     modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth()
