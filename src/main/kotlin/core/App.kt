@@ -39,7 +39,8 @@ class App(clipboard: Clipboard) {
         ConditionedDirectMiddleware(
             Action.SelectPlugin::class,
             Action.ClosePlugin::class,
-            Action.ChangeFilter::class
+            Action.ChangeFilter::class,
+            Action.ClearError::class
         ),
         SettingsMiddleware(resourcesPath, Settings.FILE_NAME)
     )

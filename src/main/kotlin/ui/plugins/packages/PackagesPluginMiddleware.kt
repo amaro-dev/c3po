@@ -1,10 +1,7 @@
 package ui.plugins.packages
 
 import Settings
-import commands.ClearDataCommand
-import commands.ListPackagesCommand
-import commands.StopAppCommand
-import commands.UninstallAppCommand
+import commands.*
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
@@ -49,9 +46,13 @@ class PackagesPluginMiddleware(private val pluginName: String) : PluginMiddlewar
             is PackagesPlugin.Actions.Uninstall -> {
                 coroutineScope.launch {
                     state.currentDevice?.run {
-                        UninstallAppCommand(this, action.packageInfo).run(adbPath)
-                    }
-                    processor.reduce(Action.SetCommandCompleted)
+                        val command = UninstallAppCommand(this, action.packageInfo)
+                        when (val result = command.run(adbPath)) {
+                            is Success -> processor.perform(PackagesPlugin.Actions.List)
+                            is Error ->
+                                processor.reduce(Action.SetCommandError(result.message))
+                        }
+                    } ?: processor.reduce(Action.SetCommandCompleted)
                 }
             }
 

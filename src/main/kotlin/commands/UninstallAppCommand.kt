@@ -6,8 +6,11 @@ import models.AppPackage
 class UninstallAppCommand(
     device: AdbDevice,
     appPackage: AppPackage
-):AdbCommand<Unit> {
+) : AdbCommand<ParsedResult> {
     override val command: String = "-s ${device.id} uninstall ${appPackage.packageName}"
 
-    override fun parse(result: CommandResult) = Unit
+    override fun parse(result: CommandResult) = when (result.content) {
+        "Success" -> Success
+        else -> Error(result.content)
+    }
 }

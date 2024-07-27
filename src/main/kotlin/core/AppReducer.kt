@@ -44,16 +44,30 @@ class AppReducer : IReducer<AppState> {
                     currentState.currentPlugin
             )
 
-            is Action.SetCommandRunning -> currentState.copy(commandStatus = CommandStatus.Running)
+            is Action.SetCommandRunning -> currentState.copy(
+                commandStatus = CommandStatus.Running,
+                errorMessage = null
+            )
             is Action.SetCommandCompleted -> currentState.copy(commandStatus = CommandStatus.Completed)
-            is Action.ChangeFilter ->  currentState.copy(
+            is Action.SetCommandError -> currentState.copy(
+                commandStatus = CommandStatus.Failed,
+                errorMessage = action.message
+            )
+
+            is Action.ClearError -> currentState.copy(
+                errorMessage = null,
+                commandStatus = CommandStatus.Idle
+            )
+
+            is Action.ChangeFilter -> currentState.copy(
                 windows = currentState.windows.plus(
                     Pair(
-                    action.pluginName,
+                        action.pluginName,
                         WindowResult(action.searchTerm, currentState.windows[action.pluginName]?.result ?: emptyList())
                     )
                 )
             )
+
             else -> currentState
         }
     }

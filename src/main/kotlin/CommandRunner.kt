@@ -1,10 +1,15 @@
 import commands.CommandResult
-import java.io.InputStreamReader
 
 object CommandRunner {
     fun run(command: String): CommandResult {
         //println("Command: '$command'")
         val process = ProcessBuilder().command(command.split(' ')).start()
-        return CommandResult(InputStreamReader(process.inputStream.buffered()).readText().trim())
+        val response = process.inputReader().readText().trim()
+        val error = process.errorReader().readText().trim()
+        process.waitFor()
+//        println("Result: ${process.exitValue()}")
+//        response.takeIf { it.isNotEmpty() }?.run { println("Response: $this") }
+//        error.takeIf { it.isNotEmpty() }?.run { println("Error: $this") }
+        return CommandResult(response)
     }
 }

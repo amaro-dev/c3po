@@ -10,7 +10,8 @@ data class AppState(
     val windows: Map<String, WindowResult<*>> = emptyMap(),
     val settings: Properties = Properties(),
     val settingsState: SettingsState = SettingsState.NotInitialized,
-    val commandStatus: CommandStatus = CommandStatus.Completed
+    val commandStatus: CommandStatus = CommandStatus.Idle,
+    val errorMessage: String? = null
 )
 
 enum class SettingsState {
@@ -20,12 +21,13 @@ enum class SettingsState {
 }
 
 enum class CommandStatus {
+    Idle,
     Running,
     Completed,
     Failed
 }
 
-data class WindowResult<out T> (
+data class WindowResult<out T>(
     val searchTerm: String,
     val result: List<T>
 )

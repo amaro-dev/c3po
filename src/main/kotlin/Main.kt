@@ -1,13 +1,12 @@
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +17,7 @@ import androidx.compose.ui.window.application
 import core.Action
 import core.App
 import core.SettingsState
+import kotlinx.coroutines.delay
 import ui.*
 import ui.plugins.Plugin
 import java.awt.Toolkit
@@ -70,6 +70,19 @@ fun Render(app: App) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
+                Row(Modifier.weight(1f)) {
+                    AnimatedVisibility(state.errorMessage != null) {
+                        Text(
+                            text = state.errorMessage ?: "",
+                            color = MaterialTheme.colors.onPrimary,
+                        )
+                    }
+                }
+                LaunchedEffect(state.commandStatus) {
+                    delay(3000)
+                    if (state.commandStatus != core.CommandStatus.Idle)
+                        app.perform(Action.ClearError)
+                }
                 CommandStatus(state.commandStatus)
             }
         }

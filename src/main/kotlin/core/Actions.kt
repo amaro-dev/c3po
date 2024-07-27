@@ -12,6 +12,8 @@ sealed interface Action : IAction {
     data class CopyText(val content: String) : Action
     data object SetCommandRunning : Action
     data object SetCommandCompleted : Action
+    data class SetCommandError(val message: String) : Action
+    data object ClearError: Action
 
     data object LoadSettings : Action
     data class SaveSettings(val adbPath: String) : Action
