@@ -24,13 +24,13 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
     Row(Modifier.fillMaxSize()) {
         openPlugins.map {
             val color =
-                if (currentPlugin == it.id) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.primary
+                if (currentPlugin == it.id) MaterialTheme.colors.primary else MaterialTheme.colors.primaryVariant
             Box(
                 Modifier.weight(1f)
                     .background(color)
                     .fillMaxHeight()
-                    .padding(SQUARE_BUTTON_PADDING.dp)
                     .clickable { onSelect(Action.SelectPlugin(it.id)) }
+                    .padding(SQUARE_BUTTON_PADDING.dp)
             ) {
                 Text(
                     it.name,

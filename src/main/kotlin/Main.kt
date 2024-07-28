@@ -27,7 +27,7 @@ import java.awt.Toolkit
 fun Render(app: App) {
     val state = app.listen().collectAsState().value
 
-    MaterialTheme {
+    AppTheme {
         Column(Modifier.fillMaxSize()) {
             Surface(color = MaterialTheme.colors.primary) {
                 Row(
@@ -63,7 +63,7 @@ fun Render(app: App) {
             }
 
             Row(
-                Modifier.background(MaterialTheme.colors.primaryVariant)
+                Modifier.background(MaterialTheme.colors.primary)
                     .fillMaxWidth()
                     .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
                     .height(Dimens.ROW_HEIGHT_REGULAR.dp),
