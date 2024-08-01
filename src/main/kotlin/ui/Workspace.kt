@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,12 +33,24 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
                     .clickable { onSelect(Action.SelectPlugin(it.id)) }
                     .padding(SQUARE_BUTTON_PADDING.dp)
             ) {
-                Text(
-                    it.name,
-                    Modifier.fillMaxWidth(1f)
-                        .padding(HORIZONTAL_SPACER.dp),
-                    textAlign = TextAlign.Center
-                )
+                Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
+                    if (currentPlugin == it.id) {
+                        Icon(
+                            Icons.Filled.Refresh, null,
+                            modifier = Modifier
+                                .clickable {
+                                    onSelect(Action.StartPlugin(it.id))
+                                },
+                            tint = MaterialTheme.colors.onPrimary
+                        )
+                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
+                    }
+                    Text(
+                        it.name,
+                        Modifier.padding(HORIZONTAL_SPACER.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Icon(
                     Icons.Filled.Clear, null,
                     modifier = Modifier
@@ -47,6 +60,7 @@ fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (I
                         },
                     tint = MaterialTheme.colors.onPrimary
                 )
+
             }
         }
     }
