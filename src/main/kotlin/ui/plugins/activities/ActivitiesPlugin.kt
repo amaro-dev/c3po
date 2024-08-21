@@ -39,6 +39,7 @@ class ActivitiesPlugin : Plugin<ActivityInfo> {
         ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
             items(items.filter {
                 filter.length < 3 || it.packageName.contains(filter, ignoreCase = true)
+                        || it.fullPath.contains(filter, ignoreCase = true)
             }.groupBy { it.packageName }
                 .flatMap {
                     listOf(Pair(RowType.Header, it.key)).plus(it.value.map { Pair(RowType.Regular, it) })
