@@ -1,32 +1,28 @@
 package ui.plugins.services
 
-import Settings
+import commands.CommandExecutor
 import commands.ListServicesCommand
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import ui.plugins.PluginMiddleware
 
 class ServicesPluginMiddleware(
-    private val pluginName: String
-) : PluginMiddleware(pluginName) {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    pluginName: String,
+    executor: CommandExecutor
+) : PluginMiddleware(pluginName,executor) {
+
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
 
         when (action) {
             is Action.StartPlugin,
             ServicesPlugin.Actions.LIST -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        val activities = ListServicesCommand(this).run(adbPath).toList().sortedBy { it.first }
-                        processor.reduce(Action.DeliverPluginResult(pluginName, activities, searchTerm))
-                    }
+                execute(ListServicesCommand(),state,processor) { activities ->
+                    processor.reduce(
+                        Action.DeliverPluginResult(pluginName, activities.toList().sortedBy { it.first }, searchTerm)
+                    )
                 }
             }
         }

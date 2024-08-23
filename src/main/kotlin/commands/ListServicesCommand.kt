@@ -1,10 +1,9 @@
 package commands
 
 import models.ActivityInfo
-import models.AdbDevice
 
-class ListServicesCommand(device: AdbDevice) : AdbCommand<Map<String, List<ActivityInfo>>> {
-    override val command: String = "-s ${device.id} shell dumpsys package"
+class ListServicesCommand : AdbCommand<Map<String, List<ActivityInfo>>> {
+    override val command: String = "shell dumpsys package"
 
     override fun parse(result: CommandResult): Map<String, List<ActivityInfo>> {
         val lineSplitRule = Regex("\\r?\\n")

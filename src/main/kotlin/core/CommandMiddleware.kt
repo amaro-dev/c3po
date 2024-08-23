@@ -1,36 +1,49 @@
 package core
 
 import Settings
+import commands.CommandExecutor
 import commands.DeviceInfoCommand
 import commands.ListDevicesCommand
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class CommandMiddleware : IMiddleware<AppState> {
+class CommandMiddleware(private val executor: CommandExecutor) : IMiddleware<AppState> {
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
-                val devices = ListDevicesCommand.run(adbPath)
-                processor.reduce(Action.DeliverDevices(devices))
-                if (devices.size == 1) {
-                    if (devices[0] != state.currentDevice) processor.reduce(Action.ClearPlugins)
-                    processor.perform(Action.SelectDevice(devices[0]))
+                scope.launch {
+                    val devices = executor.go(ListDevicesCommand, processor, adbPath, null)
+                    processor.reduce(Action.DeliverDevices(devices))
+                    if (devices.size == 1) {
+                        if (devices[0] != state.currentDevice) processor.reduce(Action.ClearPlugins)
+                        processor.perform(Action.SelectDevice(devices[0]))
+                    }
                 }
+
             }
 
             is Action.SelectDevice -> {
-                val deviceInfo = DeviceInfoCommand(action.device).run(adbPath)
-                processor.reduce(Action.SelectDevice(action.device.copy(details = deviceInfo)))
-                val fixedList = state.devices.map {
-                    if (it.id == action.device.id)
-                        it.copy(details = deviceInfo)
-                    else
-                        it
+                scope.launch {
+                    val deviceInfo = executor.go(DeviceInfoCommand(), processor, adbPath, action.device)
+                    processor.reduce(Action.SelectDevice(action.device.copy(details = deviceInfo)))
+                    val fixedList = state.devices.map {
+                        if (it.id == action.device.id)
+                            it.copy(details = deviceInfo)
+                        else
+                            it
+                    }
+                    processor.reduce(Action.DeliverDevices(fixedList))
                 }
-                processor.reduce(Action.DeliverDevices(fixedList))
             }
         }
 

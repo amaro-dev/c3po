@@ -1,11 +1,10 @@
 package commands
 
-import models.AdbDevice
 import models.IntentInfo
 import models.PendingIntent
 
-class ListPendingActivityIntentsCommand(device: AdbDevice) : AdbCommand<List<PendingIntent>> {
-    override val command: String = "-s ${device.id} shell dumpsys activity intents"
+class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
+    override val command: String = "shell dumpsys activity intents"
 
     private val idPattern = Regex("PendingIntentRecord\\{([a-f0-9]{5,8})\\s")
     private val keyValuePattern = Regex(" ([^\\s,=]*)=([^\\s,]+)")

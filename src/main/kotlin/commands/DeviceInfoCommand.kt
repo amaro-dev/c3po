@@ -1,12 +1,11 @@
 package commands
 
-import models.AdbDevice
-
-class DeviceInfoCommand(device: AdbDevice) : AdbCommand<Map<String, String>> {
-    override val command: String = "-s ${device.id} shell getprop"
+class DeviceInfoCommand : AdbCommand<Map<String, String>> {
+    override val command: String = "shell getprop"
 
     override fun parse(result: CommandResult): Map<String, String> {
         val lineSplitRule = Regex("\\r?\\n")
+        if (result.error != null) return emptyMap()
         return lineSplitRule.split(result.content)
             .map { it.trim().subSequence(1, it.length-1) }
             .map { it.split("]: [") }

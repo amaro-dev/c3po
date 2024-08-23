@@ -2,6 +2,7 @@ package ui.plugins.services
 
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import commands.CommandExecutor
 import core.Action
 import core.Action.CommandAction
 import core.AppState
@@ -15,7 +16,7 @@ import ui.RowType
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 
-class ServicesPlugin : Plugin<Pair<String, List<ActivityInfo>>> {
+class ServicesPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<ActivityInfo>>> {
     sealed interface Actions : IAction {
         data object LIST : Actions, CommandAction
     }
@@ -23,7 +24,7 @@ class ServicesPlugin : Plugin<Pair<String, List<ActivityInfo>>> {
     override val name: String = "Services / Action"
     override val id: String = "SERVICES"
     override val mainAction: IAction = Actions.LIST
-    override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id)
+    override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

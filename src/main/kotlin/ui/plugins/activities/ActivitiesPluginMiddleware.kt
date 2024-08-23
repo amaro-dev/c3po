@@ -1,44 +1,31 @@
 package ui.plugins.activities
 
-import Settings
+import commands.CommandExecutor
 import commands.ListActivitiesCommand
 import commands.StartActivityCommand
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import ui.plugins.PluginMiddleware
 
 class ActivitiesPluginMiddleware(
-    private val pluginName: String
-) : PluginMiddleware(pluginName) {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    pluginName: String,
+    executor: CommandExecutor
+) : PluginMiddleware(pluginName, executor) {
 
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
-
         when (action) {
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        val activities = ListActivitiesCommand(this).run(adbPath)
-                        processor.reduce(Action.DeliverPluginResult(pluginName, activities, searchTerm))
-                    }
+                execute(ListActivitiesCommand(), state, processor) {
+                    processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
                 }
             }
 
             is ActivitiesPlugin.Actions.Launch -> {
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        StartActivityCommand(this, action.activityInfo).run(adbPath)
-                    }
-                    processor.reduce(Action.SetCommandCompleted)
-                }
+                execute(StartActivityCommand(action.activityInfo), state, processor) { }
             }
         }
     }

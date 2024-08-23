@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import commands.CommandExecutor
 import core.Action
 import core.Action.CommandAction
 import core.AppState
@@ -19,7 +20,7 @@ import models.ActivityInfo
 import ui.*
 import ui.plugins.Plugin
 
-class ActivitiesPlugin : Plugin<ActivityInfo> {
+class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
         data class Launch(val activityInfo: ActivityInfo) : Actions, CommandAction
@@ -28,7 +29,7 @@ class ActivitiesPlugin : Plugin<ActivityInfo> {
     override val name: String = "Activities"
     override val id: String = "ACTIVITIES"
     override val mainAction: IAction = Actions.List
-    override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id)
+    override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

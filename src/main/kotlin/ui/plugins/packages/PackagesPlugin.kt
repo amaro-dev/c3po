@@ -10,6 +10,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import commands.CommandExecutor
 import core.Action
 import core.Action.CommandAction
 import core.AppState
@@ -20,7 +21,7 @@ import models.AppPackage
 import ui.*
 import ui.plugins.Plugin
 
-class PackagesPlugin : Plugin<AppPackage> {
+class PackagesPlugin(executor: CommandExecutor) : Plugin<AppPackage> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
         data class Stop(val packageInfo: AppPackage) : Actions, CommandAction
@@ -34,7 +35,7 @@ class PackagesPlugin : Plugin<AppPackage> {
 
     override val mainAction: IAction = Actions.List
 
-    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id)
+    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

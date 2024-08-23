@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import commands.CommandExecutor
 import core.Action
 import core.Action.CommandAction
 import core.AppState
@@ -20,7 +21,7 @@ import ui.Dimens
 import ui.plugins.Plugin
 
 
-class DeviceAttrsPlugin : Plugin<Pair<String, String>> {
+class DeviceAttrsPlugin(executor: CommandExecutor) : Plugin<Pair<String, String>> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
     }
@@ -28,7 +29,7 @@ class DeviceAttrsPlugin : Plugin<Pair<String, String>> {
     override val name: String = "Device attributes"
     override val id: String = "DEVICE_ATTRS"
     override val mainAction: IAction = Actions.List
-    override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(id)
+    override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 

@@ -1,11 +1,10 @@
 package commands
 
 
-import models.AdbDevice
 import models.AppPackage
 
-class ListPackagesCommand(device: AdbDevice): AdbCommand<List<AppPackage>> {
-    override val command: String = "-s ${device.id} shell dumpsys package"
+class ListPackagesCommand : AdbCommand<List<AppPackage>> {
+    override val command: String = "shell dumpsys package"
 
     override fun parse(result: CommandResult): List<AppPackage> {
         val packageLinePart = "\\s{2}Package\\s\\[(.*)\\].*"

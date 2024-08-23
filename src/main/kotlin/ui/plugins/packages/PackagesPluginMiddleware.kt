@@ -1,66 +1,50 @@
 package ui.plugins.packages
 
-import Settings
 import commands.*
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import ui.plugins.PluginMiddleware
 
-class PackagesPluginMiddleware(private val pluginName: String) : PluginMiddleware(pluginName) {
+class PackagesPluginMiddleware(
+    pluginName: String,
+    executor: CommandExecutor
+) : PluginMiddleware(pluginName, executor) {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+
         when (action) {
             is Action.StartPlugin,
             PackagesPlugin.Actions.List -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        processor.reduce(
-                            Action.DeliverPluginResult(
-                                pluginName,
-                                ListPackagesCommand(this).run(adbPath),
-                                searchTerm
-                            )
-                        )
-                    }
+                execute(ListPackagesCommand(), state, processor) {
+                    processor.reduce(
+                        Action.DeliverPluginResult(pluginName, it, searchTerm)
+                    )
                 }
+
             }
 
             is PackagesPlugin.Actions.Stop -> {
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        StopAppCommand(this, action.packageInfo).run(adbPath)
-                    }
+                execute(StopAppCommand(action.packageInfo), state, processor) {
                     processor.reduce(Action.SetCommandCompleted)
                 }
             }
 
             is PackagesPlugin.Actions.Uninstall -> {
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        val command = UninstallAppCommand(this, action.packageInfo)
-                        when (val result = command.run(adbPath)) {
-                            is Success -> processor.perform(PackagesPlugin.Actions.List)
-                            is Error ->
-                                processor.reduce(Action.SetCommandError(result.message))
-                        }
-                    } ?: processor.reduce(Action.SetCommandCompleted)
+                execute(UninstallAppCommand(action.packageInfo), state, processor) {
+                    when (it) {
+                        is Success -> processor.perform(PackagesPlugin.Actions.List)
+                        is Error ->
+                            processor.reduce(Action.SetCommandError(it.message))
+                    }
                 }
             }
 
             is PackagesPlugin.Actions.ClearData -> {
-                coroutineScope.launch {
-                    state.currentDevice?.run {
-                        ClearDataCommand(this, action.packageInfo).run(adbPath)
-                    }
+                execute(ClearDataCommand(action.packageInfo), state, processor) {
                     processor.reduce(Action.SetCommandCompleted)
                 }
             }

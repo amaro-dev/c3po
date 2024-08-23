@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import commands.CommandExecutor
 import core.AppState
 import core.WindowResult
 import dev.amaro.sonic.IAction
@@ -24,7 +25,7 @@ import ui.Texts
 import ui.plugins.Plugin
 import ui.plugins.packages.PackageHeader
 
-class PendingIntentsPlugin : Plugin<Pair<String, List<PendingIntent>>> {
+class PendingIntentsPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<PendingIntent>>> {
     sealed interface Actions : IAction {
         data object List : Actions
     }
@@ -33,7 +34,7 @@ class PendingIntentsPlugin : Plugin<Pair<String, List<PendingIntent>>> {
     override val name: String = "Pending intents"
     override val mainAction: IAction = Actions.List
 
-    override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id)
+    override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id, executor)
 
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions

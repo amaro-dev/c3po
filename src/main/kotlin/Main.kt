@@ -92,9 +92,12 @@ fun Render(app: App) {
 fun main() = application {
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
     val myApp = App(clipboard)
-    myApp.perform(Action.LoadSettings)
+    myApp.start()
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            myApp.exit()
+            exitApplication()
+        },
         title = "C3PO - The Android Explorer",
         state = WindowState(
             width = Dimens.WINDOW_WIDTH.dp,
