@@ -8,5 +8,9 @@ interface Icons {
         const val WIPE = "ic_wipe_app.svg"
         const val IDLE = "ic_idle.svg"
         const val ERROR = "ic_error.svg"
+        const val ONLINE = "ic_comp_on.svg"
+        const val OFFLINE = "ic_comp_off.svg"
+        const val LAUNCH = "ic_launch.svg"
+        const val DEBUG = "ic_debug.svg"
     }
 }

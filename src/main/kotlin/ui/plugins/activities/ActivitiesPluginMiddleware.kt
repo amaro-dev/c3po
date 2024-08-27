@@ -25,7 +25,7 @@ class ActivitiesPluginMiddleware(
             }
 
             is ActivitiesPlugin.Actions.Launch -> {
-                execute(StartActivityCommand(action.activityInfo), state, processor) { }
+                execute(StartActivityCommand(action.activityInfo, action.forDebug), state, processor) { }
             }
         }
     }

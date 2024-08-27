@@ -1,6 +1,7 @@
 package ui
 
 import androidx.compose.runtime.*
+import dev.amaro.sonic.IAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -27,3 +28,7 @@ fun <T> T.useDebounce(
     }
     return state
 }
+
+typealias OnAction = (IAction) -> Unit
+
+fun Boolean.ifTrue(value: String): String = if (this) value else ""

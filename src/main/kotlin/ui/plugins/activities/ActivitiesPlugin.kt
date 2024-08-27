@@ -1,12 +1,12 @@
 package ui.plugins.activities
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import commands.CommandExecutor
@@ -23,7 +23,7 @@ import ui.plugins.Plugin
 class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
-        data class Launch(val activityInfo: ActivityInfo) : Actions, CommandAction
+        data class Launch(val activityInfo: ActivityInfo, val forDebug: Boolean = false) : Actions, CommandAction
     }
 
     override val name: String = "Activities"
@@ -34,7 +34,7 @@ class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(result : WindowResult<ActivityInfo>, onAction: (IAction) -> Unit) {
+    override fun present(result: WindowResult<ActivityInfo>, onAction: (IAction) -> Unit) {
         val items: List<ActivityInfo> = result.result
         val filter = result.searchTerm
         ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
@@ -50,10 +50,13 @@ class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
                     HeaderRow(activity.second as String)
                 else if (activity.first == RowType.Regular) {
                     (activity.second as ActivityInfo).let {
-                        RegularRow(
-                            it.activityPath,
-                            Modifier.clickable { onAction(Actions.Launch(it)) }
-                        )
+                        ActionableRow(
+                            listOf(
+                                RowAction(Icons.LAUNCH, "Start activity", Actions.Launch(it)),
+                                RowAction(Icons.DEBUG, "Start activity for debug", Actions.Launch(it, true))
+                            ),
+                            onAction
+                        ) { Text(it.activityPath) }
                     }
                     Divider(
                         color = MaterialTheme.colors.onBackground,
