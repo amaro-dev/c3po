@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class CommandMiddleware(private val executor: CommandExecutor) : IMiddleware<AppState> {
+class DeviceMiddleware(private val executor: CommandExecutor) : IMiddleware<AppState> {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -43,6 +43,7 @@ class CommandMiddleware(private val executor: CommandExecutor) : IMiddleware<App
                             it
                     }
                     processor.reduce(Action.DeliverDevices(fixedList))
+                    processor.perform(Action.CheckForCompanion)
                 }
             }
         }

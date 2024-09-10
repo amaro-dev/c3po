@@ -17,7 +17,13 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
-import ui.*
+import ui.ActionableRow
+import ui.ContentBox
+import ui.Dimens
+import ui.HeaderRow
+import ui.Icons
+import ui.RowAction
+import ui.RowType
 import ui.plugins.Plugin
 
 class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
@@ -26,12 +32,17 @@ class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
         data class Launch(val activityInfo: ActivityInfo, val forDebug: Boolean = false) : Actions, CommandAction
     }
 
+    companion object {
+        const val LIST_ACTIVITY_SOCKET_COMMAND = "list-activities"
+    }
+
     override val name: String = "Activities"
     override val id: String = "ACTIVITIES"
     override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id, executor)
 
-    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
+    override fun isResponsibleFor(action: IAction): Boolean =
+        action is Actions || (action is Action.DeliverSocketResponse && action.reference.command == LIST_ACTIVITY_SOCKET_COMMAND)
 
     @Composable
     override fun present(result: WindowResult<ActivityInfo>, onAction: (IAction) -> Unit) {

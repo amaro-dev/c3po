@@ -18,7 +18,12 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.AppPackage
-import ui.*
+import ui.ActionableRow
+import ui.ContentBox
+import ui.Dimens
+import ui.Icons
+import ui.RowAction
+import ui.Texts
 import ui.plugins.Plugin
 
 class PackagesPlugin(executor: CommandExecutor) : Plugin<AppPackage> {

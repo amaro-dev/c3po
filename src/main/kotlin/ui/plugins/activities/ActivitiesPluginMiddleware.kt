@@ -7,6 +7,7 @@ import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import models.ActivityInfo
 import ui.plugins.PluginMiddleware
 
 class ActivitiesPluginMiddleware(
@@ -18,6 +19,13 @@ class ActivitiesPluginMiddleware(
         when (action) {
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List -> {
+//                processor.perform(
+//                    Action.SendSocketRequest(
+//                        ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND,
+//                        UUID.randomUUID().toString(),
+//                        null
+//                    )
+//                )
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 execute(ListActivitiesCommand(), state, processor) {
                     processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
@@ -26,6 +34,23 @@ class ActivitiesPluginMiddleware(
 
             is ActivitiesPlugin.Actions.Launch -> {
                 execute(StartActivityCommand(action.activityInfo, action.forDebug), state, processor) { }
+            }
+
+            is Action.DeliverSocketResponse -> {
+                val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
+                if (action.reference.command == ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND) {
+                    val response = action.content
+                        .map {
+                            val (pkg, service) = it.split(' ')
+                            ActivityInfo(pkg, service.removePrefix(pkg))
+                        }
+                        .sortedBy { it.packageName }
+                        .toList()
+
+                    processor.reduce(
+                        Action.DeliverPluginResult(pluginName, response, searchTerm)
+                    )
+                }
             }
         }
     }

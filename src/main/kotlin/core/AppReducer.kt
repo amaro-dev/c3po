@@ -48,6 +48,7 @@ class AppReducer : IReducer<AppState> {
                 commandStatus = CommandStatus.Running,
                 errorMessage = null
             )
+
             is Action.SetCommandCompleted -> currentState.copy(commandStatus = CommandStatus.Completed)
             is Action.SetCommandError -> currentState.copy(
                 commandStatus = CommandStatus.Failed,
@@ -68,6 +69,10 @@ class AppReducer : IReducer<AppState> {
                 )
             )
 
+            is Action.UpdateCompanionState -> {
+                println("New State: ${action.state}")
+                currentState.copy(companionState = action.state)
+            }
             else -> currentState
         }
     }

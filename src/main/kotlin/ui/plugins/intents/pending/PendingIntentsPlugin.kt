@@ -21,9 +21,9 @@ import dev.amaro.sonic.IMiddleware
 import models.PendingIntent
 import ui.ContentBox
 import ui.Dimens
+import ui.PackageHeader
 import ui.Texts
 import ui.plugins.Plugin
-import ui.plugins.packages.PackageHeader
 
 class PendingIntentsPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<PendingIntent>>> {
     sealed interface Actions : IAction {

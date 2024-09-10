@@ -1,7 +1,8 @@
 package core
 
 import models.AdbDevice
-import java.util.*
+import java.util.Properties
+
 
 data class AppState(
     val devices: List<AdbDevice> = emptyList(),
@@ -11,7 +12,8 @@ data class AppState(
     val settings: Properties = Properties(),
     val settingsState: SettingsState = SettingsState.NotInitialized,
     val commandStatus: CommandStatus = CommandStatus.Idle,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val companionState: CompanionState = CompanionState(0),
 )
 
 enum class SettingsState {

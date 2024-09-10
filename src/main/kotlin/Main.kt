@@ -1,8 +1,23 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
@@ -10,15 +25,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import core.Action
 import core.App
+import core.CompanionState
 import core.SettingsState
 import kotlinx.coroutines.delay
-import ui.*
+import ui.AppTheme
+import ui.CommandStatus
+import ui.DeviceSelector
+import ui.Dimens
+import ui.PluginSelector
+import ui.SettingsBox
+import ui.Texts
+import ui.Workspace
 import ui.plugins.Plugin
 import java.awt.Toolkit
 
@@ -26,7 +50,6 @@ import java.awt.Toolkit
 @Preview
 fun Render(app: App) {
     val state = app.listen().collectAsState().value
-
     AppTheme {
         Column(Modifier.fillMaxSize()) {
             Surface(color = MaterialTheme.colors.primary) {
@@ -52,7 +75,7 @@ fun Render(app: App) {
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().weight(1f)) {
+            Box(Modifier.fillMaxWidth().weight(1f).background(color = MaterialTheme.colors.background)) {
                 state.currentPlugin?.let { name ->
                     val selectedPlugin: Plugin<*>? = app.plugins.find { it.id == name }
                     selectedPlugin?.render(state.windows) { app.perform(it) }
@@ -61,7 +84,6 @@ fun Render(app: App) {
                     SettingsBox { app.perform(it) }
                 }
             }
-
             Row(
                 Modifier.background(MaterialTheme.colors.primary)
                     .fillMaxWidth()
@@ -84,8 +106,27 @@ fun Render(app: App) {
                         app.perform(Action.ClearError)
                 }
                 CommandStatus(state.commandStatus)
+                Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
+                ServiceStatus(state.companionState)
             }
         }
+    }
+}
+
+@Composable
+fun ServiceStatus(companionState: CompanionState) {
+    val (icon, description) = when {
+        companionState.isReady() -> Pair(ui.Icons.CONNECTING, Texts.CONNECTING_TO_COMPANION)
+        companionState.isOnline() -> Pair(ui.Icons.ONLINE, Texts.CONNECTED_TO_COMPANION)
+        else -> Pair(ui.Icons.OFFLINE, Texts.DISCONNECTED_FROM_COMPANION)
+    }
+    Row {
+        Icon(
+            painterResource(icon),
+            description,
+            tint = MaterialTheme.colors.onPrimary,
+            modifier = Modifier.size(Dimens.ICON_SIZE_REGULAR.dp)
+        )
     }
 }
 
@@ -106,4 +147,9 @@ fun main() = application {
     ) {
         Render(myApp)
     }
+}
+
+@Composable
+fun CompanionDialog() {
+    // .clickable { onAction(Action.PrepareCompanion) }
 }

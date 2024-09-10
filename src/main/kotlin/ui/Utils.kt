@@ -1,6 +1,10 @@
 package ui
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import dev.amaro.sonic.IAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -30,5 +34,3 @@ fun <T> T.useDebounce(
 }
 
 typealias OnAction = (IAction) -> Unit
-
-fun Boolean.ifTrue(value: String): String = if (this) value else ""

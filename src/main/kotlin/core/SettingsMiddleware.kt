@@ -1,11 +1,10 @@
 package core
 
-import Settings
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import java.io.File
-import java.util.*
+import java.util.Properties
 
 class SettingsMiddleware(
     private val resourcesPath: File,
@@ -26,13 +25,16 @@ class SettingsMiddleware(
                 }
             }
 
-            is Action.SaveSettings -> {
+            is Action.ChangeSettingsProperty -> {
                 val props = state.settings.clone() as Properties
-                props.setProperty(Settings.ADB_PATH_PROP, action.adbPath)
+                props.setProperty(action.key, action.value)
+                processor.reduce(Action.LoadSettingsIntoState(props))
+            }
+
+            is Action.SaveSettings -> {
                 val settingsFile = File(resourcesPath, settingsFile)
                 if (!settingsFile.exists()) settingsFile.createNewFile()
-                props.store(settingsFile.outputStream(), null)
-                processor.reduce(Action.LoadSettingsIntoState(props))
+                state.settings.store(settingsFile.outputStream(), null)
             }
         }
     }

@@ -1,8 +1,10 @@
 package core
 
 import dev.amaro.sonic.IAction
+import dev.amaro.sonic.ISideEffectAction
 import models.AdbDevice
-import java.util.*
+import socket.CommandEntry
+import java.util.Properties
 
 sealed interface Action : IAction {
     interface CommandAction : Action
@@ -16,7 +18,11 @@ sealed interface Action : IAction {
     data object ClearError: Action
 
     data object LoadSettings : Action
-    data class SaveSettings(val adbPath: String) : Action
+    data class ChangeSettingsProperty(val key: String, val value: String) : Action, ISideEffectAction {
+        override val sideEffect: IAction = SaveSettings
+    }
+
+    data object SaveSettings : Action
     data object SettingsNotFound : Action
     data class LoadSettingsIntoState(val props: Properties) : Action
 
@@ -26,4 +32,12 @@ sealed interface Action : IAction {
     data class SelectPlugin(val pluginName: String) : Action
     data class ClosePlugin(val pluginName: String) : Action
     data class ChangeFilter(val pluginName: String, val searchTerm: String) : Action
+
+    data object CheckForCompanion : Action
+    data object PrepareCompanion : Action
+    data object ConnectCompanion : Action
+    data class UpdateCompanionState(val state: CompanionState) : Action
+    data class DeliverSocketResponse(val reference: CommandEntry, val content: List<String>) : Action
+    data class SendSocketRequest(val command: String, val id: String, val arg: String?) : Action
+    data object ListServices : Action
 }
