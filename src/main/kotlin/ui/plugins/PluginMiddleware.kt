@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 abstract class PluginMiddleware(
     protected val pluginName: String,
-    private val executor: CommandExecutor
+    private val executor: CommandExecutor,
 ) : IMiddleware<AppState> {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -20,7 +20,7 @@ abstract class PluginMiddleware(
         command: AdbCommand<T>,
         state: AppState,
         processor: IProcessor<AppState>,
-        onComplete: (T) -> Unit
+        onComplete: (T) -> Unit,
     ) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         state.currentDevice?.run {
@@ -30,5 +30,4 @@ abstract class PluginMiddleware(
             }
         }
     }
-
 }

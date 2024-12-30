@@ -29,7 +29,10 @@ import dev.amaro.sonic.IAction
 import ui.plugins.Plugin
 
 @Composable
-fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
+fun PluginSelector(
+    plugins: List<Plugin<*>>,
+    onSelect: (IAction) -> Unit,
+) {
     Column {
         Menu(Modifier.align(Alignment.End)) {
             MenuButton(
@@ -39,46 +42,50 @@ fun PluginSelector(plugins: List<Plugin<*>>, onSelect: (IAction) -> Unit) {
                         Dimens.BORDER_REGULAR.dp,
                         MaterialTheme.colors.onPrimary,
                         RoundedCornerShape(
-                            Dimens.ROUNDED_CORNER.dp
-                        )
-                    )
+                            Dimens.ROUNDED_CORNER.dp,
+                        ),
+                    ),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(
-                        horizontal = Dimens.ROW_HORIZONTAL_MARGIN.dp,
-                        vertical = Dimens.ROW_VERTICAL_MARGIN.dp
-                    )
+                    modifier =
+                        Modifier.padding(
+                            horizontal = Dimens.ROW_HORIZONTAL_MARGIN.dp,
+                            vertical = Dimens.ROW_VERTICAL_MARGIN.dp,
+                        ),
                 ) {
                     Image(
-                        Icons.Filled.Add, null,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colors.onPrimary)
+                        Icons.Filled.Add,
+                        null,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colors.onPrimary),
                     )
                 }
             }
 
             MenuContent(
-                modifier = Modifier.width(320.dp)
-                    .border(
-                        Dimens.BORDER_REGULAR.dp,
-                        MaterialTheme.colors.onSurface,
-                        RoundedCornerShape(Dimens.ROUNDED_CORNER.dp)
-                    )
-                    .background(MaterialTheme.colors.surface)
-                    .clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
-                    .padding(Dimens.ROUNDED_CORNER.dp),
-                hideTransition = fadeOut()
+                modifier =
+                    Modifier
+                        .width(320.dp)
+                        .border(
+                            Dimens.BORDER_REGULAR.dp,
+                            MaterialTheme.colors.onSurface,
+                            RoundedCornerShape(Dimens.ROUNDED_CORNER.dp),
+                        ).background(MaterialTheme.colors.surface)
+                        .clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
+                        .padding(Dimens.ROUNDED_CORNER.dp),
+                hideTransition = fadeOut(),
             ) {
                 plugins.forEach {
                     MenuItem(
                         modifier = Modifier.clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp)),
-                        onClick = { onSelect(Action.StartPlugin(it.id)) }
+                        onClick = { onSelect(Action.StartPlugin(it.id)) },
                     ) {
                         BasicText(
                             it.name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp),
                         )
                     }
                 }

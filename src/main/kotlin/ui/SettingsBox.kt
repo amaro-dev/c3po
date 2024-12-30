@@ -20,13 +20,12 @@ import androidx.compose.ui.Modifier
 import core.Action
 import ui.Texts.Companion.ADB_PATH
 
-
 @Composable
 fun SettingsBox(onAction: (Action) -> Unit) {
     var adbPathValue by remember { mutableStateOf(Texts.EMPTY) }
     Box(
         Modifier.fillMaxSize().background(color = MaterialTheme.colors.surface),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             Modifier.fillMaxWidth(0.5f),
@@ -35,15 +34,14 @@ fun SettingsBox(onAction: (Action) -> Unit) {
                 adbPathValue,
                 { adbPathValue = it },
                 placeholder = { Text(ADB_PATH) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
             Button(
                 { onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, adbPathValue)) },
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.align(Alignment.End),
             ) {
                 Text(Texts.SAVE)
             }
-            }
         }
-
+    }
 }

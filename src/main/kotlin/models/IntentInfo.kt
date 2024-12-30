@@ -6,5 +6,5 @@ data class IntentInfo(
     val flags: Long?,
     val packageName: String?,
     val dat: String?,
-    val cmp: String?
+    val cmp: String?,
 )

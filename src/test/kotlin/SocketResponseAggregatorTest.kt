@@ -18,7 +18,7 @@ class SocketResponseAggregatorTest {
                 prop(Pair<CommandEntry, List<String>>::first).isEqualTo(CommandEntry("123", "cmd"))
                 prop(Pair<CommandEntry, List<String>>::second).containsExactly(
                     "Line 1",
-                    "Line 2"
+                    "Line 2",
                 )
             }
             hasSize(1)
@@ -35,7 +35,7 @@ class SocketResponseAggregatorTest {
                     hasSize(2)
                     containsExactly(
                         "Line 1",
-                        "Line 2"
+                        "Line 2",
                     )
                 }
             }

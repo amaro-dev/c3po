@@ -41,25 +41,30 @@ import ui.Dimens
 import ui.Icons
 import ui.Texts
 
-
 @Composable
-fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
+fun DeviceAttrRow(
+    label: String,
+    value: String?,
+    onAction: (IAction) -> Unit,
+) {
     var isHoveringAttr: Boolean by remember { mutableStateOf(false) }
     var isHoveringValue: Boolean by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
         Row(
             Modifier.fillMaxWidth().height(Dimens.ROW_HEIGHT_LARGE.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(5f)
-                    .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
-                    .onHover { isHoveringAttr = it },
-                textAlign = TextAlign.End
+                modifier =
+                    Modifier
+                        .weight(5f)
+                        .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
+                        .onHover { isHoveringAttr = it },
+                textAlign = TextAlign.End,
             )
             Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
             Box(Modifier.weight(8f), contentAlignment = Alignment.CenterEnd) {
@@ -71,18 +76,21 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
                 androidx.compose.animation.AnimatedVisibility(
                     isHoveringValue,
                     enter = slideInHorizontallyFromRight(),
-                    exit = slideOutHorizontallyToRight()
+                    exit = slideOutHorizontallyToRight(),
                 ) {
                     Box(
-                        Modifier.padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
+                        Modifier
+                            .padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
                             .onHover { isHoveringValue = it }
-                            .clip(CircleShape)
+                            .clip(CircleShape),
                     ) {
                         Icon(
                             painterResource(Icons.COPY),
                             contentDescription = Texts.EMPTY,
-                            modifier = Modifier.clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
-                                .withIconStyle()
+                            modifier =
+                                Modifier
+                                    .clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
+                                    .withIconStyle(),
                         )
                     }
                 }
@@ -90,40 +98,45 @@ fun DeviceAttrRow(label: String, value: String?, onAction: (IAction) -> Unit) {
         }
         AnimatedVisibility(isHoveringAttr, enter = slideInHorizontally(), exit = slideOutHorizontally()) {
             Box(
-                modifier = Modifier.padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
-                    .onHover { isHoveringAttr = it }
-                    .clip(CircleShape)
+                modifier =
+                    Modifier
+                        .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
+                        .onHover { isHoveringAttr = it }
+                        .clip(CircleShape),
             ) {
                 Icon(
                     painterResource(Icons.COPY),
                     contentDescription = Texts.EMPTY,
-                    modifier = Modifier
-                        .clickable { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) }
-                        .withIconStyle()
-
+                    modifier =
+                        Modifier
+                            .clickable { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) }
+                            .withIconStyle(),
                 )
             }
         }
-
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun Modifier.onHover(event: (Boolean) -> Unit) = this.onPointerEvent(
-    eventType = PointerEventType.Enter,
-    onEvent = { event(true) }
-).onPointerEvent(
-    eventType = PointerEventType.Exit,
-    onEvent = { event(false) }
-)
+fun Modifier.onHover(event: (Boolean) -> Unit) =
+    this
+        .onPointerEvent(
+            eventType = PointerEventType.Enter,
+            onEvent = { event(true) },
+        ).onPointerEvent(
+            eventType = PointerEventType.Exit,
+            onEvent = { event(false) },
+        )
 
 fun slideInHorizontallyFromRight() = slideIn(initialOffset = { IntOffset(it.width, 0) })
+
 fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width, 0) })
 
 @Composable
-fun Modifier.withIconStyle(): Modifier = this.background(
-    color = MaterialTheme.colors.background,
-    shape = CircleShape
-)
-    .padding(Dimens.HORIZONTAL_SPACER.dp)
-    .clip(shape = CircleShape)
+fun Modifier.withIconStyle(): Modifier =
+    this
+        .background(
+            color = MaterialTheme.colors.background,
+            shape = CircleShape,
+        ).padding(Dimens.HORIZONTAL_SPACER.dp)
+        .clip(shape = CircleShape)

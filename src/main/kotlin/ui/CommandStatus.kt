@@ -26,37 +26,40 @@ fun CommandStatus(status: CommandStatus) {
     when (status) {
         CommandStatus.Running -> {
             val degrees by infiniteTransition.animateValue(
-                0f, 360f, Float.VectorConverter, infiniteRepeatable(
+                0f,
+                360f,
+                Float.VectorConverter,
+                infiniteRepeatable(
                     animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                )
+                    repeatMode = RepeatMode.Restart,
+                ),
             )
             Icon(
                 Icons.Filled.Settings,
                 Texts.EMPTY,
                 tint = MaterialTheme.colors.onPrimary,
-                modifier = Modifier.rotate(degrees)
+                modifier = Modifier.rotate(degrees),
             )
         }
         CommandStatus.Completed -> {
             Icon(
                 Icons.Filled.Check,
                 Texts.EMPTY,
-                tint = MaterialTheme.colors.onPrimary
+                tint = MaterialTheme.colors.onPrimary,
             )
         }
         CommandStatus.Failed -> {
             Icon(
                 painterResource(ui.Icons.ERROR),
                 Texts.EMPTY,
-                tint = MaterialTheme.colors.onPrimary
+                tint = MaterialTheme.colors.onPrimary,
             )
         }
         CommandStatus.Idle -> {
             Icon(
                 painterResource(ui.Icons.IDLE),
                 Texts.EMPTY,
-                tint = MaterialTheme.colors.onPrimary
+                tint = MaterialTheme.colors.onPrimary,
             )
         }
     }

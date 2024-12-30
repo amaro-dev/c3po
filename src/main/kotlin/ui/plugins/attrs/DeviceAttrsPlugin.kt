@@ -20,8 +20,9 @@ import ui.ContentBox
 import ui.Dimens
 import ui.plugins.Plugin
 
-
-class DeviceAttrsPlugin(executor: CommandExecutor) : Plugin<Pair<String, String>> {
+class DeviceAttrsPlugin(
+    executor: CommandExecutor,
+) : Plugin<Pair<String, String>> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
     }
@@ -34,19 +35,26 @@ class DeviceAttrsPlugin(executor: CommandExecutor) : Plugin<Pair<String, String>
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(result: WindowResult<Pair<String, String>>, onAction: (IAction) -> Unit) {
+    override fun present(
+        result: WindowResult<Pair<String, String>>,
+        onAction: (IAction) -> Unit,
+    ) {
         val items: List<Pair<String, String>> = result.result
         val filter = result.searchTerm
         ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
-            items(items.filter {
-                filter.length < 2
-                        || it.first.contains(filter, ignoreCase = true)
-                        || it.second.contains(filter, ignoreCase = true)
-            }) {
+            items(
+                items.filter {
+                    filter.length < 2 ||
+                            it.first.contains(filter, ignoreCase = true) ||
+                            it.second.contains(filter, ignoreCase = true)
+                },
+            ) {
                 DeviceAttrRow("${it.first}:", it.second, onAction)
                 Spacer(
-                    Modifier.fillMaxWidth().height(Dimens.BORDER_REGULAR.dp)
-                        .background(MaterialTheme.colors.onBackground)
+                    Modifier
+                        .fillMaxWidth()
+                        .height(Dimens.BORDER_REGULAR.dp)
+                        .background(MaterialTheme.colors.onBackground),
                 )
             }
         }

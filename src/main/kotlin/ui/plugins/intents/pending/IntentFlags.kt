@@ -1,6 +1,8 @@
 package ui.plugins.intents.pending
 
-enum class IntentFlags(val code: Long) {
+enum class IntentFlags(
+    val code: Long,
+) {
     FLAG_ACTIVITY_BROUGHT_TO_FRONT(0x00400000),
     FLAG_ACTIVITY_CLEAR_TASK(0x00008000),
     FLAG_ACTIVITY_CLEAR_TOP(0x04000000),
@@ -37,5 +39,5 @@ enum class IntentFlags(val code: Long) {
     FLAG_RECEIVER_NO_ABORT(0x08000000),
     FLAG_RECEIVER_REGISTERED_ONLY(0x40000000),
     FLAG_RECEIVER_REPLACE_PENDING(0x20000000),
-    FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS(0x00200000);
+    FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS(0x00200000),
 }

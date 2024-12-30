@@ -34,7 +34,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
-            packageVersion = "1.1.0"
+            packageVersion = "1.2.1"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))
@@ -53,7 +53,7 @@ tasks {
         inputs.files(classpath).withNormalizer(ClasspathNormalizer::class.java)
         manifest {
             attributes(
-                "Class-Path" to classpath.map { cp -> cp.joinToString(" ") { it.absolutePath } }
+                "Class-Path" to classpath.map { cp -> cp.joinToString(" ") { it.absolutePath } },
             )
             attributes(
                 "Implementation-Title" to project.name,

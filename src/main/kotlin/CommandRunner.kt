@@ -13,7 +13,7 @@ object CommandRunner {
             val process = ProcessBuilder().command(command.split(' ')).start()
             val response = async { process.inputReader().readText().trim() }
             val error = async { process.errorReader().readText().trim() }
-            val exited = process.waitFor(10L, TimeUnit.SECONDS)
+            val exited = process.waitFor(15L, TimeUnit.SECONDS)
             if (!exited) {
                 process.destroyForcibly()
                 response.cancel()
@@ -25,7 +25,7 @@ object CommandRunner {
             CommandResult(
                 response.getCompleted(),
                 process.exitValue(),
-                error.getCompleted().takeIf { it.isNotEmpty() }
+                error.getCompleted().takeIf { it.isNotEmpty() },
             )
         }
     }

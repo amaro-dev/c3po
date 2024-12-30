@@ -1,14 +1,14 @@
-package ui.plugins.attrs
+package ui.plugins.permissions
 
 import commands.CommandExecutor
-import commands.DeviceInfoCommand
+import commands.ListDeclaredPermissions
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import ui.plugins.PluginMiddleware
 
-class DeviceAttrsMiddleware(
+class PermissionsPluginMiddleware(
     pluginName: String,
     executor: CommandExecutor,
 ) : PluginMiddleware(pluginName, executor) {
@@ -18,14 +18,10 @@ class DeviceAttrsMiddleware(
         processor: IProcessor<AppState>,
     ) {
         when (action) {
-            is Action.StartPlugin,
-            DeviceAttrsPlugin.Actions.List,
-                -> {
+            is Action.StartPlugin, PermissionsPlugin.Actions.List -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                execute(DeviceInfoCommand(), state, processor) { deviceInfo ->
-                    processor.reduce(
-                        Action.DeliverPluginResult(pluginName, deviceInfo.toList().sortedBy { it.first }, searchTerm),
-                    )
+                execute(ListDeclaredPermissions(), state, processor) {
+                    processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
                 }
             }
         }

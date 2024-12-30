@@ -10,7 +10,6 @@ import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.Socket
 
-
 class SocketClient {
     companion object {
         const val SERVER_PORT: Int = 9500
@@ -26,13 +25,16 @@ class SocketClient {
     private val isLive
         get() = mClientSocket.isConnected && !mClientSocket.isClosed && !isClosed
 
-    fun connect(ip: String, port: Int): Flow<String> {
+    fun connect(
+        ip: String,
+        port: Int,
+    ): Flow<String> {
         isClosed = false
         return try {
-            mClientSocket = Socket(ip, port);
+            mClientSocket = Socket(ip, port)
             input = mClientSocket.getInputStream().bufferedReader()
             output = mClientSocket.getOutputStream().bufferedWriter()
-            println("Waiting server response...");
+            println("Waiting server response...")
             channelFlow {
                 println("Connection stream")
                 launch {
@@ -51,7 +53,7 @@ class SocketClient {
                 println("Disconnected!")
             }.flowOn(Dispatchers.IO)
         } catch (e: Exception) {
-            println("Connection fail");
+            println("Connection fail")
             e.printStackTrace()
             close()
             channelFlow<String> { cancel("Connection fail", e) }.flowOn(Dispatchers.IO)

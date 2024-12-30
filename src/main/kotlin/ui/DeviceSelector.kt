@@ -30,7 +30,11 @@ import ui.Texts.Companion.UNKNOWN
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (AdbDevice) -> Unit) {
+fun DeviceSelector(
+    devices: List<AdbDevice>,
+    selected: AdbDevice?,
+    onSelect: (AdbDevice) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopEnd)) {
@@ -41,7 +45,7 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
             Surface(color = MaterialTheme.colors.primary) {
                 Row(
                     Modifier.fillMaxWidth().padding(start = Dimens.HORIZONTAL_SPACER.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text(SELECT_DEVICE)
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -50,7 +54,7 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = !expanded },
-                modifier = Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth()
+                modifier = Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth(),
             ) {
                 Surface(color = MaterialTheme.colors.primaryVariant) {
                     Column(Modifier.height(300.dp)) {
@@ -70,11 +74,14 @@ fun DeviceSelector(devices: List<AdbDevice>, selected: AdbDevice?, onSelect: (Ad
 }
 
 @Composable
-private fun DeviceOption(device: AdbDevice, modifier: Modifier = Modifier) {
+private fun DeviceOption(
+    device: AdbDevice,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.padding(bottom = Dimens.VERTICAL_SPACER.dp)) {
         Text(
             device.details[NAME_SYSTEM_PROP] ?: UNKNOWN,
-            style = MaterialTheme.typography.body1
+            style = MaterialTheme.typography.body1,
         )
         Text(device.id, style = MaterialTheme.typography.caption)
     }

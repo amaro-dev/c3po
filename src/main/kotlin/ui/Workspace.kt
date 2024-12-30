@@ -27,46 +27,54 @@ import ui.Dimens.Companion.SQUARE_BUTTON_PADDING
 import ui.plugins.Plugin
 
 @Composable
-fun Workspace(openPlugins: List<Plugin<*>>, currentPlugin: String?, onSelect: (IAction) -> Unit) {
+fun Workspace(
+    openPlugins: List<Plugin<*>>,
+    currentPlugin: String?,
+    onSelect: (IAction) -> Unit,
+) {
     Row(Modifier.fillMaxSize()) {
         openPlugins.map {
             val color =
                 if (currentPlugin == it.id) MaterialTheme.colors.primary else MaterialTheme.colors.primaryVariant
             Box(
-                Modifier.weight(1f)
+                Modifier
+                    .weight(1f)
                     .background(color)
                     .fillMaxHeight()
                     .clickable { onSelect(Action.SelectPlugin(it.id)) }
-                    .padding(SQUARE_BUTTON_PADDING.dp)
+                    .padding(SQUARE_BUTTON_PADDING.dp),
             ) {
                 Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
                     if (currentPlugin == it.id) {
                         Icon(
-                            Icons.Filled.Refresh, null,
-                            modifier = Modifier
-                                .clickable {
-                                    onSelect(Action.StartPlugin(it.id))
-                                },
-                            tint = MaterialTheme.colors.onPrimary
+                            Icons.Filled.Refresh,
+                            null,
+                            modifier =
+                                Modifier
+                                    .clickable {
+                                        onSelect(Action.StartPlugin(it.id))
+                                    },
+                            tint = MaterialTheme.colors.onPrimary,
                         )
                         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                     }
                     Text(
                         it.name,
                         Modifier.padding(HORIZONTAL_SPACER.dp),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
                 Icon(
-                    Icons.Filled.Clear, null,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .clickable {
-                            onSelect(Action.ClosePlugin(it.id))
-                        },
-                    tint = MaterialTheme.colors.onPrimary
+                    Icons.Filled.Clear,
+                    null,
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .clickable {
+                                onSelect(Action.ClosePlugin(it.id))
+                            },
+                    tint = MaterialTheme.colors.onPrimary,
                 )
-
             }
         }
     }

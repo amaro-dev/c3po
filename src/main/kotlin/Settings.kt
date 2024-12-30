@@ -8,5 +8,4 @@ object Settings {
     fun isDebug() = (System.getProperty(PACKAGE_PROP) == null)
 
     fun productionSettingsFolder() = System.getProperty(USER_HOME, "~") + "/.config/c3po"
-
 }

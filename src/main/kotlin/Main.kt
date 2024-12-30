@@ -55,7 +55,7 @@ fun Render(app: App) {
             Surface(color = MaterialTheme.colors.primary) {
                 Row(
                     modifier = Modifier.fillMaxWidth().height(Dimens.ROW_HEIGHT_EXTRA_LARGE.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.weight(3f)) {
                         DeviceSelector(state.devices, state.currentDevice) { app.perform(Action.SelectDevice(it)) }
@@ -70,7 +70,7 @@ fun Render(app: App) {
                     Box(Modifier.weight(8f).fillMaxHeight()) {
                         Workspace(
                             app.plugins.filter { it.id in state.windows.keys },
-                            state.currentPlugin
+                            state.currentPlugin,
                         ) { app.perform(it) }
                     }
                 }
@@ -85,12 +85,13 @@ fun Render(app: App) {
                 }
             }
             Row(
-                Modifier.background(MaterialTheme.colors.primary)
+                Modifier
+                    .background(MaterialTheme.colors.primary)
                     .fillMaxWidth()
                     .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
                     .height(Dimens.ROW_HEIGHT_REGULAR.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
             ) {
                 Row(Modifier.weight(1f)) {
                     AnimatedVisibility(state.errorMessage != null) {
@@ -102,8 +103,9 @@ fun Render(app: App) {
                 }
                 LaunchedEffect(state.commandStatus) {
                     delay(3000)
-                    if (state.commandStatus != core.CommandStatus.Idle)
+                    if (state.commandStatus != core.CommandStatus.Idle) {
                         app.perform(Action.ClearError)
+                    }
                 }
                 CommandStatus(state.commandStatus)
                 Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
@@ -115,39 +117,42 @@ fun Render(app: App) {
 
 @Composable
 fun ServiceStatus(companionState: CompanionState) {
-    val (icon, description) = when {
-        companionState.isReady() -> Pair(ui.Icons.CONNECTING, Texts.CONNECTING_TO_COMPANION)
-        companionState.isOnline() -> Pair(ui.Icons.ONLINE, Texts.CONNECTED_TO_COMPANION)
-        else -> Pair(ui.Icons.OFFLINE, Texts.DISCONNECTED_FROM_COMPANION)
-    }
+    val (icon, description) =
+        when {
+            companionState.isReady() -> Pair(ui.Icons.CONNECTING, Texts.CONNECTING_TO_COMPANION)
+            companionState.isOnline() -> Pair(ui.Icons.ONLINE, Texts.CONNECTED_TO_COMPANION)
+            else -> Pair(ui.Icons.OFFLINE, Texts.DISCONNECTED_FROM_COMPANION)
+        }
     Row {
         Icon(
             painterResource(icon),
             description,
             tint = MaterialTheme.colors.onPrimary,
-            modifier = Modifier.size(Dimens.ICON_SIZE_REGULAR.dp)
+            modifier = Modifier.size(Dimens.ICON_SIZE_REGULAR.dp),
         )
     }
 }
 
-fun main() = application {
-    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-    val myApp = App(clipboard)
-    myApp.start()
-    Window(
-        onCloseRequest = {
-            myApp.exit()
-            exitApplication()
-        },
-        title = "C3PO - The Android Explorer",
-        state = WindowState(
-            width = Dimens.WINDOW_WIDTH.dp,
-            height = Dimens.WINDOW_HEIGHT.dp
-        )
-    ) {
-        Render(myApp)
+fun main() =
+    application {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        val myApp = App(clipboard)
+        myApp.start()
+        Window(
+            onCloseRequest = {
+                myApp.exit()
+                exitApplication()
+            },
+            title = "C3PO - The Android Explorer",
+            state =
+                WindowState(
+                    width = Dimens.WINDOW_WIDTH.dp,
+                    height = Dimens.WINDOW_HEIGHT.dp,
+                ),
+        ) {
+            Render(myApp)
+        }
     }
-}
 
 @Composable
 fun CompanionDialog() {

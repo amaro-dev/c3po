@@ -1,7 +1,6 @@
 package socket
 
 class SocketResponseAggregator {
-
     private val cache = HashMap<String, MutableList<String>>()
 
     private val ready: MutableList<CommandEntry> = mutableListOf()
@@ -26,9 +25,10 @@ class SocketResponseAggregator {
                 val content = cache[it.id]
                 cache.remove(it.id)
                 it to (content ?: emptyList())
-            }
-            .toList()
-
+            }.toList()
 }
 
-data class CommandEntry(val id: String, val command: String)
+data class CommandEntry(
+    val id: String,
+    val command: String,
+)

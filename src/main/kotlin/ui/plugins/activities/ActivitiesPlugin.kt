@@ -26,10 +26,17 @@ import ui.RowAction
 import ui.RowType
 import ui.plugins.Plugin
 
-class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
+class ActivitiesPlugin(
+    executor: CommandExecutor,
+) : Plugin<ActivityInfo> {
     sealed interface Actions : IAction {
         data object List : Actions, CommandAction
-        data class Launch(val activityInfo: ActivityInfo, val forDebug: Boolean = false) : Actions, CommandAction
+
+        data class Launch(
+            val activityInfo: ActivityInfo,
+            val forDebug: Boolean = false,
+        ) : Actions,
+            CommandAction
     }
 
     companion object {
@@ -45,33 +52,39 @@ class ActivitiesPlugin(executor: CommandExecutor) : Plugin<ActivityInfo> {
         action is Actions || (action is Action.DeliverSocketResponse && action.reference.command == LIST_ACTIVITY_SOCKET_COMMAND)
 
     @Composable
-    override fun present(result: WindowResult<ActivityInfo>, onAction: (IAction) -> Unit) {
+    override fun present(
+        result: WindowResult<ActivityInfo>,
+        onAction: (IAction) -> Unit,
+    ) {
         val items: List<ActivityInfo> = result.result
         val filter = result.searchTerm
         ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
-            items(items.filter {
-                filter.length < 3 || it.packageName.contains(filter, ignoreCase = true)
-                        || it.fullPath.contains(filter, ignoreCase = true)
-            }.groupBy { it.packageName }
-                .flatMap {
-                    listOf(Pair(RowType.Header, it.key)).plus(it.value.map { Pair(RowType.Regular, it) })
-                }
+            items(
+                items
+                    .filter {
+                        filter.length < 3 ||
+                                it.packageName.contains(filter, ignoreCase = true) ||
+                                it.fullPath.contains(filter, ignoreCase = true)
+                    }.groupBy { it.packageName }
+                    .flatMap {
+                        listOf(Pair(RowType.Header, it.key)).plus(it.value.map { Pair(RowType.Regular, it) })
+                    },
             ) { activity ->
-                if (activity.first == RowType.Header)
+                if (activity.first == RowType.Header) {
                     HeaderRow(activity.second as String)
-                else if (activity.first == RowType.Regular) {
+                } else if (activity.first == RowType.Regular) {
                     (activity.second as ActivityInfo).let {
                         ActionableRow(
                             listOf(
                                 RowAction(Icons.LAUNCH, "Start activity", Actions.Launch(it)),
-                                RowAction(Icons.DEBUG, "Start activity for debug", Actions.Launch(it, true))
+                                RowAction(Icons.DEBUG, "Start activity for debug", Actions.Launch(it, true)),
                             ),
-                            onAction
+                            onAction,
                         ) { Text(it.activityPath) }
                     }
                     Divider(
                         color = MaterialTheme.colors.onBackground,
-                        modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth()
+                        modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth(),
                     )
                 }
             }

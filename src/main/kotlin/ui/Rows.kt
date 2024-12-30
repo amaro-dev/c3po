@@ -19,32 +19,41 @@ import androidx.compose.ui.unit.dp
 import dev.amaro.sonic.IAction
 
 @Composable
-fun RegularRow(content: String, modifier: Modifier = Modifier) {
+fun RegularRow(
+    content: String,
+    modifier: Modifier = Modifier,
+) {
     CustomRow(modifier) {
         Text(
             content,
             style = MaterialTheme.typography.body2,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-fun CustomRow(modifier: Modifier = Modifier, content:  @Composable RowScope.() -> Unit) {
+fun CustomRow(
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
     Row(
         modifier
             .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
             .defaultMinSize(minHeight = Dimens.ROW_HEIGHT_REGULAR.dp)
             .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         content()
     }
 }
 
-
 @Composable
-fun ActionableRow(actions: List<RowAction>, onAction: (IAction) -> Unit, content: @Composable () -> Unit) {
+fun ActionableRow(
+    actions: List<RowAction>,
+    onAction: (IAction) -> Unit,
+    content: @Composable () -> Unit,
+) {
     CustomRow {
         Box(Modifier.weight(1f)) {
             content()
@@ -61,17 +70,17 @@ fun ActionableRow(actions: List<RowAction>, onAction: (IAction) -> Unit, content
 data class RowAction(
     val icon: String,
     val description: String,
-    val action: IAction
+    val action: IAction,
 )
-
 
 @Composable
 fun HeaderRow(content: String) {
     Surface(color = MaterialTheme.colors.primary) {
         Row(
-            Modifier.fillMaxWidth()
+            Modifier
+                .fillMaxWidth()
                 .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(content, style = MaterialTheme.typography.subtitle1)
         }

@@ -11,11 +11,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class DeviceMiddleware(private val executor: CommandExecutor) : IMiddleware<AppState> {
-
+class DeviceMiddleware(
+    private val executor: CommandExecutor,
+) : IMiddleware<AppState> {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override fun process(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
 
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
@@ -29,24 +34,24 @@ class DeviceMiddleware(private val executor: CommandExecutor) : IMiddleware<AppS
                         processor.perform(Action.SelectDevice(devices[0]))
                     }
                 }
-
             }
 
             is Action.SelectDevice -> {
                 scope.launch {
                     val deviceInfo = executor.go(DeviceInfoCommand(), processor, adbPath, action.device)
                     processor.reduce(Action.SelectDevice(action.device.copy(details = deviceInfo)))
-                    val fixedList = state.devices.map {
-                        if (it.id == action.device.id)
-                            it.copy(details = deviceInfo)
-                        else
-                            it
-                    }
+                    val fixedList =
+                        state.devices.map {
+                            if (it.id == action.device.id) {
+                                it.copy(details = deviceInfo)
+                            } else {
+                                it
+                            }
+                        }
                     processor.reduce(Action.DeliverDevices(fixedList))
                     processor.perform(Action.CheckForCompanion)
                 }
             }
         }
-
     }
 }

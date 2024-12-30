@@ -1,5 +1,6 @@
 package core
 
+import Settings
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
@@ -8,10 +9,13 @@ import java.util.Properties
 
 class SettingsMiddleware(
     private val resourcesPath: File,
-    private val settingsFile: String
+    private val settingsFile: String,
 ) : IMiddleware<AppState> {
-
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override fun process(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.LoadSettings -> {
                 val props = Properties()
@@ -29,6 +33,7 @@ class SettingsMiddleware(
                 val props = state.settings.clone() as Properties
                 props.setProperty(action.key, action.value)
                 processor.reduce(Action.LoadSettingsIntoState(props))
+                if (action.key == Settings.ADB_PATH_PROP) processor.perform(Action.RefreshDevices)
             }
 
             is Action.SaveSettings -> {

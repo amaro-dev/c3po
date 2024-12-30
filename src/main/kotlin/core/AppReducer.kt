@@ -4,70 +4,88 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
 
 class AppReducer : IReducer<AppState> {
-    override fun reduce(action: IAction, currentState: AppState): AppState {
-        return when (action) {
+    override fun reduce(
+        action: IAction,
+        currentState: AppState,
+    ): AppState =
+        when (action) {
             is Action.SelectDevice -> currentState.copy(currentDevice = action.device)
-            is Action.DeliverDevices -> currentState.copy(
-                devices = action.devices,
-                commandStatus = CommandStatus.Completed
-            )
+            is Action.DeliverDevices ->
+                currentState.copy(
+                    devices = action.devices,
+                    commandStatus = CommandStatus.Completed,
+                )
 
             is Action.DeliverPluginResult -> {
                 currentState.copy(
-                    windows = currentState.windows.plus(
-                        Pair(
-                            action.plugin,
-                            WindowResult(action.searchTerm, action.items)
-                        )
-                    ),
+                    windows =
+                        currentState.windows.plus(
+                            Pair(
+                                action.plugin,
+                                WindowResult(action.searchTerm, action.items),
+                            ),
+                        ),
                     currentPlugin = action.plugin,
-                    commandStatus = CommandStatus.Completed
+                    commandStatus = CommandStatus.Completed,
                 )
             }
 
-            is Action.LoadSettingsIntoState -> currentState.copy(
-                settings = action.props,
-                settingsState = SettingsState.Initialized
-            )
+            is Action.LoadSettingsIntoState ->
+                currentState.copy(
+                    settings = action.props,
+                    settingsState = SettingsState.Initialized,
+                )
 
-            is Action.SettingsNotFound -> currentState.copy(
-                settingsState = SettingsState.NotFound
-            )
+            is Action.SettingsNotFound ->
+                currentState.copy(
+                    settingsState = SettingsState.NotFound,
+                )
 
             is Action.ClearPlugins -> currentState.copy(windows = emptyMap())
             is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
-            is Action.ClosePlugin -> currentState.copy(
-                windows = currentState.windows.minus(action.pluginName),
-                currentPlugin = if (currentState.currentPlugin == action.pluginName)
-                    currentState.windows.keys.firstOrNull()
-                else
-                    currentState.currentPlugin
-            )
+            is Action.ClosePlugin ->
+                currentState.copy(
+                    windows = currentState.windows.minus(action.pluginName),
+                    currentPlugin =
+                        if (currentState.currentPlugin == action.pluginName) {
+                            currentState.windows.keys.firstOrNull()
+                        } else {
+                            currentState.currentPlugin
+                        },
+                )
 
-            is Action.SetCommandRunning -> currentState.copy(
-                commandStatus = CommandStatus.Running,
-                errorMessage = null
-            )
+            is Action.SetCommandRunning ->
+                currentState.copy(
+                    commandStatus = CommandStatus.Running,
+                    errorMessage = null,
+                )
 
             is Action.SetCommandCompleted -> currentState.copy(commandStatus = CommandStatus.Completed)
-            is Action.SetCommandError -> currentState.copy(
-                commandStatus = CommandStatus.Failed,
-                errorMessage = action.message
-            )
-
-            is Action.ClearError -> currentState.copy(
-                errorMessage = null,
-                commandStatus = CommandStatus.Idle
-            )
-
-            is Action.ChangeFilter -> currentState.copy(
-                windows = currentState.windows.plus(
-                    Pair(
-                        action.pluginName,
-                        WindowResult(action.searchTerm, currentState.windows[action.pluginName]?.result ?: emptyList())
-                    )
+            is Action.SetCommandError ->
+                currentState.copy(
+                    commandStatus = CommandStatus.Failed,
+                    errorMessage = action.message,
                 )
-            )
+
+            is Action.ClearError ->
+                currentState.copy(
+                    errorMessage = null,
+                    commandStatus = CommandStatus.Idle,
+                )
+
+            is Action.ChangeFilter ->
+                currentState.copy(
+                    windows =
+                        currentState.windows.plus(
+                            Pair(
+                                action.pluginName,
+                                WindowResult(
+                                    action.searchTerm,
+                                    currentState.windows[action.pluginName]?.result ?: emptyList(),
+                                ),
+                            ),
+                        ),
+                )
 
             is Action.UpdateCompanionState -> {
                 println("New State: ${action.state}")
@@ -75,5 +93,4 @@ class AppReducer : IReducer<AppState> {
             }
             else -> currentState
         }
-    }
 }

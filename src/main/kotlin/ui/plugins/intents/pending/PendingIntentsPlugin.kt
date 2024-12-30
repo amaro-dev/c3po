@@ -25,7 +25,9 @@ import ui.PackageHeader
 import ui.Texts
 import ui.plugins.Plugin
 
-class PendingIntentsPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<PendingIntent>>> {
+class PendingIntentsPlugin(
+    executor: CommandExecutor,
+) : Plugin<Pair<String, List<PendingIntent>>> {
     sealed interface Actions : IAction {
         data object List : Actions
     }
@@ -36,16 +38,19 @@ class PendingIntentsPlugin(executor: CommandExecutor) : Plugin<Pair<String, List
 
     override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id, executor)
 
-
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
-    override fun present(result: WindowResult<Pair<String, List<PendingIntent>>>, onAction: (IAction) -> Unit) {
+    override fun present(
+        result: WindowResult<Pair<String, List<PendingIntent>>>,
+        onAction: (IAction) -> Unit,
+    ) {
         val items: List<Pair<String, List<PendingIntent>>> = result.result
         val filter = result.searchTerm
-        val filteredItems = items.filter {
-            filter.length < 3 || it.first.contains((filter))
-        }
+        val filteredItems =
+            items.filter {
+                filter.length < 3 || it.first.contains((filter))
+            }
         ContentBox(filter, { onAction(core.Action.ChangeFilter(id, it)) }) {
             items(filteredItems) { pkg ->
                 PackageHeader(pkg.first)
@@ -68,7 +73,7 @@ fun PendingIntentRow(intent: PendingIntent) {
             Text(
                 text = intent.entryId,
                 style = MaterialTheme.typography.body2,
-                modifier = Modifier.weight(0.2f)
+                modifier = Modifier.weight(0.2f),
             )
             Text(
                 text = "Type: ",
@@ -77,7 +82,7 @@ fun PendingIntentRow(intent: PendingIntent) {
             Text(
                 text = intent.type,
                 style = MaterialTheme.typography.body2,
-                modifier = Modifier.weight(0.3f)
+                modifier = Modifier.weight(0.3f),
             )
 
             Text(
@@ -87,7 +92,7 @@ fun PendingIntentRow(intent: PendingIntent) {
             Text(
                 text = intent.flags.toString(),
                 style = MaterialTheme.typography.body2,
-                modifier = Modifier.weight(0.2f)
+                modifier = Modifier.weight(0.2f),
             )
             Text(
                 text = "Request Code: ",
@@ -96,12 +101,13 @@ fun PendingIntentRow(intent: PendingIntent) {
             Text(
                 text = intent.requestCode?.toString() ?: Texts.NOT_SPECIFIED,
                 style = MaterialTheme.typography.body2,
-                modifier = Modifier.weight(0.15f)
+                modifier = Modifier.weight(0.15f),
             )
         }
         Column(
-            Modifier.background(Color.Black.copy(alpha = 0.1f))
-                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp)
+            Modifier
+                .background(Color.Black.copy(alpha = 0.1f))
+                .padding(Dimens.ROW_HORIZONTAL_MARGIN.dp, Dimens.ROW_VERTICAL_MARGIN.dp),
         ) {
             Row {
                 Text(
@@ -109,9 +115,12 @@ fun PendingIntentRow(intent: PendingIntent) {
                     style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
-                    text = intent.intent.intent.removePrefix("act=").removePrefix("cmp="),
+                    text =
+                        intent.intent.intent
+                            .removePrefix("act=")
+                            .removePrefix("cmp="),
                     style = MaterialTheme.typography.body2,
-                    modifier = Modifier.weight(0.4f)
+                    modifier = Modifier.weight(0.4f),
                 )
                 Text(
                     text = "Package: ",
@@ -120,7 +129,7 @@ fun PendingIntentRow(intent: PendingIntent) {
                 Text(
                     text = intent.intent.packageName ?: Texts.NOT_SPECIFIED,
                     style = MaterialTheme.typography.body2,
-                    modifier = Modifier.weight(0.2f)
+                    modifier = Modifier.weight(0.2f),
                 )
             }
             Row {
@@ -149,15 +158,15 @@ fun PendingIntentRow(intent: PendingIntent) {
                     style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
-                    text = intent.intent.flags?.let { flags ->
-                        IntentFlags.entries
-                            .filter { (flags and it.code) > 0 }
-                            .joinToString(separator = ", ") { it.name }
-                    } ?: Texts.NOT_SPECIFIED,
+                    text =
+                        intent.intent.flags?.let { flags ->
+                            IntentFlags.entries
+                                .filter { (flags and it.code) > 0 }
+                                .joinToString(separator = ", ") { it.name }
+                        } ?: Texts.NOT_SPECIFIED,
                     style = MaterialTheme.typography.body2,
                 )
             }
         }
-
     }
 }

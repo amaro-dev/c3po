@@ -23,7 +23,9 @@ import ui.RegularRow
 import ui.RowType
 import ui.plugins.Plugin
 
-class ServicesPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<ActivityInfo>>> {
+class ServicesPlugin(
+    executor: CommandExecutor,
+) : Plugin<Pair<String, List<ActivityInfo>>> {
     sealed interface Actions : IAction {
         data object LIST : Actions, CommandAction
     }
@@ -41,23 +43,29 @@ class ServicesPlugin(executor: CommandExecutor) : Plugin<Pair<String, List<Activ
         action is Actions || (action is Action.DeliverSocketResponse && action.reference.command == LIST_SERVICE_SOCKET_COMMAND)
 
     @Composable
-    override fun present(result: WindowResult<Pair<String, List<ActivityInfo>>>, onAction: (IAction) -> Unit) {
+    override fun present(
+        result: WindowResult<Pair<String, List<ActivityInfo>>>,
+        onAction: (IAction) -> Unit,
+    ) {
         val items: List<Pair<String, List<ActivityInfo>>> = result.result
         val filter = result.searchTerm
         ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
-            items(items.filter {
-                filter.length < 3 || it.first.contains((filter))
-            }.flatMap {
-                listOf(Pair(RowType.Header, it.first)).plus(it.second.map { Pair(RowType.Regular, it) })
-            }
+            items(
+                items
+                    .filter {
+                        filter.length < 3 || it.first.contains((filter))
+                    }.flatMap {
+                        listOf(Pair(RowType.Header, it.first)).plus(it.second.map { Pair(RowType.Regular, it) })
+                    },
             ) { activity ->
-                if (activity.first == RowType.Header)
+                if (activity.first == RowType.Header) {
                     PackageHeader(activity.second as String)
-                else if (activity.first == RowType.Regular)
+                } else if (activity.first == RowType.Regular) {
                     RegularRow((activity.second as ActivityInfo).activityPath)
+                }
                 Divider(
                     color = MaterialTheme.colors.onBackground,
-                    modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth()
+                    modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth(),
                 )
             }
         }

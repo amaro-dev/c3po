@@ -14,7 +14,8 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
         var content = result.content.trim()
         content = content.substring(content.indexOf("ACTIVITY MANAGER PENDING INTENTS (dumpsys activity intents)"))
         val removePrefix = Regex("\\s+\\*\\s")
-        return lineSplitRule.split(content)
+        return lineSplitRule
+            .split(content)
             .drop(1)
             .takeWhile { it.startsWith("  ") }
             .joinToString()
@@ -23,14 +24,20 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
             .split(" * ")
             .map {
                 buildMap {
-                    put("key", idPattern.find(it)?.groups?.get(1)?.value)
+                    put(
+                        "key",
+                        idPattern
+                            .find(it)
+                            ?.groups
+                            ?.get(1)
+                            ?.value,
+                    )
                     put("hasExtras", it.contains("(has extras)").toString())
                     keyValuePattern.findAll(it).forEach {
                         put(it.groups[1]!!.value, it.groups[2]!!.value)
                     }
                 }
-            }
-            .map {
+            }.map {
                 PendingIntent(
                     it["key"] ?: "",
                     it["packageName"] ?: "",
@@ -42,10 +49,9 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
                         it["flg"]?.removePrefix("0x")?.toLong(16),
                         it["pkg"],
                         it["dat"],
-                        it["cmp"]
+                        it["cmp"],
                     ),
-
-                    it["requestCode"]?.toInt()
+                    it["requestCode"]?.toInt(),
                 )
             }
     }

@@ -15,22 +15,23 @@ import ui.plugins.PluginMiddleware
 
 class PackagesPluginMiddleware(
     pluginName: String,
-    executor: CommandExecutor
+    executor: CommandExecutor,
 ) : PluginMiddleware(pluginName, executor) {
-
-
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
-
+    override fun process(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.StartPlugin,
-            PackagesPlugin.Actions.List -> {
+            PackagesPlugin.Actions.List,
+                -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 execute(ListPackagesCommand(), state, processor) {
                     processor.reduce(
-                        Action.DeliverPluginResult(pluginName, it, searchTerm)
+                        Action.DeliverPluginResult(pluginName, it, searchTerm),
                     )
                 }
-
             }
 
             is PackagesPlugin.Actions.Stop -> {
@@ -56,5 +57,4 @@ class PackagesPluginMiddleware(
             }
         }
     }
-
 }

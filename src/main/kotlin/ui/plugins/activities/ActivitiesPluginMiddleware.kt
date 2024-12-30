@@ -12,13 +12,17 @@ import ui.plugins.PluginMiddleware
 
 class ActivitiesPluginMiddleware(
     pluginName: String,
-    executor: CommandExecutor
+    executor: CommandExecutor,
 ) : PluginMiddleware(pluginName, executor) {
-
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override fun process(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.StartPlugin,
-            ActivitiesPlugin.Actions.List -> {
+            ActivitiesPlugin.Actions.List,
+                -> {
 //                processor.perform(
 //                    Action.SendSocketRequest(
 //                        ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND,
@@ -39,16 +43,16 @@ class ActivitiesPluginMiddleware(
             is Action.DeliverSocketResponse -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 if (action.reference.command == ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND) {
-                    val response = action.content
-                        .map {
-                            val (pkg, service) = it.split(' ')
-                            ActivityInfo(pkg, service.removePrefix(pkg))
-                        }
-                        .sortedBy { it.packageName }
-                        .toList()
+                    val response =
+                        action.content
+                            .map {
+                                val (pkg, service) = it.split(' ')
+                                ActivityInfo(pkg, service.removePrefix(pkg))
+                            }.sortedBy { it.packageName }
+                            .toList()
 
                     processor.reduce(
-                        Action.DeliverPluginResult(pluginName, response, searchTerm)
+                        Action.DeliverPluginResult(pluginName, response, searchTerm),
                     )
                 }
             }

@@ -12,10 +12,16 @@ import kotlinx.coroutines.launch
 import socket.SocketClient
 import socket.SocketResponseAggregator
 
-class SocketMiddleware(private val socketClient: SocketClient) : IMiddleware<AppState> {
+class SocketMiddleware(
+    private val socketClient: SocketClient,
+) : IMiddleware<AppState> {
     private val aggregator = SocketResponseAggregator()
 
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override fun process(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.SendSocketRequest -> {
                 val request = action.command.plus(action.arg ?: "").plus("/${action.id}")
@@ -25,13 +31,13 @@ class SocketMiddleware(private val socketClient: SocketClient) : IMiddleware<App
             is Action.ConnectCompanion -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     println("Trying to connect")
-                    socketClient.connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
+                    socketClient
+                        .connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
                         .onEach {
                             if (it == "CONNECTED") {
                                 processor.reduce(Action.UpdateCompanionState(state.companionState.setIsOnline()))
                             }
-                        }
-                        .filterNot { it == "CONNECTED" }
+                        }.filterNot { it == "CONNECTED" }
                         .onCompletion { processor.perform(Action.CheckForCompanion) }
                         .collect {
                             aggregator.parse(it)

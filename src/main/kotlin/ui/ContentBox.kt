@@ -16,7 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ContentBox(searchTerm: String, onSearch: ((String) -> Unit), content: LazyListScope.() -> Unit) {
+fun ContentBox(
+    searchTerm: String,
+    onSearch: ((String) -> Unit),
+    content: LazyListScope.() -> Unit,
+) {
     Box(Modifier.fillMaxSize()) {
         Column {
             MySearchField(searchTerm) { onSearch(it) }
@@ -27,10 +31,9 @@ fun ContentBox(searchTerm: String, onSearch: ((String) -> Unit), content: LazyLi
                 }
                 VerticalScrollbar(
                     modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState = listState)
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
                 )
             }
         }
-
     }
 }

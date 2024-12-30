@@ -3,7 +3,6 @@ package core
 import models.AdbDevice
 import java.util.Properties
 
-
 data class AppState(
     val devices: List<AdbDevice> = emptyList(),
     val currentDevice: AdbDevice? = null,
@@ -19,17 +18,17 @@ data class AppState(
 enum class SettingsState {
     NotInitialized,
     NotFound,
-    Initialized
+    Initialized,
 }
 
 enum class CommandStatus {
     Idle,
     Running,
     Completed,
-    Failed
+    Failed,
 }
 
 data class WindowResult<out T>(
     val searchTerm: String,
-    val result: List<T>
+    val result: List<T>,
 )

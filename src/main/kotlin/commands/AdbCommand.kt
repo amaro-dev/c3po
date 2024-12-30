@@ -5,9 +5,8 @@ interface AdbCommand<T> {
 
     fun parse(result: CommandResult): T
 
-    fun run(adbPath: String): T {
-        return parse(
-            CommandResult("", 0, null)
+    fun run(adbPath: String): T =
+        parse(
+            CommandResult("", 0, null),
         )
-    }
 }

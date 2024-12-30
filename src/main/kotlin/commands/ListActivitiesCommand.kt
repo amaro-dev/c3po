@@ -12,7 +12,8 @@ class ListActivitiesCommand : AdbCommand<List<ActivityInfo>> {
         content = content.substring(content.indexOf("Non-Data Actions:"))
         content = content.substring(content.indexOf("android.intent.action.MAIN:"))
         val removePrefix = Regex("\\s+\\w{5,}\\s")
-        return lineSplitRule.split(content)
+        return lineSplitRule
+            .split(content)
             .drop(1)
             .takeWhile { it.startsWith("        ") }
             .map { removePrefix.replace(it, "") }

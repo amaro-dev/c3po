@@ -12,15 +12,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ActionButton(
     painter: Painter,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Icon(
         painter = painter,
         contentDescription = Texts.EMPTY,
-        modifier = Modifier.clickable { onClick() }
-            .size(Dimens.SQUARE_BUTTON_SIZE_REGULAR.dp)
-            .padding(Dimens.SQUARE_BUTTON_PADDING.dp)
-
+        modifier =
+            Modifier
+                .clickable { onClick() }
+                .size(Dimens.SQUARE_BUTTON_SIZE_REGULAR.dp)
+                .padding(Dimens.SQUARE_BUTTON_PADDING.dp),
     )
-
 }
