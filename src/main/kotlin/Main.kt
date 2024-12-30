@@ -4,19 +4,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import core.Action
 import core.App
+import core.CompanionState
 import ui.AppTheme
 import ui.DeviceSelector
 import ui.MainScreen
@@ -24,6 +28,24 @@ import ui.PluginSelector
 import ui.definitions.Dimens
 import ui.definitions.Texts
 import java.awt.Toolkit
+
+
+@Composable
+fun ServiceStatus(companionState: CompanionState) {
+    val (icon, description) = when {
+        companionState.isOnline() -> Pair(ui.definitions.Icons.ONLINE, Texts.CONNECTED_TO_COMPANION)
+        companionState.isReady() -> Pair(ui.definitions.Icons.CONNECTING, Texts.CONNECTING_TO_COMPANION)
+        else -> Pair(ui.definitions.Icons.OFFLINE, Texts.DISCONNECTED_FROM_COMPANION)
+    }
+    Row {
+        Icon(
+            painterResource(icon),
+            description,
+            tint = MaterialTheme.colors.onPrimary,
+            modifier = Modifier.size(Dimens.ICON_SIZE_REGULAR.dp)
+        )
+    }
+}
 
 
 fun main() =

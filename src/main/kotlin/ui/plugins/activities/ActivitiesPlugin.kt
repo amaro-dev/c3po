@@ -18,6 +18,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.ContentBox
+import ui.OnAction
 import ui.definitions.Dimens
 import ui.definitions.Icons
 import ui.plugins.Plugin
@@ -54,7 +55,7 @@ class ActivitiesPlugin(
     @Composable
     override fun present(
         result: WindowResult<ActivityInfo>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     ) {
         val items: List<ActivityInfo> = result.result
         val filter = result.searchTerm

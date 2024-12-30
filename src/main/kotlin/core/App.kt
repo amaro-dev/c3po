@@ -39,7 +39,7 @@ class App(
 
     private val resourcesPath =
         if (Settings.isDebug()) {
-            File(Paths.get("build").absolutePathString())
+            File(Paths.get("build/resources/main").absolutePathString())
         } else {
             File(Settings.productionSettingsFolder()).apply {
                 if (!exists()) Files.createDirectory(toPath())
@@ -58,7 +58,7 @@ class App(
                 Action.ClearError::class,
             ),
             SettingsMiddleware(resourcesPath, Settings.FILE_NAME),
-            CompanionMiddleware(executor),
+            CompanionMiddleware(resourcesPath, executor),
             StatusMiddleware(CoroutineScope(Dispatchers.Default))
 //            DebugMiddleware(actions = arrayOf(
 //                Action.SetCommandError("Some error happened"),

@@ -9,7 +9,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import core.Action
-import dev.amaro.sonic.IAction
 import ui.plugins.Plugin
 import ui.rows.BaseRow
 
@@ -17,7 +16,7 @@ import ui.rows.BaseRow
 fun PluginSelector(
     plugins: List<Plugin<*>>,
     currentPlugin: String?,
-    onSelect: (IAction) -> Unit,
+    onSelect: OnAction,
 ) {
     Column {
         plugins.forEach {

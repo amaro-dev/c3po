@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import core.Action
 import dev.amaro.sonic.IAction
+import ui.OnAction
 import ui.definitions.Dimens
 import ui.definitions.Icons
 import ui.definitions.Texts
@@ -45,7 +46,7 @@ import ui.rows.BaseRow
 fun DeviceAttrRow(
     label: String,
     value: String?,
-    onAction: (IAction) -> Unit,
+    onAction: OnAction,
 ) {
     var isHoveringAttr: Boolean by remember { mutableStateOf(false) }
     var isHoveringValue: Boolean by remember { mutableStateOf(false) }

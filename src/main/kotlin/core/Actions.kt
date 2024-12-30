@@ -6,6 +6,7 @@ import socket.CommandEntry
 import java.util.Properties
 
 sealed interface Action : IAction {
+    data class UpdatedState(val old: AppState, val new: AppState) : Action
     interface CommandAction : Action
 
     data class SelectDevice(
@@ -30,6 +31,7 @@ sealed interface Action : IAction {
 
     data object ClearError : Action
 
+
     data object LoadSettings : Action
 
     data class ChangeSettingsProperty(
@@ -40,10 +42,14 @@ sealed interface Action : IAction {
     data object SaveSettings : Action
 
     data object SettingsNotFound : Action
+    interface ILoadSettingsIntoState {
+        val props: Properties
+    }
 
-    data class LoadSettingsIntoState(
-        val props: Properties,
-    ) : Action
+    data class LoadSettingsIntoState(override val props: Properties) : Action, ILoadSettingsIntoState
+    data class LoadSettingsIntoStateAndSave(
+        override val props: Properties,
+    ) : Action, ILoadSettingsIntoState
 
     data class DeliverDevices(
         val devices: List<AdbDevice>,
@@ -77,9 +83,10 @@ sealed interface Action : IAction {
     data object PrepareCompanion : Action
 
     data object ConnectCompanion : Action
-
-    data class UpdateCompanionState(
-        val state: CompanionState,
+    data object InstallCompanion : Action
+    data object SkipCompanionForDevice : Action
+    data object DoNotUseCompanion : Action
+    data class UpdateCompanionState(val state: CompanionState,
     ) : Action
 
     data class DeliverSocketResponse(
@@ -92,6 +99,5 @@ sealed interface Action : IAction {
         val id: String,
         val arg: String?,
     ) : Action
-
     data object ListServices : Action
 }

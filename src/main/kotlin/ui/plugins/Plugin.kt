@@ -5,6 +5,7 @@ import core.AppState
 import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
+import ui.OnAction
 
 interface Plugin<in T> {
     // As a good practice actions should be declared in here
@@ -22,7 +23,7 @@ interface Plugin<in T> {
     @Composable
     fun render(
         state: Map<String, WindowResult<*>>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     ) {
         state[id]?.run { present(this as WindowResult<T>, onAction) }
     }
@@ -30,6 +31,6 @@ interface Plugin<in T> {
     @Composable
     fun present(
         result: WindowResult<T>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     )
 }

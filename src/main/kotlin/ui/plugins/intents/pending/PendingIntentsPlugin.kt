@@ -21,6 +21,7 @@ import dev.amaro.sonic.IMiddleware
 import models.PendingIntent
 import ui.ContentBox
 import ui.definitions.Dimens
+import ui.OnAction
 import ui.definitions.Texts
 import ui.plugins.Plugin
 import ui.rows.HeaderRow
@@ -43,7 +44,7 @@ class PendingIntentsPlugin(
     @Composable
     override fun present(
         result: WindowResult<Pair<String, List<PendingIntent>>>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     ) {
         val items: List<Pair<String, List<PendingIntent>>> = result.result
         val filter = result.searchTerm

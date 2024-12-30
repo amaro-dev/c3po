@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.toSize
 import core.Action
 import core.App
 import core.SettingsState
+import hasSelectedCompanionOption
 import ui.plugins.Plugin
 
 @Composable
@@ -62,6 +63,10 @@ fun MainScreen(app: App, sideSection: Section) {
                 }
                 if (state.settingsState == SettingsState.NotFound) {
                     SettingsBox { app.perform(it) }
+                } else {
+                    if (state.shouldShowCompanionDialog) {
+                        CompanionDialog(!state.settings.hasSelectedCompanionOption()) { app.perform(it) }
+                    }
                 }
             }
 

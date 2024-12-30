@@ -20,10 +20,12 @@ class SocketClient {
     private lateinit var input: BufferedReader
     private lateinit var output: BufferedWriter
 
-    private var isClosed = false
+    private var isClosed = true
 
     private val isLive
-        get() = mClientSocket.isConnected && !mClientSocket.isClosed && !isClosed
+        get() = this::mClientSocket.isInitialized &&
+                mClientSocket.isConnected &&
+                !mClientSocket.isClosed && !isClosed
 
     fun connect(
         ip: String,
@@ -61,6 +63,10 @@ class SocketClient {
     }
 
     fun send(command: String) {
+        if (isClosed || !isLive) {
+            println("Connection is not open!")
+            return
+        }
         output.run {
             write("$command\n")
             flush()

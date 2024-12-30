@@ -18,6 +18,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import ui.ContentBox
 import ui.definitions.Dimens
+import ui.OnAction
 import ui.plugins.Plugin
 
 class DeviceAttrsPlugin(
@@ -37,7 +38,7 @@ class DeviceAttrsPlugin(
     @Composable
     override fun present(
         result: WindowResult<Pair<String, String>>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     ) {
         val items: List<Pair<String, String>> = result.result
         val filter = result.searchTerm

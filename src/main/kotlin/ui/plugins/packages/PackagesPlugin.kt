@@ -21,6 +21,7 @@ import models.AppPackage
 import ui.ContentBox
 import ui.definitions.Dimens
 import ui.definitions.Icons
+import ui.OnAction
 import ui.definitions.Texts
 import ui.plugins.Plugin
 import ui.rows.ActionableRow
@@ -61,7 +62,7 @@ class PackagesPlugin(
     @Composable
     override fun present(
         result: WindowResult<AppPackage>,
-        onAction: (IAction) -> Unit,
+        onAction: OnAction,
     ) {
         val items: List<AppPackage> = result.result
         val filter = result.searchTerm

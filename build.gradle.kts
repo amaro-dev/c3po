@@ -16,10 +16,11 @@ repositories {
     google()
 }
 
+
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation("org.jetbrains.compose.runtime:runtime:1.6.0")
-    implementation("dev.amaro:sonic:0.4.1")
+    implementation("dev.amaro:sonic:0.5.1")
     implementation("com.composables.ui:menu:1.4.0")
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -31,7 +32,6 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "MainKt"
-
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"

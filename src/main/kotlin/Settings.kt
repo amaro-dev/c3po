@@ -1,6 +1,7 @@
 object Settings {
     const val FILE_NAME = "c3po.cfg"
     const val ADB_PATH_PROP = "command.adb.path"
+    const val ACCEPT_COMPANION = "settings.companion.accept"
     const val NAME_SYSTEM_PROP = "ro.product.name"
     private const val PACKAGE_PROP = "jpackage.app-path"
     private const val USER_HOME = "user.home"

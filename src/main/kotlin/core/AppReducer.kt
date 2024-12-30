@@ -1,5 +1,6 @@
 package core
 
+import core.Action.ILoadSettingsIntoState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
 
@@ -30,7 +31,7 @@ class AppReducer : IReducer<AppState> {
                 )
             }
 
-            is Action.LoadSettingsIntoState ->
+            is ILoadSettingsIntoState ->
                 currentState.copy(
                     settings = action.props,
                     settingsState = SettingsState.Initialized,
@@ -88,7 +89,6 @@ class AppReducer : IReducer<AppState> {
                 )
 
             is Action.UpdateCompanionState -> {
-//                println("New State: ${action.state}")
                 currentState.copy(companionState = action.state)
             }
 
