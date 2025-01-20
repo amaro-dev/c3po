@@ -6,6 +6,7 @@ import commands.CommandExecutor
 import core.AppState
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
+import handle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,7 +26,7 @@ abstract class PluginMiddleware(
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         state.currentDevice?.run {
             coroutineScope.launch {
-                val result = executor.go(command, processor, adbPath, this@run)
+                val result = executor.go(command, adbPath, this@run).handle(processor)
                 result?.run { onComplete(this) }
             }
         }

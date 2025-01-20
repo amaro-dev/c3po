@@ -7,6 +7,7 @@ import commands.ListDevicesCommand
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
+import handle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ class DeviceMiddleware(
         when (action) {
             is Action.RefreshDevices -> {
                 scope.launch {
-                    val devices = executor.go(ListDevicesCommand, processor, adbPath, null)
+                    val devices = executor.go(ListDevicesCommand, adbPath, null).handle(processor) ?: return@launch
                     processor.reduce(Action.DeliverDevices(devices))
                     if (devices.size == 1) {
                         if (devices[0] != state.currentDevice) processor.reduce(Action.ClearPlugins)
@@ -38,7 +39,8 @@ class DeviceMiddleware(
 
             is Action.SelectDevice -> {
                 scope.launch {
-                    val deviceInfo = executor.go(DeviceInfoCommand(), processor, adbPath, action.device)
+                    val deviceInfo =
+                        executor.go(DeviceInfoCommand(), adbPath, action.device).handle(processor) ?: return@launch
                     processor.reduce(Action.SelectDevice(action.device.copy(details = deviceInfo)))
                     val fixedList =
                         state.devices.map {

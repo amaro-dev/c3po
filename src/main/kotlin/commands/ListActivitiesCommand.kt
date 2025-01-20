@@ -11,12 +11,14 @@ class ListActivitiesCommand : AdbCommand<List<ActivityInfo>> {
         content = content.substring(content.indexOf("Activity Resolver Table"))
         content = content.substring(content.indexOf("Non-Data Actions:"))
         content = content.substring(content.indexOf("android.intent.action.MAIN:"))
-        val removePrefix = Regex("\\s+\\w{5,}\\s")
+        val removePrefix = Regex("\\s+\\w{3,}\\s")
         return lineSplitRule
             .split(content)
             .drop(1)
-            .takeWhile { it.startsWith("        ") }
+            .takeWhile { it.startsWith("      ") }
+            .filter { it.startsWith("        ") }
             .map { removePrefix.replace(it, "") }
+            .distinct()
             .sorted()
             .map {
                 val (pkg, activity) = it.split('/')

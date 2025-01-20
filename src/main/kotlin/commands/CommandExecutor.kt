@@ -1,20 +1,21 @@
 package commands
 
 import CommandRunner
-import core.AppState
-import dev.amaro.sonic.IProcessor
 import models.AdbDevice
 
 class CommandExecutor {
     suspend fun <T> go(
         command: AdbCommand<T>,
-        processor: IProcessor<AppState>,
         adbPath: String,
         device: AdbDevice?,
-    ): T =
-        command.parse(
-            CommandRunner.run(
-                "$adbPath ${device?.id?.let { "-s $it " } ?: ""}${command.command.trim()}",
-            ),
+    ): Result<T> {
+        val result = CommandRunner.run(
+            "$adbPath ${device?.id?.let { "-s $it " } ?: ""}${command.command.trim()}",
         )
+        return if (result.resultCode != 0)
+            Result.failure(Exception(result.error))
+        else
+            Result.success(command.parse(result))
+    }
+
 }

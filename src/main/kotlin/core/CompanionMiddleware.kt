@@ -38,13 +38,13 @@ class CompanionMiddleware(
                     var status = CompanionState()
                     scope.launch {
                         val isInstalled =
-                            executor.go(CheckAppInstalledCommand(PACKAGE_NAME), processor, adbPath, device)
-                        if (isInstalled) {
+                            executor.go(CheckAppInstalledCommand(PACKAGE_NAME), adbPath, device)
+                        if (isInstalled.isSuccess && isInstalled.getOrNull() == true) {
                             status = status.setIsInstalled()
-                            if (checkCompanionServiceIsRunning(processor, adbPath, device)) {
+                            if (checkCompanionServiceIsRunning(adbPath, device)) {
                                 status = status.setIsRunning()
                             }
-                            if (checkAdbPortsAreConfigured(processor, adbPath, device)) {
+                            if (checkAdbPortsAreConfigured(adbPath, device)) {
                                 status = status.setPortIsOpen()
                             }
                         }
@@ -56,8 +56,8 @@ class CompanionMiddleware(
             is Action.PrepareCompanion -> {
                 if (state.companionState.isOnline()) return
                 scope.launch {
-                    enforceCompanionServiceIsRunning(state, processor, adbPath)
-                    enforceAdbPortsAreConfigured(state, processor, adbPath)
+                    enforceCompanionServiceIsRunning(state, adbPath)
+                    enforceAdbPortsAreConfigured(state, adbPath)
                     processor.perform(Action.CheckForCompanion)
                 }
             }
@@ -69,48 +69,41 @@ class CompanionMiddleware(
     }
 
     private suspend fun checkAdbPortsAreConfigured(
-        processor: IProcessor<AppState>,
         adbPath: String,
         device: AdbDevice,
     ): Boolean =
         executor.go(
             CheckPortForwardCommand("9500"),
-            processor,
             adbPath,
             device,
-        )
+        ).let { it.getOrNull() == true }
 
     private suspend fun checkCompanionServiceIsRunning(
-        processor: IProcessor<AppState>,
         adbPath: String,
         device: AdbDevice,
     ): Boolean =
         executor.go(
             CheckServiceRunningCommand("$PACKAGE_NAME.$SERVICE_NAME"),
-            processor,
             adbPath,
             device,
-        )
+        ).let { it.getOrNull() == true }
 
     private suspend fun enforceAdbPortsAreConfigured(
         state: AppState,
-        processor: IProcessor<AppState>,
         adbPath: String,
     ) {
         if (!state.companionState.isPortOpen()) {
-            executor.go(ForwardPortCommand("9500"), processor, adbPath, state.currentDevice)
+            executor.go(ForwardPortCommand("9500"), adbPath, state.currentDevice)
         }
     }
 
     private suspend fun enforceCompanionServiceIsRunning(
         state: AppState,
-        processor: IProcessor<AppState>,
         adbPath: String,
     ) {
         if (!state.companionState.isRunning()) {
             executor.go(
                 StartServiceCommand(ActivityInfo(PACKAGE_NAME, "$PACKAGE_NAME.$SERVICE_NAME")),
-                processor,
                 adbPath,
                 state.currentDevice,
             )

@@ -102,7 +102,7 @@ fun Render(app: App) {
                     }
                 }
                 LaunchedEffect(state.commandStatus) {
-                    delay(3000)
+                    delay(5000)
                     if (state.commandStatus != core.CommandStatus.Idle) {
                         app.perform(Action.ClearError)
                     }

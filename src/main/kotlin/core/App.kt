@@ -72,3 +72,7 @@ class App(
         socketClient.close()
     }
 }
+
+fun debug(message: String) {
+    //println("[DEBUG] $message")
+}
