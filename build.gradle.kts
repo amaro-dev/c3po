@@ -34,7 +34,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
-            packageVersion = "1.2.1"
+            packageVersion = "1.3.1"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))

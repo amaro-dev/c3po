@@ -1,7 +1,6 @@
 package core
 
 import dev.amaro.sonic.IAction
-import dev.amaro.sonic.ISideEffectAction
 import models.AdbDevice
 import socket.CommandEntry
 import java.util.Properties
@@ -36,10 +35,7 @@ sealed interface Action : IAction {
     data class ChangeSettingsProperty(
         val key: String,
         val value: String,
-    ) : Action,
-        ISideEffectAction {
-        override val sideEffect: IAction = SaveSettings
-    }
+    ) : Action
 
     data object SaveSettings : Action
 

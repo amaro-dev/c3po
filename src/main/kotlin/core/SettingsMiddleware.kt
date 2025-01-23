@@ -33,6 +33,7 @@ class SettingsMiddleware(
                 val props = state.settings.clone() as Properties
                 props.setProperty(action.key, action.value)
                 processor.reduce(Action.LoadSettingsIntoState(props))
+                processor.perform(Action.SaveSettings)
                 if (action.key == Settings.ADB_PATH_PROP) processor.perform(Action.RefreshDevices)
             }
 

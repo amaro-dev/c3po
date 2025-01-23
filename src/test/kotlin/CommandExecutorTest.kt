@@ -24,7 +24,7 @@ class CommandExecutorTest {
             val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
             coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
-            assertThat(executor.go(command, processor, "", null)).isEqualTo(content)
+            assertThat(executor.go(command, "", null)).isEqualTo(content)
         }
 
     @Test
@@ -38,7 +38,7 @@ class CommandExecutorTest {
             val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
             coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
-            executor.go(command, processor, "adb", AdbDevice(device))
+            executor.go(command, "adb", AdbDevice(device))
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
             assertThat(slot.captured).isEqualTo("adb -s $device $instruction")
@@ -54,7 +54,7 @@ class CommandExecutorTest {
             val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
             coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
-            executor.go(command, processor, "adb", null)
+            executor.go(command, "adb", null)
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
             assertThat(slot.captured).isEqualTo("adb $instruction")
@@ -71,7 +71,7 @@ class CommandExecutorTest {
             mockkObject(CommandRunner)
             try {
                 // This error is not important for the test
-                executor.go(command, processor, path, null)
+                executor.go(command, path, null)
             } catch (t: Throwable) {
             }
             coVerify { CommandRunner.run("$path $cmd") }
