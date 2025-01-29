@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import core.AppState
 import dev.amaro.sonic.IAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -35,3 +36,5 @@ fun <T> T.useDebounce(
 }
 
 typealias OnAction = (IAction) -> Unit
+
+typealias Section = @Composable (AppState, ((IAction) -> Unit)) -> Unit

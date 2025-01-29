@@ -4,6 +4,8 @@ import Settings
 import commands.CommandExecutor
 import dev.amaro.sonic.ConditionedDirectMiddleware
 import dev.amaro.sonic.IAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import socket.SocketClient
 import ui.plugins.Plugin
 import ui.plugins.activities.ActivitiesPlugin
@@ -57,7 +59,12 @@ class App(
             ),
             SettingsMiddleware(resourcesPath, Settings.FILE_NAME),
             CompanionMiddleware(executor),
-            SocketMiddleware(socketClient),
+            StatusMiddleware(CoroutineScope(Dispatchers.Default))
+//            DebugMiddleware(actions = arrayOf(
+//                Action.SetCommandError("Some error happened"),
+//                Action.ClearError
+//            ))
+//            SocketMiddleware(socketClient),
         )
 
     fun start() {

@@ -18,13 +18,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import core.Action
-import ui.Texts.Companion.ADB_PATH
+import ui.definitions.Texts
+import ui.definitions.Texts.Companion.ADB_PATH
 
 @Composable
 fun SettingsBox(onAction: (Action) -> Unit) {
     var adbPathValue by remember { mutableStateOf(Texts.EMPTY) }
     Box(
-        Modifier.fillMaxSize().background(color = MaterialTheme.colors.surface),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colors.surface),
         contentAlignment = Alignment.Center,
     ) {
         Column(

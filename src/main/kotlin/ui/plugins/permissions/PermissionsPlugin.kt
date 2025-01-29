@@ -25,10 +25,9 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.DeclaredPermissions
 import ui.ContentBox
-import ui.Dimens
-import ui.HeaderRow
+import ui.definitions.Dimens
 import ui.plugins.Plugin
-import ui.plugins.packages.PackagesPlugin.Actions
+import ui.rows.HeaderRow
 
 class PermissionsPlugin(
     executor: CommandExecutor,
@@ -66,7 +65,7 @@ class PermissionsPlugin(
                     ) {
                         Text(
                             text = it.key,
-                            style = MaterialTheme.typography.body1,
+                            style = MaterialTheme.typography.body2,
                             modifier = Modifier.weight(1f),
                         )
                         it.value.map {

@@ -1,8 +1,8 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.compose")
+    kotlin("jvm") version "1.9.0"
+    id("org.jetbrains.compose") version "1.6.0"
 }
 
 group = "dev.amaro"
@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation("org.jetbrains.compose.runtime:runtime:1.6.0")
     implementation("dev.amaro:sonic:0.4.1")
     implementation("com.composables.ui:menu:1.4.0")
     testImplementation(platform("org.junit:junit-bom:5.11.0"))

@@ -1,4 +1,5 @@
-import commands.CommandResult
+package commands
+
 import core.debug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

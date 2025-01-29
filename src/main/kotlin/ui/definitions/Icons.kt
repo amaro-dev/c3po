@@ -1,4 +1,4 @@
-package ui
+package ui.definitions
 
 interface Icons {
     companion object {

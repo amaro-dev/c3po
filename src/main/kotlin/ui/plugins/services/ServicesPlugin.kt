@@ -17,11 +17,11 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
 import ui.ContentBox
-import ui.Dimens
-import ui.PackageHeader
-import ui.RegularRow
-import ui.RowType
+import ui.definitions.Dimens
 import ui.plugins.Plugin
+import ui.rows.HeaderRow
+import ui.rows.RegularRow
+import ui.rows.RowType
 
 class ServicesPlugin(
     executor: CommandExecutor,
@@ -59,7 +59,7 @@ class ServicesPlugin(
                     },
             ) { activity ->
                 if (activity.first == RowType.Header) {
-                    PackageHeader(activity.second as String)
+                    HeaderRow(activity.second as String)
                 } else if (activity.first == RowType.Regular) {
                     RegularRow((activity.second as ActivityInfo).activityPath)
                 }

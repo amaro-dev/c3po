@@ -23,13 +23,6 @@ class ActivitiesPluginMiddleware(
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List,
                 -> {
-//                processor.perform(
-//                    Action.SendSocketRequest(
-//                        ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND,
-//                        UUID.randomUUID().toString(),
-//                        null
-//                    )
-//                )
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
                 execute(ListActivitiesCommand(), state, processor) {
                     processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
@@ -37,7 +30,9 @@ class ActivitiesPluginMiddleware(
             }
 
             is ActivitiesPlugin.Actions.Launch -> {
-                execute(StartActivityCommand(action.activityInfo, action.forDebug), state, processor) { }
+                execute(StartActivityCommand(action.activityInfo, action.forDebug), state, processor) {
+                    processor.reduce(Action.SetCommandCompleted)
+                }
             }
 
             is Action.DeliverSocketResponse -> {

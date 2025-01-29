@@ -1,6 +1,5 @@
 package commands
 
-import CommandRunner
 import models.AdbDevice
 
 class CommandExecutor {

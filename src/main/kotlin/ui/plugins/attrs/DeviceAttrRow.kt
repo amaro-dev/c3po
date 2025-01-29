@@ -8,11 +8,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
@@ -37,9 +36,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import core.Action
 import dev.amaro.sonic.IAction
-import ui.Dimens
-import ui.Icons
-import ui.Texts
+import ui.definitions.Dimens
+import ui.definitions.Icons
+import ui.definitions.Texts
+import ui.rows.BaseRow
 
 @Composable
 fun DeviceAttrRow(
@@ -49,54 +49,55 @@ fun DeviceAttrRow(
 ) {
     var isHoveringAttr: Boolean by remember { mutableStateOf(false) }
     var isHoveringValue: Boolean by remember { mutableStateOf(false) }
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-        Row(
-            Modifier.fillMaxWidth().height(Dimens.ROW_HEIGHT_LARGE.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    Box(Modifier.fillMaxWidth()) {
+        BaseRow(Modifier.fillMaxWidth()) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.body2,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .weight(5f)
-                        .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
                         .onHover { isHoveringAttr = it },
                 textAlign = TextAlign.End,
             )
             Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
-            Box(Modifier.weight(8f), contentAlignment = Alignment.CenterEnd) {
-                Text(
-                    text = value ?: Texts.NO_VALUE,
-                    style = MaterialTheme.typography.subtitle2,
-                    modifier = Modifier.onHover { isHoveringValue = it }.fillMaxWidth(),
-                )
-                androidx.compose.animation.AnimatedVisibility(
-                    isHoveringValue,
-                    enter = slideInHorizontallyFromRight(),
-                    exit = slideOutHorizontallyToRight(),
-                ) {
-                    Box(
+            Text(
+                text = value ?: Texts.NO_VALUE,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.onHover { isHoveringValue = it }.weight(7f),
+            )
+        }
+        AnimatedVisibility(
+            isHoveringValue,
+            enter = slideInHorizontallyFromRight(),
+            exit = slideOutHorizontallyToRight(),
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Box(
+                Modifier
+                    .padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
+                    .onHover { isHoveringValue = it }
+                    .clip(CircleShape),
+            ) {
+                Icon(
+                    painterResource(Icons.COPY),
+                    contentDescription = Texts.EMPTY,
+                    modifier =
                         Modifier
-                            .padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
-                            .onHover { isHoveringValue = it }
-                            .clip(CircleShape),
-                    ) {
-                        Icon(
-                            painterResource(Icons.COPY),
-                            contentDescription = Texts.EMPTY,
-                            modifier =
-                                Modifier
-                                    .clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
-                                    .withIconStyle(),
-                        )
-                    }
-                }
+                            .clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
+                            .withIconStyle(),
+                )
             }
         }
-        AnimatedVisibility(isHoveringAttr, enter = slideInHorizontally(), exit = slideOutHorizontally()) {
+        AnimatedVisibility(
+            isHoveringAttr,
+            enter = slideInHorizontally(),
+            exit = slideOutHorizontally(),
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
             Box(
                 modifier =
                     Modifier
@@ -134,9 +135,6 @@ fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width
 
 @Composable
 fun Modifier.withIconStyle(): Modifier =
-    this
-        .background(
-            color = MaterialTheme.colors.background,
-            shape = CircleShape,
-        ).padding(Dimens.HORIZONTAL_SPACER.dp)
-        .clip(shape = CircleShape)
+    background(color = MaterialTheme.colors.background)
+        .padding(Dimens.HORIZONTAL_SPACER.dp)
+        .size(16.dp)

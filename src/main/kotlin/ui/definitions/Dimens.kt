@@ -1,4 +1,4 @@
-package ui
+package ui.definitions
 
 interface Dimens {
     companion object {
@@ -9,7 +9,8 @@ interface Dimens {
         const val SCROLL_BAR_MARGIN = 10
         const val ROW_HORIZONTAL_MARGIN = 12
         const val ROW_VERTICAL_MARGIN = 6
-        const val ROW_HEIGHT_REGULAR = 32
+        const val ROW_VERTICAL_MARGIN_BOTTOM = 10
+        const val ROW_HEIGHT_REGULAR = 24
         const val ROW_HEIGHT_LARGE = 48
         const val ROW_HEIGHT_EXTRA_LARGE = 56
         const val SQUARE_BUTTON_SIZE_REGULAR = 32

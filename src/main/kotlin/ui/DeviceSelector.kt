@@ -1,12 +1,10 @@
 package ui
 
 import Settings.NAME_SYSTEM_PROP
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.DropdownMenuItem
@@ -23,48 +21,46 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import models.AdbDevice
-import ui.Texts.Companion.SELECT_DEVICE
-import ui.Texts.Companion.UNKNOWN
+import ui.definitions.Dimens
+import ui.definitions.Texts.Companion.SELECT_DEVICE
+import ui.definitions.Texts.Companion.UNKNOWN
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DeviceSelector(
     devices: List<AdbDevice>,
     selected: AdbDevice?,
-    onSelect: (AdbDevice) -> Unit,
+    modifier: Modifier = Modifier,
+    onSelect: (AdbDevice) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopEnd)) {
+    Box(modifier = modifier.wrapContentSize(Alignment.TopEnd)) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
         ) {
-            Surface(color = MaterialTheme.colors.primary) {
-                Row(
-                    Modifier.fillMaxWidth().padding(start = Dimens.HORIZONTAL_SPACER.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text(SELECT_DEVICE)
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                }
-            }
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = !expanded },
-                modifier = Modifier.background(MaterialTheme.colors.primaryVariant).fillMaxWidth(),
+            Row(
+                Modifier.padding(start = Dimens.HORIZONTAL_SPACER.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Surface(color = MaterialTheme.colors.primaryVariant) {
-                    Column(Modifier.height(300.dp)) {
-                        devices.forEach {
-                            DropdownMenuItem({
-                                onSelect(it)
-                                expanded = false
-                            }) {
-                                DeviceOption(it)
-                            }
+                selected?.run { DeviceOption(this, Modifier.weight(1f)) } ?: Text(SELECT_DEVICE)
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            }
+            Surface(color = MaterialTheme.colors.primaryVariant) {
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = !expanded },
+                ) {
+                    devices.forEach {
+                        DropdownMenuItem({
+                            onSelect(it)
+                            expanded = false
+                        }) {
+                            DeviceOption(it)
                         }
                     }
                 }
@@ -82,6 +78,8 @@ private fun DeviceOption(
         Text(
             device.details[NAME_SYSTEM_PROP] ?: UNKNOWN,
             style = MaterialTheme.typography.body1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis
         )
         Text(device.id, style = MaterialTheme.typography.caption)
     }

@@ -3,6 +3,7 @@ import assertk.assertions.isEqualTo
 import commands.AdbCommand
 import commands.CommandExecutor
 import commands.CommandResult
+import commands.CommandRunner
 import core.AppState
 import dev.amaro.sonic.IProcessor
 import io.mockk.CapturingSlot

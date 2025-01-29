@@ -17,7 +17,7 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import ui.ContentBox
-import ui.Dimens
+import ui.definitions.Dimens
 import ui.plugins.Plugin
 
 class DeviceAttrsPlugin(

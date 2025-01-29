@@ -7,8 +7,8 @@ class AppReducer : IReducer<AppState> {
     override fun reduce(
         action: IAction,
         currentState: AppState,
-    ): AppState =
-        when (action) {
+    ): AppState {
+        val state = when (action) {
             is Action.SelectDevice -> currentState.copy(currentDevice = action.device)
             is Action.DeliverDevices ->
                 currentState.copy(
@@ -91,6 +91,10 @@ class AppReducer : IReducer<AppState> {
                 println("New State: ${action.state}")
                 currentState.copy(companionState = action.state)
             }
+
             else -> currentState
         }
+        println("New State: $state")
+        return state
+    }
 }

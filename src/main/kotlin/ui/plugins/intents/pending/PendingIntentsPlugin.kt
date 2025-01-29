@@ -20,10 +20,10 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.PendingIntent
 import ui.ContentBox
-import ui.Dimens
-import ui.PackageHeader
-import ui.Texts
+import ui.definitions.Dimens
+import ui.definitions.Texts
 import ui.plugins.Plugin
+import ui.rows.HeaderRow
 
 class PendingIntentsPlugin(
     executor: CommandExecutor,
@@ -53,7 +53,7 @@ class PendingIntentsPlugin(
             }
         ContentBox(filter, { onAction(core.Action.ChangeFilter(id, it)) }) {
             items(filteredItems) { pkg ->
-                PackageHeader(pkg.first)
+                HeaderRow(pkg.first)
                 pkg.second.map {
                     PendingIntentRow(it)
                 }

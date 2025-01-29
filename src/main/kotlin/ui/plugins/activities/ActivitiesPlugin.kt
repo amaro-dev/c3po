@@ -17,14 +17,14 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
-import ui.ActionableRow
 import ui.ContentBox
-import ui.Dimens
-import ui.HeaderRow
-import ui.Icons
-import ui.RowAction
-import ui.RowType
+import ui.definitions.Dimens
+import ui.definitions.Icons
 import ui.plugins.Plugin
+import ui.rows.ActionableRow
+import ui.rows.HeaderRow
+import ui.rows.RowAction
+import ui.rows.RowType
 
 class ActivitiesPlugin(
     executor: CommandExecutor,
@@ -80,7 +80,12 @@ class ActivitiesPlugin(
                                 RowAction(Icons.DEBUG, "Start activity for debug", Actions.Launch(it, true)),
                             ),
                             onAction,
-                        ) { Text(it.activityPath) }
+                        ) {
+                            Text(
+                                text = it.activityPath,
+                                style = MaterialTheme.typography.body2
+                            )
+                        }
                     }
                     Divider(
                         color = MaterialTheme.colors.onBackground,

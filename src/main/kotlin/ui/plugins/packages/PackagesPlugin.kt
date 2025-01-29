@@ -18,13 +18,13 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.AppPackage
-import ui.ActionableRow
 import ui.ContentBox
-import ui.Dimens
-import ui.Icons
-import ui.RowAction
-import ui.Texts
+import ui.definitions.Dimens
+import ui.definitions.Icons
+import ui.definitions.Texts
 import ui.plugins.Plugin
+import ui.rows.ActionableRow
+import ui.rows.RowAction
 
 class PackagesPlugin(
     executor: CommandExecutor,
