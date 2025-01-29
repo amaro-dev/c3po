@@ -5,9 +5,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ui.definitions.Dimens
 
-fun Modifier.baselinePadding() = padding(
-    top = Dimens.ROW_VERTICAL_MARGIN.dp,
-    bottom = Dimens.ROW_VERTICAL_MARGIN_BOTTOM.dp
+fun Modifier.baselinePadding(bottom: Int = Dimens.ROW_VERTICAL_MARGIN_BOTTOM) = padding(
+    top = (bottom * 0.6f).dp,
+    bottom = bottom.dp
 )
 
 fun Modifier.horizontalPadding() = padding(

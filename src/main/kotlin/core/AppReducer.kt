@@ -88,13 +88,13 @@ class AppReducer : IReducer<AppState> {
                 )
 
             is Action.UpdateCompanionState -> {
-                println("New State: ${action.state}")
+//                println("New State: ${action.state}")
                 currentState.copy(companionState = action.state)
             }
 
             else -> currentState
         }
-        println("New State: $state")
+//        println("New State: $state")
         return state
     }
 }

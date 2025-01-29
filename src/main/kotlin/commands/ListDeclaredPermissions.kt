@@ -45,12 +45,12 @@ class ListDeclaredPermissions : AdbCommand<List<DeclaredPermissions>> {
                         it.key,
                         it.value
                             .sortedBy { it.first }
-                            .map {
+                            .associate {
                                 it.first to (
                                         it.second?.map { PermissionFlag.protectedValueOf(it.uppercase()) }
                                             ?: emptyList()
                                         )
-                            }.toMap(),
+                            },
                     )
                 }
         }
@@ -94,20 +94,33 @@ fun main() {
 }
 
 enum class PermissionFlag(
-    val code: String,
-    val color: Long? = null,
+    val isBase: Boolean = false
 ) {
-    APPOP("OP", 0xFF023E8A),
-    DANGEROUS("DG", 0xFFCC0000),
-    DEVELOPMENT("DV"),
-    INSTALLER("IN"),
-    NORMAL("NM", 0xFF009D00),
-    PRE23("23"),
-    PREINSTALLED("PI"),
-    PRIVILEGED("PV", 0xFF000000),
-    SIGNATURE("SG", 0xFFFF8D00),
-    VERIFIER("VF"),
-    UNKNOWN("UN"),
+    APPOP(),
+    CONFIGURATOR(),
+    COMPANION(),
+    DANGEROUS(true), // base
+    DEVELOPMENT(),
+    INCIDENTREPORTAPPROVER(),
+    INSTALLER(),
+    INSTANT(),
+    INTERNAL(true), // Base
+    KNOWNSIGNER(),
+    MODULE(),
+    NORMAL(true), // Base
+    OEM(),
+    PRE23(),
+    PREINSTALLED(),
+    PRIVILEGED(),
+    RECENTS(),
+    RETAILDEMO(),
+    ROLE(),
+    RUNTIME(),
+    SETUP(),
+    SIGNATURE(true), // Base
+    VERIFIER(),
+    VENDORPRIVILEGED(),
+    UNKNOWN(),
     ;
 
     companion object {
@@ -115,6 +128,7 @@ enum class PermissionFlag(
             try {
                 PermissionFlag.valueOf(v)
             } catch (e: Exception) {
+                println(v)
                 UNKNOWN
             }
     }

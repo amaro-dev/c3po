@@ -1,23 +1,27 @@
 package ui.plugins.permissions
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import commands.CommandExecutor
+import commands.PermissionFlag
 import core.Action
 import core.AppState
 import core.WindowResult
@@ -25,6 +29,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.DeclaredPermissions
 import ui.ContentBox
+import ui.baselinePadding
 import ui.definitions.Dimens
 import ui.plugins.Plugin
 import ui.rows.HeaderRow
@@ -68,27 +73,9 @@ class PermissionsPlugin(
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.weight(1f),
                         )
-                        it.value.map {
-                            Surface(
-                                color = it.color?.run { Color(this) } ?: MaterialTheme.colors.primary,
-                                contentColor = Color.White,
-                                shape = androidx.compose.foundation.shape.CircleShape,
-                                modifier = Modifier.padding(end = Dimens.HORIZONTAL_SPACER.dp),
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier =
-                                        Modifier
-                                            .size(36.dp),
-                                ) {
-                                    Text(
-                                        text = it.code,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.overline,
-                                        modifier = Modifier.padding(8.dp),
-                                    )
-                                }
-                            }
+                        it.value.sortedByDescending { it.isBase }.map {
+                            PermissionStamp(it)
+                            Spacer(Modifier.width(2.dp))
                         }
                     }
                     Divider(
@@ -99,4 +86,23 @@ class PermissionsPlugin(
             }
         }
     }
+}
+
+@Composable
+fun PermissionStamp(permissionFlag: PermissionFlag) {
+    val borderColor =
+        if (permissionFlag.isBase) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.secondaryVariant
+    val backgroundColor = if (permissionFlag.isBase) MaterialTheme.colors.primary else MaterialTheme.colors.secondary
+    val textColor = if (permissionFlag.isBase) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSecondary
+    Text(
+        text = permissionFlag.name,
+        style = MaterialTheme.typography.overline.copy(fontSize = TextUnit(8f, TextUnitType.Sp)),
+        color = textColor,
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .border(1.dp, borderColor)
+            .background(backgroundColor)
+            .baselinePadding(2)
+            .padding(start = 6.dp, end = 6.dp)
+    )
 }
