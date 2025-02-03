@@ -38,7 +38,7 @@ fun DeviceSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.wrapContentSize(Alignment.TopEnd)) {
+    Box(modifier = modifier.wrapContentSize(Alignment.TopEnd).padding(0.dp, 2.dp)) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },

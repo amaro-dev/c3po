@@ -4,39 +4,25 @@ data class CompanionState(
     private val state: Int = 0,
 ) {
     companion object {
-        const val ACCEPTED = 1
-        const val INSTALLED = 2
-        const val RUNNING = 4
-        const val PORT_AVAILABLE = 8
-        const val ONLINE = 16
-        const val SKIPPED = 32
-        const val PREPARED = 64
+        const val ASKED_FOR_PERMISSION = 1
+        const val CHECKED_FOR_PRESENCE = 2
+        const val ACCEPTED = 4
+        const val SKIPPED = 8
+        const val INSTALLED = 16
+        const val ONLINE = 32
     }
 
     private fun has(int: Int) = state and int == int
 
     fun isOnline() = has(ONLINE)
 
-    fun isRunning() = has(RUNNING)
+    fun shouldOffer() = !has(INSTALLED) && has(CHECKED_FOR_PRESENCE) && !has(ASKED_FOR_PERMISSION)
 
-    fun isPortOpen() = has(PORT_AVAILABLE)
-
-    fun isReady() = has(ACCEPTED + INSTALLED + RUNNING + PORT_AVAILABLE)
-
-    fun hasPrepared() = has(PREPARED)
-    fun hasAccepted() = has(ACCEPTED)
-    fun hasSkipped() = has(SKIPPED)
-    fun shouldOffer() = !(has(ACCEPTED) || has(SKIPPED) || has(INSTALLED))
     fun setHasAccepted() = CompanionState(state + ACCEPTED)
     fun setIsInstalled() = CompanionState(state + INSTALLED)
 
-    fun setIsRunning() = CompanionState(state + RUNNING)
-
-    fun setPortIsOpen() = CompanionState(state + PORT_AVAILABLE)
-
     fun setIsOnline() = CompanionState(state + ONLINE)
     fun setSkipped() = CompanionState(state + SKIPPED)
-    fun setPrepared() = CompanionState(state + PREPARED)
-
-
+    fun setAsked() = CompanionState(state + ASKED_FOR_PERMISSION)
+    fun setCheckedForPresence() = CompanionState(state + CHECKED_FOR_PRESENCE)
 }

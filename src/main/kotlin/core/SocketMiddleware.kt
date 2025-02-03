@@ -23,22 +23,26 @@ class SocketMiddleware(
         processor: IProcessor<AppState>,
     ) {
         when (action) {
+            is Action.SelectDevice -> {
+                if (socketClient.isLive) socketClient.close()
+            }
             is Action.SendSocketRequest -> {
                 val request = action.command.plus(action.arg ?: "").plus("/${action.id}")
                 socketClient.send(request)
             }
 
-            is Action.ConnectCompanion -> {
+            is Action.Companion.Connect -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    println("Trying to connect")
+                    println("Trying to connect ${SocketClient.SERVER_IP}:${SocketClient.SERVER_PORT}")
                     socketClient
                         .connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
                         .onEach {
                             if (it == "CONNECTED") {
-                                processor.reduce(Action.UpdateCompanionState(state.companionState.setIsOnline()))
+                                println("CONNECTED")
+                                processor.reduce(Action.Companion.UpdateState(state.companionState.setIsOnline()))
                             }
                         }.filterNot { it == "CONNECTED" }
-                        .onCompletion { processor.perform(Action.CheckForCompanion) }
+                        .onCompletion { processor.perform(Action.Companion.CheckInstalled) }
                         .collect {
                             aggregator.parse(it)
                             aggregator.readyToDeliver().forEach { msg ->

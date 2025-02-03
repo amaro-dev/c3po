@@ -3,6 +3,7 @@ package core
 import core.Action.ILoadSettingsIntoState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
+import transformIf
 
 class AppReducer : IReducer<AppState> {
     override fun reduce(
@@ -10,7 +11,13 @@ class AppReducer : IReducer<AppState> {
         currentState: AppState,
     ): AppState {
         val state = when (action) {
-            is Action.SelectDevice -> currentState.copy(currentDevice = action.device)
+            is Action.SelectDevice -> {
+                currentState.copy(currentDevice = action.device)
+                    // If we change the device, clear plugin status
+                    .transformIf(currentState.currentDevice != action.device) {
+                        it.copy(windows = emptyMap())
+                    }
+            }
             is Action.DeliverDevices ->
                 currentState.copy(
                     devices = action.devices,
@@ -88,7 +95,7 @@ class AppReducer : IReducer<AppState> {
                         ),
                 )
 
-            is Action.UpdateCompanionState -> {
+            is Action.Companion.UpdateState -> {
                 currentState.copy(companionState = action.state)
             }
 

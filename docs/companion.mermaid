@@ -1,0 +1,24 @@
+flowchart TD
+    A[Check is installed] --> B
+    B{Is installed?}
+    B -->|NO| C[Ask about it]
+    B -->|YES| D[Mark as accepted]
+    D[Check is running] --> E
+    E{Is Running?}
+    E -->|NO| F[Start service]
+    E -->|YES| G[Check ports]
+    F --> D
+    G --> H{Are ports open?}
+    H -->|YES| I[Connect]
+    H -->|NO| J[Open ADB ports]
+    J --> G
+    I --> K{Is connected?}
+    K -->|YES| L[DONE]
+    K -->|NO| M[Retry]
+    M --> I
+    C --> ASK{Has accepted?}
+    ASK -->|NO| L
+    ASK -->|YES| N[Install]
+    N --> O{Installation succeeded?}
+    O -->|YES| F
+    O -->|NO| N

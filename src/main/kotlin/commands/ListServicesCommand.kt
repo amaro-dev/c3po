@@ -5,9 +5,9 @@ import models.ActivityInfo
 class ListServicesCommand : AdbCommand<Map<String, List<ActivityInfo>>> {
     override val command: String = "shell dumpsys package"
 
-    override fun parse(result: CommandResult): Map<String, List<ActivityInfo>> {
+    override fun parse(result: String): Map<String, List<ActivityInfo>> {
         val lineSplitRule = Regex("\\r?\\n")
-        var content = result.content.trim()
+        var content = result.trim()
         content = content.substring(content.indexOf("Service Resolver Table"))
         content = content.substring(content.indexOf("Non-Data Actions:"))
         val removePrefix = Regex("\\s+\\w{5,}\\s")

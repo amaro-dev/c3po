@@ -2,10 +2,8 @@ package ui.plugins.packages
 
 import commands.ClearDataCommand
 import commands.CommandExecutor
-import commands.Error
 import commands.ListPackagesCommand
 import commands.StopAppCommand
-import commands.Success
 import commands.UninstallAppCommand
 import core.Action
 import core.AppState
@@ -42,11 +40,7 @@ class PackagesPluginMiddleware(
 
             is PackagesPlugin.Actions.Uninstall -> {
                 execute(UninstallAppCommand(action.packageInfo), state, processor) {
-                    when (it) {
-                        is Success -> processor.perform(PackagesPlugin.Actions.List)
-                        is Error ->
-                            processor.reduce(Action.SetCommandError(it.message))
-                    }
+                    processor.perform(PackagesPlugin.Actions.List)
                 }
             }
 

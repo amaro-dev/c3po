@@ -48,7 +48,7 @@ class App(
 
     private val stateManager =
         AppStateManager(
-            DeviceMiddleware(executor),
+            DeviceMiddleware(DeviceCommanderImpl(executor)),
             PluginSelectorMiddleware(plugins),
             ClipboardMiddleware(clipboard),
             ConditionedDirectMiddleware(
@@ -58,13 +58,13 @@ class App(
                 Action.ClearError::class,
             ),
             SettingsMiddleware(resourcesPath, Settings.FILE_NAME),
-            CompanionMiddleware(resourcesPath, executor),
-            StatusMiddleware(CoroutineScope(Dispatchers.Default))
+            CompanionMiddleware(CompanionCommanderImpl(executor, resourcesPath)),
+            StatusMiddleware(CoroutineScope(Dispatchers.Default)),
 //            DebugMiddleware(actions = arrayOf(
 //                Action.SetCommandError("Some error happened"),
 //                Action.ClearError
 //            ))
-//            SocketMiddleware(socketClient),
+            SocketMiddleware(socketClient),
         )
 
     fun start() {

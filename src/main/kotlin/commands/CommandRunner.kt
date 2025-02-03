@@ -6,37 +6,39 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 object CommandRunner {
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun run(command: String): CommandResult {
-//        println("Command: '$command'")
+    suspend fun run(command: String): Result<String> {
+        println("Command: '$command'")
         return withContext(Dispatchers.IO) {
             debug("Will start command")
             val process = ProcessBuilder().command(command.split(' ')).start()
             debug("Command started")
             val response = async { process.inputReader().readText().trim() }
             val error = async { process.errorReader().readText().trim() }
-            val exited = process.waitFor(15L, TimeUnit.SECONDS)
+            val exited = process.waitFor(60L, TimeUnit.SECONDS)
             if (!exited) {
                 process.destroyForcibly()
                 response.cancel()
                 error.cancel()
                 debug("Command timed out!")
-                throw InterruptedException("Command execution timeout!")
+                Result.failure(TimeoutException())
+            } else {
+                response.join()
+                error.join()
+                val exitCode = process.exitValue()
+                val errorMessage = error.getCompleted()
+                val content = response.getCompleted()
+                debug("Command exit ($exitCode): $errorMessage")
+                debug("Content: $content")
+                if (exitCode != 0) {
+                    Result.failure(Exception("Code: $exitCode - $errorMessage"))
+                } else {
+                    Result.success(content)
+                }
             }
-            response.join()
-            error.join()
-            val exitCode = process.exitValue()
-            val errorMessage = error.getCompleted()
-            val content = response.getCompleted()
-            debug("Command exit ($exitCode): $errorMessage")
-            debug("Content: $content")
-            CommandResult(
-                content,
-                exitCode,
-                errorMessage.takeIf { it.isNotEmpty() },
-            )
         }
     }
 }

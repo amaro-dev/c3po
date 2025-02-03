@@ -3,6 +3,7 @@ object Settings {
     const val ADB_PATH_PROP = "command.adb.path"
     const val ACCEPT_COMPANION = "settings.companion.accept"
     const val NAME_SYSTEM_PROP = "ro.product.name"
+    const val SDK_LEVEL_PROP = "ro.build.version.sdk"
     private const val PACKAGE_PROP = "jpackage.app-path"
     private const val USER_HOME = "user.home"
 

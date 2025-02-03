@@ -1,8 +1,6 @@
 package core
 
-import Settings
 import models.AdbDevice
-import toBool
 import java.util.Properties
 
 data class AppState(
@@ -17,8 +15,10 @@ data class AppState(
     val companionState: CompanionState = CompanionState(0),
 ) {
     val shouldShowCompanionDialog: Boolean
-        get() = currentDevice != null && !settings[Settings.ACCEPT_COMPANION].toBool()
+        get() = companionState.shouldOffer()
 
+    val hasDeviceSet: Boolean
+        get() = currentDevice != null
 }
 
 enum class SettingsState {

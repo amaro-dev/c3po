@@ -1,13 +1,12 @@
 package socket
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 import java.net.Socket
 
 class SocketClient {
@@ -19,58 +18,55 @@ class SocketClient {
     private lateinit var mClientSocket: Socket
     private lateinit var input: BufferedReader
     private lateinit var output: BufferedWriter
-
     private var isClosed = true
 
-    private val isLive
+    val isLive: Boolean
         get() = this::mClientSocket.isInitialized &&
                 mClientSocket.isConnected &&
                 !mClientSocket.isClosed && !isClosed
 
     fun connect(
-        ip: String,
-        port: Int,
-    ): Flow<String> {
-        isClosed = false
-        return try {
+        ip: String = SERVER_IP,
+        port: Int = SERVER_PORT
+    ): Flow<String> = flow {
+        try {
             mClientSocket = Socket(ip, port)
             input = mClientSocket.getInputStream().bufferedReader()
             output = mClientSocket.getOutputStream().bufferedWriter()
-            println("Waiting server response...")
-            channelFlow {
-                println("Connection stream")
-                launch {
-                    kotlinx.coroutines.delay(500)
-                    this@SocketClient.send("wakeup/1")
-                }
-                while (isLive) {
-                    input
-                        .readLine()
-                        ?.takeIf { it.isNotEmpty() }
-                        ?.run {
-                            println(this)
-                            send(this)
-                        }
-                }
-                println("Disconnected!")
-            }.flowOn(Dispatchers.IO)
-        } catch (e: Exception) {
-            println("Connection fail")
-            e.printStackTrace()
-            close()
-            channelFlow<String> { cancel("Connection fail", e) }.flowOn(Dispatchers.IO)
-        }
-    }
+            isClosed = false
 
-    fun send(command: String) {
+            // Initial wakeup message
+            kotlinx.coroutines.delay(500)
+            send("wakeup/1")
+
+            while (isLive) {
+                val message = input.readLine()
+                if (message != null) {
+                    emit(message)
+                }
+            }
+        } catch (e: Exception) {
+            emit("Connection fail: ${e.message}")
+            close()
+        } finally {
+            close()
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun send(command: String): Boolean {
         if (isClosed || !isLive) {
             println("Connection is not open!")
-            return
+            return false
         }
-        output.run {
-            write("$command\n")
-            flush()
-            println("Sent $command")
+        try {
+            output.write("$command\n")
+            output.flush()
+            println("Sent: $command")
+            return true
+        } catch (e: IOException) {
+            println("Failed to send: ${e.message}")
+            close()
+            return false
         }
     }
 
@@ -78,15 +74,11 @@ class SocketClient {
         isClosed = true
         try {
             mClientSocket.close()
-        } catch (e: Throwable) {
-        }
-        try {
             input.close()
-        } catch (e: Throwable) {
-        }
-        try {
             output.close()
+            println("Connection closed")
         } catch (e: Throwable) {
+            println("Error closing resources: ${e.message}")
         }
     }
 }

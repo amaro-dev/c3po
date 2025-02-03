@@ -5,5 +5,5 @@ class CheckAppInstalledCommand(
 ) : AdbCommand<Boolean> {
     override val command: String = "shell pm list packages | grep $packageName"
 
-    override fun parse(result: CommandResult) = result.content.trim().isNotEmpty()
+    override fun parse(result: String) = result.trim().isNotEmpty()
 }

@@ -3,11 +3,10 @@ package commands
 class DeviceInfoCommand : AdbCommand<Map<String, String>> {
     override val command: String = "shell getprop"
 
-    override fun parse(result: CommandResult): Map<String, String> {
+    override fun parse(result: String): Map<String, String> {
         val lineSplitRule = Regex("\\r?\\n")
-        if (result.error != null) return emptyMap()
         return lineSplitRule
-            .split(result.content)
+            .split(result)
             .map { it.trim().subSequence(1, it.length - 1) }
             .map { it.split("]: [") }
             .filter { it.size == 2 }

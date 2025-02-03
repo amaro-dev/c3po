@@ -49,19 +49,19 @@ fun CompanionDialog(fullDisclaimer: Boolean, onAction: OnAction) {
                     ) {
                         Button({
                             onAction(Action.ChangeSettingsProperty(Settings.ACCEPT_COMPANION, "true"))
-                            onAction(Action.InstallCompanion)
+                            onAction(Action.Companion.Install)
                         }) {
                             Text("Install")
                         }
                         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
-                        Button({ onAction(Action.SkipCompanionForDevice) }) {
+                        Button({ onAction(Action.Companion.SkipForDevice) }) {
                             Text("Not now")
                         }
                         if (fullDisclaimer) {
                             Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                             Button({
                                 onAction(Action.ChangeSettingsProperty(Settings.ACCEPT_COMPANION, "false"))
-                                onAction(Action.DoNotUseCompanion)
+                                onAction(Action.Companion.DoNotUse)
                             }) {
                                 Text("Don't use R2D2")
                             }

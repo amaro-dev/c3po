@@ -33,19 +33,15 @@ sealed interface Action : IAction {
 
 
     data object LoadSettings : Action
-
     data class ChangeSettingsProperty(
         val key: String,
         val value: String,
     ) : Action
-
     data object SaveSettings : Action
-
     data object SettingsNotFound : Action
     interface ILoadSettingsIntoState {
         val props: Properties
     }
-
     data class LoadSettingsIntoState(override val props: Properties) : Action, ILoadSettingsIntoState
     data class LoadSettingsIntoStateAndSave(
         override val props: Properties,
@@ -78,16 +74,19 @@ sealed interface Action : IAction {
         val searchTerm: String,
     ) : Action
 
-    data object CheckForCompanion : Action
+    sealed interface Companion : Action {
+        data object CheckInstalled : Action
+        data object CheckRunning : Action
+        data object CheckPorts : Action
+        data object Prepare : Action
+        data object StartService : Action
+        data object Connect : Action
+        data object Install : Action
+        data object SkipForDevice : Action
+        data object DoNotUse : Action
+        data class UpdateState(val state: CompanionState) : Action
+    }
 
-    data object PrepareCompanion : Action
-
-    data object ConnectCompanion : Action
-    data object InstallCompanion : Action
-    data object SkipCompanionForDevice : Action
-    data object DoNotUseCompanion : Action
-    data class UpdateCompanionState(val state: CompanionState,
-    ) : Action
 
     data class DeliverSocketResponse(
         val reference: CommandEntry,
@@ -99,5 +98,6 @@ sealed interface Action : IAction {
         val id: String,
         val arg: String?,
     ) : Action
+
     data object ListServices : Action
 }

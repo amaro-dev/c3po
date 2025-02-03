@@ -3,10 +3,8 @@ package commands
 interface AdbCommand<T> {
     val command: String
 
-    fun parse(result: CommandResult): T
+    fun parse(result: String): T
 
     fun run(adbPath: String): T =
-        parse(
-            CommandResult("", 0, null),
-        )
+        parse("")
 }

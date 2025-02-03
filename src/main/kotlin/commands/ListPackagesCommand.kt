@@ -5,14 +5,14 @@ import models.AppPackage
 class ListPackagesCommand : AdbCommand<List<AppPackage>> {
     override val command: String = "shell dumpsys package"
 
-    override fun parse(result: CommandResult): List<AppPackage> {
+    override fun parse(result: String): List<AppPackage> {
         val packageLinePart = "\\s{2}Package\\s\\[(.*)\\].*"
         val ignoredLinesPart = "(?:\\r?\\n\\s{4}.*)*"
         val versionCodeAndTargetPart = "\\r?\\n\\s{4}versionCode=(\\d+).*\\stargetSdk=(\\d+)"
         val versionNamePart = "\\r?\\n\\s{4}versionName=(.*)"
         val regex = Regex("$packageLinePart$ignoredLinesPart$versionCodeAndTargetPart$ignoredLinesPart$versionNamePart")
-        return result.content
-            .substring(result.content.indexOf("Packages:"))
+        return result
+            .substring(result.indexOf("Packages:"))
             .let {
                 regex.findAll(it).map {
                     AppPackage(

@@ -5,9 +5,9 @@ import models.ActivityInfo
 class ListActivitiesCommand : AdbCommand<List<ActivityInfo>> {
     override val command: String = "shell dumpsys package"
 
-    override fun parse(result: CommandResult): List<ActivityInfo> {
+    override fun parse(result: String): List<ActivityInfo> {
         val lineSplitRule = Regex("\\r?\\n")
-        var content = result.content.trim()
+        var content = result.trim()
         content = content.substring(content.indexOf("Activity Resolver Table"))
         content = content.substring(content.indexOf("Non-Data Actions:"))
         content = content.substring(content.indexOf("android.intent.action.MAIN:"))

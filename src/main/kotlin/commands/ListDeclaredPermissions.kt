@@ -6,8 +6,8 @@ import java.io.File
 class ListDeclaredPermissions : AdbCommand<List<DeclaredPermissions>> {
     override val command: String = "shell dumpsys package"
 
-    override fun parse(result: CommandResult): List<DeclaredPermissions> =
-        result.content.run {
+    override fun parse(result: String): List<DeclaredPermissions> =
+        result.run {
             val exprPermission = " \\[([^\\]]*)\\] "
             val exprOwner = "sourcePackage\\=([^\\s]*)"
             val exprProtection = "prot\\=([\\w\\|]+)"
@@ -128,7 +128,6 @@ enum class PermissionFlag(
             try {
                 PermissionFlag.valueOf(v)
             } catch (e: Exception) {
-                println(v)
                 UNKNOWN
             }
     }

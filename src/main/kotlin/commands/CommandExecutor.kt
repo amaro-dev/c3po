@@ -11,10 +11,10 @@ class CommandExecutor {
         val result = CommandRunner.run(
             "$adbPath ${device?.id?.let { "-s $it " } ?: ""}${command.command.trim()}",
         )
-        return if (result.resultCode != 0)
-            Result.failure(Exception(result.error))
+        return if (result.isFailure)
+            Result.failure(result.exceptionOrNull() ?: UnknownError())
         else
-            Result.success(command.parse(result))
+            Result.success(command.parse(result.getOrNull()!!))
     }
 
 }

@@ -9,9 +9,9 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
     private val idPattern = Regex("PendingIntentRecord\\{([a-f0-9]{5,8})\\s")
     private val keyValuePattern = Regex(" ([^\\s,=]*)=([^\\s,]+)")
 
-    override fun parse(result: CommandResult): List<PendingIntent> {
+    override fun parse(result: String): List<PendingIntent> {
         val lineSplitRule = Regex("\\r?\\n")
-        var content = result.content.trim()
+        var content = result.trim()
         content = content.substring(content.indexOf("ACTIVITY MANAGER PENDING INTENTS (dumpsys activity intents)"))
         val removePrefix = Regex("\\s+\\*\\s")
         return lineSplitRule

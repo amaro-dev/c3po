@@ -2,14 +2,10 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import commands.AdbCommand
 import commands.CommandExecutor
-import commands.CommandResult
 import commands.CommandRunner
-import core.AppState
-import dev.amaro.sonic.IProcessor
 import io.mockk.CapturingSlot
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.mockk
 import io.mockk.mockkObject
 import kotlinx.coroutines.runBlocking
 import models.AdbDevice
@@ -22,9 +18,8 @@ class CommandExecutorTest {
             val content = "some-content"
             val executor = CommandExecutor()
             val command = FakeCommand("")
-            val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
+            coEvery { CommandRunner.run(any()) } returns Result.success(content)
             assertThat(executor.go(command, "", null)).isEqualTo(content)
         }
 
@@ -36,9 +31,8 @@ class CommandExecutorTest {
             val device = "device-id"
             val executor = CommandExecutor()
             val command = FakeCommand(instruction)
-            val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
+            coEvery { CommandRunner.run(any()) } returns Result.success(content)
             executor.go(command, "adb", AdbDevice(device))
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
@@ -52,9 +46,8 @@ class CommandExecutorTest {
             val instruction = "instruction"
             val executor = CommandExecutor()
             val command = FakeCommand(instruction)
-            val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns CommandResult(content, 0, null)
+            coEvery { CommandRunner.run(any()) } returns Result.success(content)
             executor.go(command, "adb", null)
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
@@ -68,7 +61,6 @@ class CommandExecutorTest {
             val cmd = "some-command"
             val executor = CommandExecutor()
             val command = FakeCommand(cmd)
-            val processor: IProcessor<AppState> = mockk()
             mockkObject(CommandRunner)
             try {
                 // This error is not important for the test
@@ -82,5 +74,5 @@ class CommandExecutorTest {
 class FakeCommand(
     override val command: String,
 ) : AdbCommand<String> {
-    override fun parse(result: CommandResult): String = result.content
+    override fun parse(result: String): String = result
 }

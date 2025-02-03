@@ -1,58 +1,32 @@
 package core
 
 import Settings
-import commands.CommandExecutor
-import commands.DeviceInfoCommand
-import commands.ListDevicesCommand
+import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
-import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import handle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class DeviceMiddleware(
-    private val executor: CommandExecutor,
-) : IMiddleware<AppState> {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val commander: DeviceCommander,
+) : AsyncMiddlewareBase<AppState>() {
 
-    override fun process(
-        action: IAction,
-        state: AppState,
-        processor: IProcessor<AppState>,
-    ) {
+    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
 
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
-                scope.launch {
-                    val devices = executor.go(ListDevicesCommand, adbPath, null).handle(processor) ?: return@launch
+                commander.listDevices(adbPath).handle(processor) { devices ->
                     processor.reduce(Action.DeliverDevices(devices))
+                    // Select the device if it's the only one available
                     if (devices.size == 1) {
-                        if (devices[0] != state.currentDevice) processor.reduce(Action.ClearPlugins)
                         processor.perform(Action.SelectDevice(devices[0]))
                     }
                 }
             }
 
             is Action.SelectDevice -> {
-                scope.launch {
-                    val deviceInfo =
-                        executor.go(DeviceInfoCommand(), adbPath, action.device).handle(processor) ?: return@launch
-                    processor.reduce(Action.SelectDevice(action.device.copy(details = deviceInfo)))
-                    val fixedList =
-                        state.devices.map {
-                            if (it.id == action.device.id) {
-                                it.copy(details = deviceInfo)
-                            } else {
-                                it
-                            }
-                        }
-                    processor.reduce(Action.DeliverDevices(fixedList))
-                    processor.perform(Action.CheckForCompanion)
-                }
+                processor.reduce(Action.SelectDevice(action.device))
             }
         }
     }

@@ -5,5 +5,5 @@ class ForwardPortCommand(
 ) : AdbCommand<Unit> {
     override val command: String = "forward tcp:$port tcp:$port"
 
-    override fun parse(result: CommandResult) = Unit
+    override fun parse(result: String) = Unit
 }

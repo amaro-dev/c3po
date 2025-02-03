@@ -1,11 +1,16 @@
 package commands
 
 import models.ActivityInfo
+import models.AdbDevice
 
 class StartServiceCommand(
     packageName: ActivityInfo,
-) : AdbCommand<Boolean> {
-    override val command: String = "shell am startservice ${packageName.fullPath}"
+    adbDevice: AdbDevice
+) : AdbCommand<Unit> {
 
-    override fun parse(result: CommandResult): Boolean = result.error == null
+    private val instruction = if (adbDevice.sdk >= 26) "start-foreground-service" else "startservice"
+
+    override val command: String = "shell am $instruction ${packageName.fullPath}"
+
+    override fun parse(result: String) = Unit
 }

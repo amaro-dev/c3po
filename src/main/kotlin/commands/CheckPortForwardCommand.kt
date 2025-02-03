@@ -5,5 +5,5 @@ class CheckPortForwardCommand(
 ) : AdbCommand<Boolean> {
     override val command: String = "forward --list"
 
-    override fun parse(result: CommandResult) = result.content.trim().contains("tcp:$port")
+    override fun parse(result: String) = result.trim().contains("tcp:$port")
 }

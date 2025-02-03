@@ -9,5 +9,5 @@ class StartActivityCommand(
 ) : AdbCommand<Unit> {
     override val command: String = "shell am start ${forDebug.ifTrue("-D ")}-n ${activityInfo.fullPath.replace("\$", "\\\$")}"
 
-    override fun parse(result: CommandResult) = Unit
+    override fun parse(result: String) = Unit
 }
