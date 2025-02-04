@@ -12,6 +12,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -22,6 +23,7 @@ import core.App
 import core.AppState
 import core.CommandStatus
 import ui.AppTheme
+import ui.CompanionStatus
 import ui.DeviceSelector
 import ui.MainScreen
 import ui.PluginSelector
@@ -74,8 +76,14 @@ fun main() =
                         PluginSelector(myApp.plugins, state.currentPlugin, onClick)
                     }
                     Spacer(Modifier.weight(1f))
-                    Box(Modifier.size(48.dp).allPaddings()) {
-                        RunningStatus(state)
+                    Row(Modifier.allPaddings()) {
+                        Box(Modifier.size(Dimens.ICON_SIZE_REGULAR.dp)) {
+                            RunningStatus(state)
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Box(Modifier.size(Dimens.ICON_SIZE_MEDIUM.dp), contentAlignment = Alignment.CenterEnd) {
+                            CompanionStatus(state.companionState)
+                        }
                     }
                 }
             }

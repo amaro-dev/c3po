@@ -41,7 +41,7 @@ fun MySearchField(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 leadingIcon = {
-                    Icon(Icons.Filled.Search, Texts.EMPTY, Modifier.size(Dimens.ICON_SIZE_REGULAR.dp))
+                    Icon(Icons.Filled.Search, Texts.EMPTY, Modifier.size(Dimens.ICON_SIZE_SMALL.dp))
                 },
                 colors = TextFieldDefaults.textFieldColors(
                     cursorColor = Color.Black

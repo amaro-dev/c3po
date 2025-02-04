@@ -15,7 +15,9 @@ interface Dimens {
         const val ROW_HEIGHT_EXTRA_LARGE = 56
         const val SQUARE_BUTTON_SIZE_REGULAR = 32
         const val SQUARE_BUTTON_PADDING = 6
-        const val ICON_SIZE_REGULAR = 24
+        const val ICON_SIZE_SMALL = 24
+        const val ICON_SIZE_MEDIUM = 32
+        const val ICON_SIZE_REGULAR = 48
         const val ROUNDED_CORNER = 4
         const val BORDER_REGULAR = 1
     }
