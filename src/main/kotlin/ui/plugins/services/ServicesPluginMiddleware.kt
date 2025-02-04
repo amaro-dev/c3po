@@ -1,6 +1,7 @@
 package ui.plugins.services
 
 import commands.CommandExecutor
+import commands.StartServiceCommand
 import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
@@ -29,6 +30,12 @@ class ServicesPluginMiddleware(
                         null,
                     ),
                 )
+            }
+
+            is ServicesPlugin.Actions.Launch -> {
+                execute(StartServiceCommand(action.activityInfo, state.currentDevice!!), state, processor) {
+                    processor.reduce(Action.SetCommandCompleted)
+                }
             }
 
             is Action.DeliverSocketResponse -> {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,9 +20,11 @@ import models.ActivityInfo
 import ui.ContentBox
 import ui.OnAction
 import ui.definitions.Dimens
+import ui.definitions.Icons
 import ui.plugins.Plugin
+import ui.rows.ActionableRow
 import ui.rows.HeaderRow
-import ui.rows.RegularRow
+import ui.rows.RowAction
 import ui.rows.RowType
 
 class ServicesPlugin(
@@ -29,6 +32,9 @@ class ServicesPlugin(
 ) : Plugin<Pair<String, List<ActivityInfo>>> {
     sealed interface Actions : IAction {
         data object LIST : Actions, CommandAction
+        data class Launch(
+            val activityInfo: ActivityInfo
+        ) : Actions, CommandAction
     }
 
     companion object {
@@ -62,7 +68,22 @@ class ServicesPlugin(
                 if (activity.first == RowType.Header) {
                     HeaderRow(activity.second as String)
                 } else if (activity.first == RowType.Regular) {
-                    RegularRow((activity.second as ActivityInfo).activityPath)
+                    ActionableRow(
+                        listOf(
+                            RowAction(
+                                Icons.LAUNCH,
+                                "Start activity",
+                                Actions.Launch((activity.second as ActivityInfo))
+                            ),
+                        ),
+                        onAction
+                    ) {
+                        Text(
+                            text = (activity.second as ActivityInfo).activityPath,
+                            style = MaterialTheme.typography.body2
+                        )
+                    }
+
                 }
                 Divider(
                     color = MaterialTheme.colors.onBackground,
