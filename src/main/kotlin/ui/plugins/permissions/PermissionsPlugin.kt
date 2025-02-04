@@ -2,6 +2,7 @@ package ui.plugins.permissions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,10 @@ import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,8 +34,10 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.DeclaredPermissions
 import ui.ContentBox
+import ui.CopyButton
 import ui.baselinePadding
 import ui.definitions.Dimens
+import ui.onHover
 import ui.plugins.Plugin
 import ui.rows.HeaderRow
 
@@ -64,29 +71,45 @@ class PermissionsPlugin(
             ) { owner ->
                 HeaderRow(owner.ownerApp)
                 owner.permissions.filter { filter.length < 3 || it.key.contains(filter) }.map {
-                    Row(
-                        Modifier.padding(Dimens.ROW_HORIZONTAL_MARGIN.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = it.key,
-                            style = MaterialTheme.typography.body2,
-                            modifier = Modifier.weight(1f),
-                        )
-                        it.value.sortedByDescending { it.isBase }.map {
-                            PermissionStamp(it)
-                            Spacer(Modifier.width(2.dp))
-                        }
-                    }
-                    Divider(
-                        color = MaterialTheme.colors.onBackground,
-                        modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth(),
-                    )
+                    PermissionRow(it, onAction)
                 }
             }
         }
     }
 }
+
+@Composable
+fun PermissionRow(permission: Map.Entry<String, List<PermissionFlag>>, onAction: (IAction) -> Unit) {
+    var isHovering: Boolean by remember { mutableStateOf(false) }
+
+    Box(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.onHover { isHovering = it }.padding(Dimens.ROW_HORIZONTAL_MARGIN.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = permission.key,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.weight(1f),
+            )
+            permission.value.sortedByDescending { it.isBase }.map {
+                PermissionStamp(it)
+                Spacer(Modifier.width(2.dp))
+            }
+        }
+        Divider(
+            color = MaterialTheme.colors.onBackground,
+            modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth(),
+        )
+        CopyButton(
+            isHovering,
+            { isHovering = it },
+            { onAction(Action.CopyText(permission.key)) },
+            Modifier.align(Alignment.CenterStart)
+        )
+    }
+}
+
 
 @Composable
 fun PermissionStamp(permissionFlag: PermissionFlag) {
