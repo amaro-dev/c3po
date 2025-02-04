@@ -1,10 +1,14 @@
 package ui
 
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.unit.IntOffset
 import core.AppState
 import dev.amaro.sonic.IAction
 import kotlinx.coroutines.CoroutineScope
@@ -37,4 +41,9 @@ fun <T> T.useDebounce(
 
 typealias OnAction = (IAction) -> Unit
 
-typealias Section = @Composable (AppState, ((IAction) -> Unit)) -> Unit
+typealias Section = @Composable ColumnScope.(AppState, ((IAction) -> Unit)) -> Unit
+
+
+fun slideInHorizontallyFromRight() = slideIn(initialOffset = { IntOffset(it.width, 0) })
+
+fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width, 0) })

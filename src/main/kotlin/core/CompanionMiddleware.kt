@@ -44,10 +44,13 @@ class CompanionMiddleware(
             is Action.Companion.CheckInstalled -> {
                 state.currentDevice?.let { device ->
                     var status = CompanionState().setCheckedForPresence()
+                        .setHasAccepted() // Forcing to use companion
                     val isInstalled = commander.isInstalled(adbPath, device).getOrDefault(false)
                     if (isInstalled) {
-                        status = status.setIsInstalled().setHasAccepted()
+                        status = status.setIsInstalled()
                         (processor as IActionScheduler).schedule(Action.Companion.Prepare)
+                    } else {
+                        (processor as IActionScheduler).schedule(Action.Companion.Install)
                     }
                     processor.reduce(Action.Companion.UpdateState(status))
                 }

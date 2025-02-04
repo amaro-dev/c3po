@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -17,10 +19,14 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import core.Action
 import core.App
+import core.AppState
+import core.CommandStatus
 import ui.AppTheme
 import ui.DeviceSelector
 import ui.MainScreen
 import ui.PluginSelector
+import ui.RunningAndroid
+import ui.allPaddings
 import ui.definitions.Dimens
 import ui.definitions.Texts
 import java.awt.Toolkit
@@ -62,12 +68,24 @@ fun main() =
                     Box(
                         Modifier.fillMaxWidth().height(1.dp)
                             .background(MaterialTheme.colors.onSurface)
-                    ) {}
+                    )
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     if (state.currentDevice != null) {
                         PluginSelector(myApp.plugins, state.currentPlugin, onClick)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Box(Modifier.size(48.dp).allPaddings()) {
+                        RunningStatus(state)
                     }
                 }
             }
         }
     }
+
+
+@Composable
+fun RunningStatus(state: AppState) {
+    if (state.commandStatus == CommandStatus.Running) {
+        RunningAndroid()
+    }
+}

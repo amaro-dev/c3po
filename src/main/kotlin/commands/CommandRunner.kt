@@ -1,6 +1,7 @@
 package commands
 
 import core.debug
+import exceptions.DeviceNotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -34,11 +35,16 @@ object CommandRunner {
                 debug("Command exit ($exitCode): $errorMessage")
                 debug("Content: $content")
                 if (exitCode != 0) {
-                    Result.failure(Exception("Code: $exitCode - $errorMessage"))
+                    if (deviceNotFoundMessage.containsMatchIn(errorMessage))
+                        Result.failure(DeviceNotFoundException())
+                    else
+                        Result.failure(Exception("Code: $exitCode - $errorMessage"))
                 } else {
                     Result.success(content)
                 }
             }
         }
     }
+
+    private val deviceNotFoundMessage = Regex("device .* not found")
 }

@@ -1,20 +1,9 @@
 package ui.plugins.attrs
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOut
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,24 +12,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import core.Action
-import dev.amaro.sonic.IAction
+import ui.CopyButton
 import ui.OnAction
 import ui.definitions.Dimens
-import ui.definitions.Icons
 import ui.definitions.Texts
+import ui.onHover
 import ui.rows.BaseRow
+import ui.slideInHorizontallyFromRight
+import ui.slideOutHorizontallyToRight
 
 @Composable
 fun DeviceAttrRow(
@@ -71,71 +56,19 @@ fun DeviceAttrRow(
                 modifier = Modifier.onHover { isHoveringValue = it }.weight(7f),
             )
         }
-        AnimatedVisibility(
+        CopyButton(
             isHoveringValue,
-            enter = slideInHorizontallyFromRight(),
-            exit = slideOutHorizontallyToRight(),
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Box(
-                Modifier
-                    .padding(end = Dimens.ROW_HORIZONTAL_MARGIN.dp)
-                    .onHover { isHoveringValue = it }
-                    .clip(CircleShape),
-            ) {
-                Icon(
-                    painterResource(Icons.COPY),
-                    contentDescription = Texts.EMPTY,
-                    modifier =
-                        Modifier
-                            .clickable { onAction(Action.CopyText(value ?: Texts.EMPTY)) }
-                            .withIconStyle(),
-                )
-            }
-        }
-        AnimatedVisibility(
+            { isHoveringValue = it },
+            { onAction(Action.CopyText(value ?: Texts.EMPTY)) },
+            Modifier.align(Alignment.CenterEnd)
+        )
+        CopyButton(
             isHoveringAttr,
-            enter = slideInHorizontally(),
-            exit = slideOutHorizontally(),
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .padding(start = Dimens.ROW_HORIZONTAL_MARGIN.dp)
-                        .onHover { isHoveringAttr = it }
-                        .clip(CircleShape),
-            ) {
-                Icon(
-                    painterResource(Icons.COPY),
-                    contentDescription = Texts.EMPTY,
-                    modifier =
-                        Modifier
-                            .clickable { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) }
-                            .withIconStyle(),
-                )
-            }
-        }
+            { isHoveringAttr = it },
+            { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) },
+            Modifier.align(Alignment.CenterStart),
+            slideInHorizontallyFromRight(),
+            slideOutHorizontallyToRight()
+        )
     }
 }
-
-@OptIn(ExperimentalComposeUiApi::class)
-fun Modifier.onHover(event: (Boolean) -> Unit) =
-    this
-        .onPointerEvent(
-            eventType = PointerEventType.Enter,
-            onEvent = { event(true) },
-        ).onPointerEvent(
-            eventType = PointerEventType.Exit,
-            onEvent = { event(false) },
-        )
-
-fun slideInHorizontallyFromRight() = slideIn(initialOffset = { IntOffset(it.width, 0) })
-
-fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width, 0) })
-
-@Composable
-fun Modifier.withIconStyle(): Modifier =
-    background(color = MaterialTheme.colors.background)
-        .padding(Dimens.HORIZONTAL_SPACER.dp)
-        .size(16.dp)
