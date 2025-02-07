@@ -10,12 +10,16 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 object CommandRunner {
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun run(command: String): Result<String> {
-        println("Command: '$command'")
+        return run(command.split(' ').toTypedArray())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun run(args: Array<String>): Result<String> {
+        debug("Command: '${args.joinToString(" ")}'")
         return withContext(Dispatchers.IO) {
             debug("Will start command")
-            val process = ProcessBuilder().command(command.split(' ')).start()
+            val process = ProcessBuilder().command(*args).start()
             debug("Command started")
             val response = async { process.inputReader().readText().trim() }
             val error = async { process.errorReader().readText().trim() }
@@ -30,7 +34,7 @@ object CommandRunner {
                 response.join()
                 error.join()
                 val exitCode = process.exitValue()
-                val errorMessage = error.getCompleted()
+                val errorMessage = error.getCompleted().takeIf { it.isNotEmpty() } ?: response.getCompleted()
                 val content = response.getCompleted()
                 debug("Command exit ($exitCode): $errorMessage")
                 debug("Content: $content")

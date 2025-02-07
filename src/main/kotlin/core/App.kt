@@ -65,6 +65,7 @@ class App(
 //                Action.ClearError
 //            ))
             SocketMiddleware(socketClient),
+            AndroidPackageMiddleware(),
         )
 
     fun start() {

@@ -24,9 +24,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import core.Action
+import core.Actions
 import core.App
 import core.SettingsState
 import ui.plugins.Plugin
+
 
 @Composable
 fun MainScreen(app: App, sideSection: Section) {
@@ -60,6 +62,7 @@ fun MainScreen(app: App, sideSection: Section) {
                         selectedPlugin?.render(state.windows) { app.perform(it) }
                     }
                 }
+                FileBox { app.perform(Actions.LoadFile(it)) }
                 if (state.settingsState == SettingsState.NotFound) {
                     SettingsBox { app.perform(it) }
                 } else {
