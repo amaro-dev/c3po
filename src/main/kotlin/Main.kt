@@ -28,9 +28,9 @@ import ui.DeviceSelector
 import ui.MainScreen
 import ui.PluginSelector
 import ui.RunningAndroid
-import ui.allPaddings
 import ui.definitions.Dimens
 import ui.definitions.Texts
+import ui.horizontalPadding
 import java.awt.Toolkit
 
 
@@ -72,19 +72,25 @@ fun main() =
                             .background(MaterialTheme.colors.onSurface)
                     )
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
+                    Row(Modifier.horizontalPadding()) {
+                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp), contentAlignment = Alignment.CenterEnd) {
+                            CompanionStatus(state.companionState)
+                        }
+                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
+                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp)) {
+                            RunningStatus(state)
+                        }
+                    }
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
+                    Box(
+                        Modifier.fillMaxWidth().height(1.dp)
+                            .background(MaterialTheme.colors.onSurface)
+                    )
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     if (state.currentDevice != null) {
                         PluginSelector(myApp.plugins, state.currentPlugin, onClick)
                     }
-                    Spacer(Modifier.weight(1f))
-                    Row(Modifier.allPaddings()) {
-                        Box(Modifier.size(Dimens.ICON_SIZE_REGULAR.dp)) {
-                            RunningStatus(state)
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Box(Modifier.size(Dimens.ICON_SIZE_MEDIUM.dp), contentAlignment = Alignment.CenterEnd) {
-                            CompanionStatus(state.companionState)
-                        }
-                    }
+
                 }
             }
         }

@@ -19,7 +19,7 @@ class CommandExecutorTest {
             val executor = CommandExecutor()
             val command = FakeCommand("")
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns Result.success(content)
+            coEvery { CommandRunner.run(any<String>()) } returns Result.success(content)
             assertThat(executor.go(command, "", null)).isEqualTo(content)
         }
 
@@ -32,7 +32,7 @@ class CommandExecutorTest {
             val executor = CommandExecutor()
             val command = FakeCommand(instruction)
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns Result.success(content)
+            coEvery { CommandRunner.run(any<String>()) } returns Result.success(content)
             executor.go(command, "adb", AdbDevice(device))
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
@@ -47,7 +47,7 @@ class CommandExecutorTest {
             val executor = CommandExecutor()
             val command = FakeCommand(instruction)
             mockkObject(CommandRunner)
-            coEvery { CommandRunner.run(any()) } returns Result.success(content)
+            coEvery { CommandRunner.run(any<String>()) } returns Result.success(content)
             executor.go(command, "adb", null)
             val slot = CapturingSlot<String>()
             coVerify { CommandRunner.run(capture(slot)) }
