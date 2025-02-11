@@ -24,10 +24,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import core.Action
-import core.Actions
 import core.App
 import core.SettingsState
 import ui.plugins.Plugin
+import ui.plugins.signature.Actions
 
 
 @Composable

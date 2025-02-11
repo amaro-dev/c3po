@@ -14,6 +14,8 @@ import ui.plugins.intents.pending.PendingIntentsPlugin
 import ui.plugins.packages.PackagesPlugin
 import ui.plugins.permissions.PermissionsPlugin
 import ui.plugins.services.ServicesPlugin
+import ui.plugins.signature.AndroidPackageMiddleware
+import ui.plugins.signature.SignatureExtractor
 import java.awt.datatransfer.Clipboard
 import java.io.File
 import java.nio.file.Files
@@ -65,7 +67,7 @@ class App(
 //                Action.ClearError
 //            ))
             SocketMiddleware(socketClient),
-            AndroidPackageMiddleware(),
+            AndroidPackageMiddleware(SignatureExtractor()),
         )
 
     fun start() {
