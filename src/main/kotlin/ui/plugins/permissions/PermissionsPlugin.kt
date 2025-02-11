@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,7 @@ import commands.PermissionFlag
 import core.Action
 import core.AppState
 import core.WindowResult
+import darkenedBy
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.DeclaredPermissions
@@ -115,17 +117,51 @@ fun PermissionRow(permission: Map.Entry<String, List<PermissionFlag>>, onAction:
 fun PermissionStamp(permissionFlag: PermissionFlag) {
     val borderColor =
         if (permissionFlag.isBase) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.secondaryVariant
-    val backgroundColor = if (permissionFlag.isBase) MaterialTheme.colors.primary else MaterialTheme.colors.secondary
-    val textColor = if (permissionFlag.isBase) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSecondary
     Text(
         text = permissionFlag.name,
         style = MaterialTheme.typography.overline.copy(fontSize = TextUnit(8f, TextUnitType.Sp)),
-        color = textColor,
+        color = permissionFlag.getPermissionForegroundColor(),
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
             .border(1.dp, borderColor)
-            .background(backgroundColor)
+            .background(permissionFlag.getPermissionBackgroundColor())
             .baselinePadding(2)
             .padding(start = 6.dp, end = 6.dp)
     )
+}
+
+@Composable
+fun PermissionFlag.getPermissionForegroundColor(): Color {
+    return if (isBase) {
+        MaterialTheme.colors.onPrimary
+    } else {
+        if (this == PermissionFlag.PRIVILEGED)
+            MaterialTheme.colors.onError
+        else
+            MaterialTheme.colors.onSecondary
+    }
+}
+
+@Composable
+fun PermissionFlag.getPermissionBackgroundColor(): Color {
+    return if (isBase) {
+        MaterialTheme.colors.primary
+    } else {
+        if (this == PermissionFlag.PRIVILEGED)
+            MaterialTheme.colors.error
+        else
+            MaterialTheme.colors.secondary
+    }
+}
+
+@Composable
+fun PermissionFlag.getPermissionBorderColor(): Color {
+    return if (isBase) {
+        MaterialTheme.colors.primaryVariant
+    } else {
+        if (this == PermissionFlag.PRIVILEGED)
+            MaterialTheme.colors.error.darkenedBy(0.3f)
+        else
+            MaterialTheme.colors.secondaryVariant
+    }
 }
