@@ -9,6 +9,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import models.ActivityInfo
 import ui.plugins.PluginMiddleware
+import java.util.UUID
 
 class ActivitiesPluginMiddleware(
     pluginName: String,
@@ -24,8 +25,18 @@ class ActivitiesPluginMiddleware(
             ActivitiesPlugin.Actions.List,
                 -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                execute(ListActivitiesCommand(), state, processor) {
-                    processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
+                if (true) { // Use ADB or companion
+                    execute(ListActivitiesCommand(), state, processor) {
+                        processor.reduce(Action.DeliverPluginResult(pluginName, it, searchTerm))
+                    }
+                } else {
+                    processor.perform(
+                        Action.SendSocketRequest(
+                            ActivitiesPlugin.LIST_ACTIVITY_SOCKET_COMMAND,
+                            UUID.randomUUID().toString(),
+                            null,
+                        ),
+                    )
                 }
             }
 
