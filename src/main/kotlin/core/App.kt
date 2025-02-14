@@ -14,8 +14,8 @@ import ui.plugins.intents.pending.PendingIntentsPlugin
 import ui.plugins.packages.PackagesPlugin
 import ui.plugins.permissions.PermissionsPlugin
 import ui.plugins.services.ServicesPlugin
-import ui.plugins.signature.AndroidPackageMiddleware
 import ui.plugins.signature.SignatureExtractor
+import ui.plugins.signature.SignaturePlugin
 import java.awt.datatransfer.Clipboard
 import java.io.File
 import java.nio.file.Files
@@ -37,6 +37,7 @@ class App(
             ServicesPlugin(executor),
             PermissionsPlugin(executor),
             PendingIntentsPlugin(executor),
+            SignaturePlugin(SignatureExtractor())
         )
 
     private val resourcesPath =
@@ -67,7 +68,6 @@ class App(
 //                Action.ClearError
 //            ))
             SocketMiddleware(socketClient),
-            AndroidPackageMiddleware(SignatureExtractor()),
         )
 
     fun start() {

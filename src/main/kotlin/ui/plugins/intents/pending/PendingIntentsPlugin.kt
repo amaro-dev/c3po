@@ -20,8 +20,8 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.PendingIntent
 import ui.ContentBox
-import ui.definitions.Dimens
 import ui.OnAction
+import ui.definitions.Dimens
 import ui.definitions.Texts
 import ui.plugins.Plugin
 import ui.rows.HeaderRow
@@ -35,7 +35,6 @@ class PendingIntentsPlugin(
 
     override val id: String = "PENDING_INTENT"
     override val name: String = "Pending intents"
-    override val mainAction: IAction = Actions.List
 
     override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id, executor)
 

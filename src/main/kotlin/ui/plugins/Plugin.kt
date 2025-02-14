@@ -14,8 +14,6 @@ interface Plugin<in T> {
 
     val name: String
 
-    val mainAction: IAction
-
     val middleware: IMiddleware<AppState>
 
     fun isResponsibleFor(action: IAction): Boolean

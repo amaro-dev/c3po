@@ -46,7 +46,6 @@ class ActivitiesPlugin(
 
     override val name: String = "Activities"
     override val id: String = "ACTIVITIES"
-    override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =

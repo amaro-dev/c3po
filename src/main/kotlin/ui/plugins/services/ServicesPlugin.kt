@@ -43,7 +43,6 @@ class ServicesPlugin(
 
     override val name: String = "Services / Action"
     override val id: String = "SERVICES"
-    override val mainAction: IAction = Actions.LIST
     override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =

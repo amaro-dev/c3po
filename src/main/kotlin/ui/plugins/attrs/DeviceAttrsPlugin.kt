@@ -17,8 +17,8 @@ import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import ui.ContentBox
-import ui.definitions.Dimens
 import ui.OnAction
+import ui.definitions.Dimens
 import ui.plugins.Plugin
 
 class DeviceAttrsPlugin(
@@ -30,7 +30,6 @@ class DeviceAttrsPlugin(
 
     override val name: String = "Device attributes"
     override val id: String = "DEVICE_ATTRS"
-    override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = DeviceAttrsMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions

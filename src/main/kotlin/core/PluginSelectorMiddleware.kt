@@ -17,6 +17,7 @@ class PluginSelectorMiddleware(
     ) {
         if (action is Action.StartPlugin) {
             processor.reduce(Action.SetCommandRunning)
+            processor.reduce(Action.SelectPlugin(action.pluginName))
             registeredPlugins[action.pluginName]?.middleware?.process(action, state, processor)
         } else {
             registeredPlugins.forEach {

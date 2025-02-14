@@ -9,6 +9,8 @@ sealed interface Action : IAction {
     data class UpdatedState(val old: AppState, val new: AppState) : Action
     interface CommandAction : Action
 
+    data object DoNothing : Action
+
     data class SelectDevice(
         val device: AdbDevice,
     ) : Action

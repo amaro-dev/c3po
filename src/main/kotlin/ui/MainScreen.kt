@@ -27,7 +27,6 @@ import core.Action
 import core.App
 import core.SettingsState
 import ui.plugins.Plugin
-import ui.plugins.signature.Actions
 
 
 @Composable
@@ -62,7 +61,6 @@ fun MainScreen(app: App, sideSection: Section) {
                         selectedPlugin?.render(state.windows) { app.perform(it) }
                     }
                 }
-                FileBox { app.perform(Actions.LoadFile(it)) }
                 if (state.settingsState == SettingsState.NotFound) {
                     SettingsBox { app.perform(it) }
                 } else {

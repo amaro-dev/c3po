@@ -19,9 +19,9 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.AppPackage
 import ui.ContentBox
+import ui.OnAction
 import ui.definitions.Dimens
 import ui.definitions.Icons
-import ui.OnAction
 import ui.definitions.Texts
 import ui.plugins.Plugin
 import ui.rows.ActionableRow
@@ -52,8 +52,6 @@ class PackagesPlugin(
     override val name: String = "Installed packages"
 
     override val id: String = "PACKAGES"
-
-    override val mainAction: IAction = Actions.List
 
     override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id, executor)
 

@@ -53,7 +53,6 @@ class PermissionsPlugin(
     override val id: String = "PERMISSIONS"
     override val name: String = "Declared permissions"
 
-    override val mainAction: IAction = Actions.List
     override val middleware: IMiddleware<AppState> = PermissionsPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
