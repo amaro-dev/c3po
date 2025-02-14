@@ -12,13 +12,9 @@ import java.util.UUID
 
 class ServicesPluginMiddleware(
     pluginName: String,
-    executor: CommandExecutor,
-) : PluginMiddleware(pluginName, executor) {
-    override fun process(
-        action: IAction,
-        state: AppState,
-        processor: IProcessor<AppState>,
-    ) {
+    private val executor: CommandExecutor,
+) : PluginMiddleware(pluginName) {
+    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         when (action) {
             is Action.StartPlugin,
             ServicesPlugin.Actions.LIST,
@@ -33,9 +29,7 @@ class ServicesPluginMiddleware(
             }
 
             is ServicesPlugin.Actions.Launch -> {
-                execute(StartServiceCommand(action.activityInfo, state.currentDevice!!), state, processor) {
-                    processor.reduce(Action.SetCommandCompleted)
-                }
+                execute(StartServiceCommand(action.activityInfo, state.currentDevice!!), state, executor)
             }
 
             is Action.DeliverSocketResponse -> {

@@ -1,10 +1,12 @@
 package ui.plugins.signature
 
 import commands.CommandRunner
+import java.io.File
 
 class SignatureExtractor {
     suspend fun getCertificateFingerprint(filePath: String): Result<AndroidPackageReport> {
         val output = CommandRunner.run(
+            File(""),
             arrayOf(
                 "/Users/roarodrigues/Library/Android/sdk/build-tools/34.0.0/apksigner",
                 "verify",

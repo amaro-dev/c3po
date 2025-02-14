@@ -4,31 +4,20 @@ import Settings
 import commands.AdbCommand
 import commands.CommandExecutor
 import core.AppState
-import dev.amaro.sonic.IMiddleware
-import dev.amaro.sonic.IProcessor
-import handle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.amaro.sonic.AsyncMiddlewareBase
 
 abstract class PluginMiddleware(
     protected val pluginName: String,
-    private val executor: CommandExecutor,
-) : IMiddleware<AppState> {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+) : AsyncMiddlewareBase<AppState>() {
 
-    protected fun <T> execute(
+    protected suspend fun <T> execute(
         command: AdbCommand<T>,
         state: AppState,
-        processor: IProcessor<AppState>,
-        onComplete: (T) -> Unit,
-    ) {
+        executor: CommandExecutor
+    ): Result<T> {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
-        state.currentDevice?.run {
-            coroutineScope.launch {
-                val result = executor.go(command, adbPath, this@run).handle(processor)
-                result?.run { onComplete(this) }
-            }
-        }
+        return state.currentDevice?.run {
+            executor.go(command, adbPath, this@run)
+        } ?: Result.failure(IllegalArgumentException())
     }
 }

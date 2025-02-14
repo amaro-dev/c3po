@@ -1,13 +1,15 @@
 package core
 
 import Settings
+import commands.CommandExecutor
+import commands.ListDevicesCommand
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
 
 class DeviceMiddleware(
-    private val commander: DeviceCommander,
+    private val executor: CommandExecutor,
 ) : AsyncMiddlewareBase<AppState>() {
 
     override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
@@ -16,7 +18,7 @@ class DeviceMiddleware(
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
-                commander.listDevices(adbPath).handle(processor) { devices ->
+                executor.go(ListDevicesCommand(), adbPath).handle(processor) { devices ->
                     processor.reduce(Action.DeliverDevices(devices))
                     // Select the device if it's the only one available
                     if (devices.size == 1) {

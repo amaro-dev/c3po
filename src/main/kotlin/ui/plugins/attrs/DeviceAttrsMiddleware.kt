@@ -6,23 +6,20 @@ import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import handle
 import ui.plugins.PluginMiddleware
 
 class DeviceAttrsMiddleware(
     pluginName: String,
-    executor: CommandExecutor,
-) : PluginMiddleware(pluginName, executor) {
-    override fun process(
-        action: IAction,
-        state: AppState,
-        processor: IProcessor<AppState>,
-    ) {
+    private val executor: CommandExecutor,
+) : PluginMiddleware(pluginName) {
+    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         when (action) {
             is Action.StartPlugin,
             DeviceAttrsPlugin.Actions.List,
                 -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                execute(DeviceInfoCommand(), state, processor) { deviceInfo ->
+                execute(DeviceInfoCommand(), state, executor).handle(processor) { deviceInfo ->
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, deviceInfo.toList().sortedBy { it.first }, searchTerm),
                     )

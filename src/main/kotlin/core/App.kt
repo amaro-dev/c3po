@@ -50,7 +50,7 @@ class App(
 
     private val stateManager =
         AppStateManager(
-            DeviceMiddleware(DeviceCommanderImpl(executor)),
+            DeviceMiddleware(executor),
             PluginSelectorMiddleware(plugins),
             ClipboardMiddleware(clipboard),
             ConditionedDirectMiddleware(
@@ -84,5 +84,5 @@ class App(
 }
 
 fun debug(message: String) {
-    //println("[DEBUG] $message")
+//    println("[DEBUG] $message")
 }

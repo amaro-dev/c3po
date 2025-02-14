@@ -1,6 +1,5 @@
 package ui
 
-import Settings.NAME_SYSTEM_PROP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -76,7 +75,7 @@ private fun DeviceOption(
 ) {
     Column(modifier = modifier.padding(bottom = Dimens.VERTICAL_SPACER.dp)) {
         Text(
-            device.details[NAME_SYSTEM_PROP] ?: UNKNOWN,
+            device.name ?: UNKNOWN,
             style = MaterialTheme.typography.body1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis

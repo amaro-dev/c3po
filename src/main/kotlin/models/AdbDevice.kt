@@ -2,7 +2,8 @@ package models
 
 data class AdbDevice(
     val id: String,
-    val details: Map<String, String> = emptyMap(),
+    val name: String,
+    private val _sdk: String = "1"
 ) {
-    val sdk: Int = details["ro.build.version.sdk"]?.toInt() ?: 1
+    val sdk: Int = _sdk.toInt()
 }

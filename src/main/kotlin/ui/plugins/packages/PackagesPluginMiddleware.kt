@@ -9,23 +9,20 @@ import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import handle
 import ui.plugins.PluginMiddleware
 
 class PackagesPluginMiddleware(
     pluginName: String,
-    executor: CommandExecutor,
-) : PluginMiddleware(pluginName, executor) {
-    override fun process(
-        action: IAction,
-        state: AppState,
-        processor: IProcessor<AppState>,
-    ) {
+    private val executor: CommandExecutor,
+) : PluginMiddleware(pluginName) {
+    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         when (action) {
             is Action.StartPlugin,
             PackagesPlugin.Actions.List,
                 -> {
                 val searchTerm = state.windows[pluginName]?.searchTerm ?: ""
-                execute(ListPackagesCommand(), state, processor) {
+                execute(ListPackagesCommand(), state, executor).handle(processor) {
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, it, searchTerm),
                     )
@@ -33,21 +30,15 @@ class PackagesPluginMiddleware(
             }
 
             is PackagesPlugin.Actions.Stop -> {
-                execute(StopAppCommand(action.packageInfo), state, processor) {
-                    processor.reduce(Action.SetCommandCompleted)
-                }
+                execute(StopAppCommand(action.packageInfo), state, executor).handle(processor)
             }
 
             is PackagesPlugin.Actions.Uninstall -> {
-                execute(UninstallAppCommand(action.packageInfo), state, processor) {
-                    processor.perform(PackagesPlugin.Actions.List)
-                }
+                execute(UninstallAppCommand(action.packageInfo), state, executor).handle(processor)
             }
 
             is PackagesPlugin.Actions.ClearData -> {
-                execute(ClearDataCommand(action.packageInfo), state, processor) {
-                    processor.reduce(Action.SetCommandCompleted)
-                }
+                execute(ClearDataCommand(action.packageInfo), state, executor).handle(processor)
             }
         }
     }

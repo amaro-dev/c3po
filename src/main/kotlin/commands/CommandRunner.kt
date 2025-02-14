@@ -6,20 +6,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 object CommandRunner {
-    suspend fun run(command: String): Result<String> {
-        return run(command.split(' ').toTypedArray())
+    suspend fun run(adbPath: File, command: String): Result<String> {
+        return run(adbPath, command.split(' ').toTypedArray())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun run(args: Array<String>): Result<String> {
-        debug("Command: '${args.joinToString(" ")}'")
+    suspend fun run(adbPath: File, args: Array<String>): Result<String> {
+        debug("Command: (PATH: $adbPath) '${args.joinToString(" ")}'")
         return withContext(Dispatchers.IO) {
             debug("Will start command")
-            val process = ProcessBuilder().command(*args).start()
+            val process = ProcessBuilder()
+                .command(*args)
+//                .directory(adbPath)
+                .start()
             debug("Command started")
             val response = async { process.inputReader().readText().trim() }
             val error = async { process.errorReader().readText().trim() }
