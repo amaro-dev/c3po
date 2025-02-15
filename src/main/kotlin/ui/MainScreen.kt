@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -59,6 +61,11 @@ fun MainScreen(app: App, sideSection: Section) {
                     state.currentPlugin?.let { name ->
                         val selectedPlugin: Plugin<*>? = app.plugins.find { it.id == name }
                         selectedPlugin?.render(state.windows) { app.perform(it) }
+                    }
+                }
+                if (state.currentPlugin == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Select an option in the left menu")
                     }
                 }
                 if (state.settingsState == SettingsState.NotFound) {
