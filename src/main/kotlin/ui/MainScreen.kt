@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.toSize
 import core.Action
 import core.App
 import core.SettingsState
-import ui.plugins.Plugin
 
 
 @Composable
@@ -59,7 +58,7 @@ fun MainScreen(app: App, sideSection: Section) {
             ) {
                 Column(Modifier.fillMaxSize()) {
                     state.currentPlugin?.let { name ->
-                        val selectedPlugin: Plugin<*>? = app.plugins.find { it.id == name }
+                        val selectedPlugin: plugins.Plugin<*>? = app.plugins.find { it.id == name }
                         selectedPlugin?.render(state.windows) { app.perform(it) }
                     }
                 }

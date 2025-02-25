@@ -1,9 +1,9 @@
 package commands
 
-class DeviceInfoCommand : AdbCommand<Map<String, String>> {
+class DeviceInfoCommand : AdbCommand<List<Pair<String, String>>> {
     override val command: String = "shell getprop"
 
-    override fun parse(result: String): Map<String, String> {
+    override fun parse(result: String): List<Pair<String, String>> {
         val lineSplitRule = Regex("\\r?\\n")
         return lineSplitRule
             .split(result)
@@ -11,5 +11,7 @@ class DeviceInfoCommand : AdbCommand<Map<String, String>> {
             .map { it.split("]: [") }
             .filter { it.size == 2 }
             .associate { Pair(it[0], it[1]) }
+            .toList()
+            .sortedBy { it.first }
     }
 }

@@ -22,6 +22,10 @@ import core.Action
 import core.App
 import core.AppState
 import core.CommandStatus
+import di.AppModule
+import di.FacadeModule
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 import ui.AppTheme
 import ui.CompanionStatus
 import ui.DeviceSelector
@@ -31,16 +35,19 @@ import ui.RunningAndroid
 import ui.definitions.Dimens
 import ui.definitions.Texts
 import ui.horizontalPadding
-import java.awt.Toolkit
 
 
 fun main() =
     application {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        val myApp = App(clipboard)
+        startKoin {
+            modules(AppModule, FacadeModule)
+        }
+        val myApp = App()
         myApp.start()
+        Metrics().start()
         Window(
             onCloseRequest = {
+                stopKoin()
                 myApp.exit()
                 exitApplication()
             },

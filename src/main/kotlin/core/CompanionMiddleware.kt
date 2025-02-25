@@ -4,6 +4,7 @@ import Settings
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import facade.CompanionCommander
 import handle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,26 +26,20 @@ class CompanionMiddleware(
                 if (state.currentDevice != action.device)
                     (processor as IActionScheduler).schedule(Action.Companion.CheckInstalled)
             }
-            //
+
             is Action.Companion.Install -> {
                 if (state.hasDeviceSet) {
                     processor.reduce(Action.SetCommandRunning)
-                    commander.installAndPrepare(adbPath, state.currentDevice!!).onSuccess {
-                        processor.perform(Action.Companion.Connect)
-                    }.handle(processor)
+                    commander.installAndPrepare(adbPath, state.currentDevice!!)
+                        .onSuccess { processor.perform(Action.Companion.Connect) }
+                        .handle(processor)
                 }
-            }
-
-
-            is Action.Companion.SkipForDevice -> {
-                processor.reduce(Action.Companion.UpdateState(state.companionState.setSkipped()))
             }
 
 
             is Action.Companion.CheckInstalled -> {
                 state.currentDevice?.let { device ->
                     var status = CompanionState().setCheckedForPresence()
-                        .setHasAccepted() // Forcing to use companion
                     val isInstalled = commander.isInstalled(adbPath, device).getOrDefault(false)
                     if (isInstalled) {
                         status = status.setIsInstalled()
@@ -58,14 +53,11 @@ class CompanionMiddleware(
 
             is Action.Companion.Prepare -> {
                 if (state.currentDevice == null) return
-                commander.prepare(adbPath, state.currentDevice).onSuccess {
-                    processor.perform(Action.Companion.Connect)
-                }.handle(processor)
+                commander.prepare(adbPath, state.currentDevice)
+                    .onSuccess { processor.perform(Action.Companion.Connect) }
+                    .handle(processor)
             }
 
-            is Action.DeliverSocketResponse -> {
-                println(action)
-            }
         }
     }
 

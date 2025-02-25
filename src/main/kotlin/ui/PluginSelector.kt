@@ -9,12 +9,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import core.Action
-import ui.plugins.Plugin
 import ui.rows.BaseRow
 
 @Composable
 fun PluginSelector(
-    plugins: List<Plugin<*>>,
+    plugins: List<plugins.Plugin<*>>,
     currentPlugin: String?,
     onSelect: OnAction,
 ) {

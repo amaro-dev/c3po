@@ -1,6 +1,6 @@
 package commands
 
-import core.debug
+import debug
 import exceptions.DeviceNotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,9 +11,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 object CommandRunner {
-    suspend fun run(adbPath: File, command: String): Result<String> {
-        return run(adbPath, command.split(' ').toTypedArray())
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun run(adbPath: File, args: Array<String>): Result<String> {

@@ -9,15 +9,8 @@ class CommandExecutor {
         adbPath: String,
         device: AdbDevice? = null,
     ): Result<T> {
-        val finalCommand = if (command is PlaceholderAdb) {
-            command.command
-                .trim()
-                .replace(Regex("\\[ADB\\]"), "${adbPath.trim()} ${device?.id?.let { "-s $it " } ?: ""}")
-                .split("¡")
-        } else {
-            "$adbPath ${device?.id?.let { "-s $it " } ?: ""}${command.command.trim()}".split(" ")
-        }
-        val result = CommandRunner.run(File(adbPath.substringBeforeLast("/")), finalCommand.toTypedArray())
+        val finalCommand = CommandBuilder.build(command, adbPath, device)
+        val result = CommandRunner.run(File(adbPath.substringBeforeLast("/")), finalCommand)
         return if (result.isFailure)
             Result.failure(result.exceptionOrNull() ?: UnknownError())
         else

@@ -56,7 +56,7 @@ sealed interface Action : IAction {
     data class DeliverPluginResult(
         val plugin: String,
         val items: List<*>,
-        val searchTerm: String = "",
+        val searchTerm: String? = null,
     ) : Action
 
     data class StartPlugin(
@@ -67,10 +67,6 @@ sealed interface Action : IAction {
         val pluginName: String,
     ) : Action
 
-    data class ClosePlugin(
-        val pluginName: String,
-    ) : Action
-
     data class ChangeFilter(
         val pluginName: String,
         val searchTerm: String,
@@ -78,10 +74,12 @@ sealed interface Action : IAction {
 
     sealed interface Companion : Action {
         data object CheckInstalled : Action
-        data object CheckRunning : Action
-        data object CheckPorts : Action
+
+        //        data object CheckRunning : Action
+//        data object CheckPorts : Action
         data object Prepare : Action
-        data object StartService : Action
+
+        //        data object StartService : Action
         data object Connect : Action
         data object Install : Action
         data object SkipForDevice : Action
@@ -97,9 +95,7 @@ sealed interface Action : IAction {
 
     data class SendSocketRequest(
         val command: String,
-        val id: String,
         val arg: String?,
     ) : Action
 
-    data object ListServices : Action
 }

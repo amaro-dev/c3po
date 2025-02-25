@@ -19,7 +19,7 @@ class StatusMiddleware(
         state: AppState,
         processor: IProcessor<AppState>
     ) {
-        if (state.commandStatus !in arrayOf(CommandStatus.Idle, CommandStatus.Running)) {
+        if (state.commandStatus.isResult()) {
             if (!isRunning.getAndSet(true)) {
                 scope.launch {
                     delay(3000)

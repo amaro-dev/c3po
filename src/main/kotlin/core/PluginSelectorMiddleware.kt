@@ -3,10 +3,9 @@ package core
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
-import ui.plugins.Plugin
 
 class PluginSelectorMiddleware(
-    plugins: List<Plugin<*>>,
+    plugins: List<plugins.Plugin<*>>,
 ) : IMiddleware<AppState> {
     private val registeredPlugins = plugins.associateBy { it.id }
 
@@ -16,9 +15,10 @@ class PluginSelectorMiddleware(
         processor: IProcessor<AppState>,
     ) {
         if (action is Action.StartPlugin) {
+            val plugin = registeredPlugins[action.pluginName] ?: return
             processor.reduce(Action.SetCommandRunning)
             processor.reduce(Action.SelectPlugin(action.pluginName))
-            registeredPlugins[action.pluginName]?.middleware?.process(action, state, processor)
+            plugin.middleware.process(action, state, processor)
         } else {
             registeredPlugins.forEach {
                 if (it.value.isResponsibleFor(action)) {

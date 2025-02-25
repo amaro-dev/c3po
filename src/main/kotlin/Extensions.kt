@@ -40,3 +40,7 @@ fun Color.darkenedBy(amount: Float): Color {
         blue = blue * (1f - amount),
     )
 }
+
+fun debug(message: String) {
+//    println("[DEBUG] $message")
+}

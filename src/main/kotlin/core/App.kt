@@ -1,74 +1,19 @@
 package core
 
-import Settings
-import commands.CommandExecutor
-import dev.amaro.sonic.ConditionedDirectMiddleware
 import dev.amaro.sonic.IAction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import di.Names
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.qualifier.named
+import plugins.Plugin
 import socket.SocketClient
-import ui.plugins.Plugin
-import ui.plugins.activities.ActivitiesPlugin
-import ui.plugins.attrs.DeviceAttrsPlugin
-import ui.plugins.intents.pending.PendingIntentsPlugin
-import ui.plugins.packages.PackagesPlugin
-import ui.plugins.permissions.PermissionsPlugin
-import ui.plugins.services.ServicesPlugin
-import ui.plugins.signature.SignatureExtractor
-import ui.plugins.signature.SignaturePlugin
-import java.awt.datatransfer.Clipboard
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 
-class App(
-    clipboard: Clipboard,
-) {
-    private val socketClient = SocketClient()
+class App() : KoinComponent {
+    private val socketClient: SocketClient = get()
 
-    private val executor = CommandExecutor()
+    val plugins: List<Plugin<*>> = get(named(Names.PLUGIN_LIST_DEPENDENCY))
 
-    val plugins: List<Plugin<*>> =
-        listOf(
-            ActivitiesPlugin(executor),
-            PackagesPlugin(executor),
-            DeviceAttrsPlugin(executor),
-            ServicesPlugin(executor),
-            PermissionsPlugin(executor),
-            PendingIntentsPlugin(executor),
-            SignaturePlugin(SignatureExtractor())
-        )
-
-    private val resourcesPath =
-        if (Settings.isDebug()) {
-            File(Paths.get("build/resources/main").absolutePathString())
-        } else {
-            File(Settings.productionSettingsFolder()).apply {
-                if (!exists()) Files.createDirectory(toPath())
-            }
-        }
-
-    private val stateManager =
-        AppStateManager(
-            DeviceMiddleware(executor),
-            PluginSelectorMiddleware(plugins),
-            ClipboardMiddleware(clipboard),
-            ConditionedDirectMiddleware(
-                Action.SelectPlugin::class,
-                Action.ClosePlugin::class,
-                Action.ChangeFilter::class,
-                Action.ClearError::class,
-            ),
-            SettingsMiddleware(resourcesPath, Settings.FILE_NAME),
-            CompanionMiddleware(CompanionCommanderImpl(executor, resourcesPath)),
-            StatusMiddleware(CoroutineScope(Dispatchers.Default)),
-//            DebugMiddleware(actions = arrayOf(
-//                Action.SetCommandError("Some error happened"),
-//                Action.ClearError
-//            ))
-            SocketMiddleware(socketClient),
-        )
+    private val stateManager: AppStateManager = get()
 
     fun start() {
         perform(Action.LoadSettings)
@@ -81,8 +26,4 @@ class App(
     fun exit() {
         socketClient.close()
     }
-}
-
-fun debug(message: String) {
-//    println("[DEBUG] $message")
 }

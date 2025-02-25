@@ -13,5 +13,7 @@ interface Icons {
         const val OFFLINE = "ic_comp_off.svg"
         const val LAUNCH = "ic_launch.svg"
         const val DEBUG = "ic_debug.svg"
+        const val STOPPED = "ic_stopped.svg"
+        const val KEY = "ic_key.svg"
     }
 }

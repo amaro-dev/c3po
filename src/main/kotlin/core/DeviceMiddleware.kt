@@ -26,10 +26,6 @@ class DeviceMiddleware(
                     }
                 }
             }
-
-            is Action.SelectDevice -> {
-                processor.reduce(Action.SelectDevice(action.device))
-            }
         }
     }
 }

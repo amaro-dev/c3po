@@ -10,8 +10,10 @@ class SocketResponseAggregator {
             val (_, id) = line.split(' ')
             cache[id] = mutableListOf()
         } else if (line.startsWith("END")) {
-            val (_, id, command) = line.split(' ')
-            if (cache.contains(id)) ready.add(CommandEntry(id, command))
+            val params = line.split(' ')
+            val arg = if (params.size > 3) params[3] else null
+            val (_, id, command) = params
+            if (cache.contains(id)) ready.add(CommandEntry(id, command, arg))
         } else {
             cache[line.split(' ')[0]]?.add(line.substringAfter(' '))
         }
@@ -31,4 +33,5 @@ class SocketResponseAggregator {
 data class CommandEntry(
     val id: String,
     val command: String,
+    val arg: String? = null
 )

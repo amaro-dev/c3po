@@ -1,5 +1,6 @@
 package core
 
+import debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import socket.SocketClient
 import socket.SocketResponseAggregator
+import java.util.UUID
 
 class SocketMiddleware(
     private val socketClient: SocketClient,
@@ -27,18 +29,21 @@ class SocketMiddleware(
                 if (socketClient.isLive) socketClient.close()
             }
             is Action.SendSocketRequest -> {
-                val request = action.command.plus(action.arg ?: "").plus("/${action.id}")
+                val request = if (action.arg != null) {
+                    "${action.command}: ${action.arg}/${UUID.randomUUID()}"
+                } else {
+                    "${action.command}/${UUID.randomUUID()}"
+                }
                 socketClient.send(request)
             }
 
             is Action.Companion.Connect -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    println("Trying to connect ${SocketClient.SERVER_IP}:${SocketClient.SERVER_PORT}")
+                    debug("Trying to connect ${SocketClient.SERVER_IP}:${SocketClient.SERVER_PORT}")
                     socketClient
                         .connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
                         .onEach {
                             if (it == "CONNECTED") {
-                                println("CONNECTED")
                                 processor.reduce(Action.Companion.UpdateState(state.companionState.setIsOnline()))
                             }
                         }.filterNot { it == "CONNECTED" }
@@ -51,8 +56,6 @@ class SocketMiddleware(
                         }
                 }
             }
-
-            is Action.ListServices -> socketClient.send("list-services/123")
         }
     }
 }

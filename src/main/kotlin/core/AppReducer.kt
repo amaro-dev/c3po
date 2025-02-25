@@ -15,9 +15,10 @@ class AppReducer : IReducer<AppState> {
                 currentState.copy(currentDevice = action.device)
                     // If we change the device, clear plugin status
                     .transformIf(currentState.currentDevice != action.device) {
-                        it.copy(windows = emptyMap())
+                        it.copy(windows = emptyMap(), currentPlugin = null)
                     }
             }
+
             is Action.DeliverDevices ->
                 currentState.copy(
                     devices = action.devices,
@@ -25,12 +26,13 @@ class AppReducer : IReducer<AppState> {
                 )
 
             is Action.DeliverPluginResult -> {
+                val searchTerm = action.searchTerm ?: currentState.windows[action.plugin]?.searchTerm ?: ""
                 currentState.copy(
                     windows =
                         currentState.windows.plus(
                             Pair(
                                 action.plugin,
-                                WindowResult(action.searchTerm, action.items),
+                                WindowResult(searchTerm, action.items),
                             ),
                         ),
                     currentPlugin = action.plugin,
@@ -49,31 +51,22 @@ class AppReducer : IReducer<AppState> {
                     settingsState = SettingsState.NotFound,
                 )
 
-            is Action.ClearPlugins -> currentState.copy(windows = emptyMap())
+            is Action.ClearPlugins -> currentState.copy(windows = emptyMap(), currentPlugin = null)
             is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
-            is Action.ClosePlugin ->
-                currentState.copy(
-                    windows = currentState.windows.minus(action.pluginName),
-                    currentPlugin =
-                        if (currentState.currentPlugin == action.pluginName) {
-                            currentState.windows.keys.firstOrNull()
-                        } else {
-                            currentState.currentPlugin
-                        },
-                )
+            is Action.SetCommandRunning -> currentState.copy(
+                commandStatus = CommandStatus.Running,
+                errorMessage = null,
+            )
 
-            is Action.SetCommandRunning ->
-                currentState.copy(
-                    commandStatus = CommandStatus.Running,
-                    errorMessage = null,
-                )
+            is Action.SetCommandCompleted -> currentState.copy(
+                commandStatus = CommandStatus.Completed,
+                errorMessage = null,
+            )
 
-            is Action.SetCommandCompleted -> currentState.copy(commandStatus = CommandStatus.Completed)
-            is Action.SetCommandError ->
-                currentState.copy(
-                    commandStatus = CommandStatus.Failed,
-                    errorMessage = action.message,
-                )
+            is Action.SetCommandError -> currentState.copy(
+                commandStatus = CommandStatus.Failed,
+                errorMessage = action.message,
+            )
 
             is Action.ClearError ->
                 currentState.copy(

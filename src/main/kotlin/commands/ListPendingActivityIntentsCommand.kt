@@ -3,13 +3,13 @@ package commands
 import models.IntentInfo
 import models.PendingIntent
 
-class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
+class ListPendingActivityIntentsCommand : AdbCommand<List<Pair<String, List<PendingIntent>>>> {
     override val command: String = "shell dumpsys activity intents"
 
     private val idPattern = Regex("PendingIntentRecord\\{([a-f0-9]{5,8})\\s")
     private val keyValuePattern = Regex(" ([^\\s,=]*)=([^\\s,]+)")
 
-    override fun parse(result: String): List<PendingIntent> {
+    override fun parse(result: String): List<Pair<String, List<PendingIntent>>> {
         val lineSplitRule = Regex("\\r?\\n")
         var content = result.trim()
         content = content.substring(content.indexOf("ACTIVITY MANAGER PENDING INTENTS (dumpsys activity intents)"))
@@ -54,5 +54,7 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<PendingIntent>> {
                     it["requestCode"]?.toInt(),
                 )
             }
+            .groupBy { it.packageName }
+            .toList()
     }
 }

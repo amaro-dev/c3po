@@ -1,6 +1,10 @@
 import assertk.assertThat
+import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEqualTo
+import io.mockk.every
+import io.mockk.spyk
 import org.junit.jupiter.api.Test
+import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
@@ -16,13 +20,28 @@ class PathFinderTest {
     }
 
     @Test
-    fun `Get apksigner path latest`() {
-        val adbPath = "/Users/name/Library/Android/sdk"
-        assertThat(PathFinder().getApkSignerPath(adbPath))
-            .isEqualTo("/Users/name/Library/Android/sdk/build-tools/34.0.0/apksigner")
+    fun `Get directories list`() {
+        val directory = this.javaClass.classLoader.getResource("").path
+        val baseDir = Path("$directory/..").normalize()
+        assertThat(PathFinder().listDirectories("$directory/.."))
+            .containsExactlyInAnyOrder(
+                baseDir.resolve("main"),
+                baseDir.resolve("test")
+            )
     }
 
+    @Test
+    fun `Get apksigner path latest`() {
+        val pathFinder = spyk(PathFinder())
+        every { pathFinder.listDirectories(any()) } returns listOf(
+            Path("/Users/name/Library/Android/sdk/build-tools/34.0.0"),
+            Path("/Users/name/Library/Android/sdk/build-tools/33.0.0")
+        )
+        val path = pathFinder.getApkSignerPath("/Users/name/Library/Android/sdk")
+        assertThat(path).isEqualTo("/Users/name/Library/Android/sdk/build-tools/34.0.0/apksigner")
+    }
 }
+
 
 class PathFinder {
 
@@ -31,10 +50,14 @@ class PathFinder {
     }
 
     fun getApkSignerPath(androidPath: String): String {
-        val path = Path(androidPath, "build-tools")
-        val options = path.listDirectoryEntries().map {
+        val path = Path(androidPath, "build-tools").pathString
+        val options = listDirectories(path).map {
             it.name
         }.first()
-        return Path(path.pathString, options, "apksigner").pathString
+        return Path(path, options, "apksigner").pathString
+    }
+
+    fun listDirectories(path: String): List<Path> {
+        return Path(path).normalize().listDirectoryEntries()
     }
 }
