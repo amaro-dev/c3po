@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import core.Action
 import core.App
-import core.SettingsState
+import models.SettingsState
 
 
 @Composable

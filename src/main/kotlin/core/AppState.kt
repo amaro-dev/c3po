@@ -1,6 +1,9 @@
 package core
 
 import models.AdbDevice
+import models.CommandStatus
+import models.SettingsState
+import models.WindowResult
 import java.util.Properties
 
 data class AppState(
@@ -14,29 +17,6 @@ data class AppState(
     val errorMessage: String? = null,
     val companionState: CompanionState = CompanionState(0),
 ) {
-    val shouldShowCompanionDialog: Boolean
-        get() = companionState.shouldOffer()
-
     val hasDeviceSet: Boolean
         get() = currentDevice != null
 }
-
-enum class SettingsState {
-    NotInitialized,
-    NotFound,
-    Initialized,
-}
-
-enum class CommandStatus {
-    Idle,
-    Running,
-    Completed,
-    Failed;
-
-    fun isResult() = this in arrayOf(Completed, Failed)
-}
-
-data class WindowResult<out T>(
-    val searchTerm: String,
-    val result: List<T>,
-)

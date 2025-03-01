@@ -13,10 +13,10 @@ import commands.CommandExecutor
 import core.Action
 import core.Action.CommandAction
 import core.AppState
-import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import models.ActivityInfo
+import models.WindowResult
 import ui.ContentBox
 import ui.OnAction
 import ui.definitions.Dimens

@@ -1,6 +1,9 @@
-package plugins.signature
+package facade
 
 import commands.CommandRunner
+import models.AndroidPackageReport
+import models.SignatureInfo
+import models.Signer
 import java.io.File
 
 class SignatureExtractor {

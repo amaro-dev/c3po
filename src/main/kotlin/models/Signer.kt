@@ -1,4 +1,6 @@
-package plugins.signature
+package models
+
+import exceptions.IncompleteSignerInformationException
 
 data class Signer(
     val commonName: String?,

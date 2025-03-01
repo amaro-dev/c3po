@@ -1,7 +1,7 @@
-package plugins.packages
+package facade
 
-import plugins.signature.SignatureInfo
-import plugins.signature.Signer
+import models.SignatureInfo
+import models.Signer
 
 class SignatureResponseParser() {
 

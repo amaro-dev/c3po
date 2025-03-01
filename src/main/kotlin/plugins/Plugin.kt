@@ -2,9 +2,9 @@ package plugins
 
 import androidx.compose.runtime.Composable
 import core.AppState
-import core.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
+import models.WindowResult
 import ui.OnAction
 
 interface Plugin<in T> {

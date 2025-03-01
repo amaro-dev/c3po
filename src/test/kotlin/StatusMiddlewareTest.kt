@@ -1,12 +1,12 @@
 import core.Action
 import core.AppState
-import core.CommandStatus
 import core.StatusMiddleware
 import dev.amaro.sonic.IProcessor
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
+import models.CommandStatus
 import org.junit.jupiter.api.Test
 
 class StatusMiddlewareTest {

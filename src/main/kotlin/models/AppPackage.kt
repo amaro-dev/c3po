@@ -1,7 +1,5 @@
 package models
 
-import plugins.signature.SignatureInfo
-
 data class AppPackage(
     val packageName: String,
     val versionName: String = "",

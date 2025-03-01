@@ -8,12 +8,12 @@ import assertk.assertions.prop
 import core.Action
 import core.AppReducer
 import core.AppState
-import core.CommandStatus
 import core.CompanionState
-import core.SettingsState
-import core.WindowResult
 import io.mockk.mockk
 import models.AdbDevice
+import models.CommandStatus
+import models.SettingsState
+import models.WindowResult
 import org.junit.jupiter.api.Test
 import java.util.Properties
 

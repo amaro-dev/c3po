@@ -1,4 +1,4 @@
-package plugins.intents.pending
+package models
 
 enum class IntentFlags(
     val code: Long,

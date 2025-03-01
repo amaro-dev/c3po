@@ -7,12 +7,14 @@ import facade.CompanionCommander
 import facade.CompanionCommanderImpl
 import facade.SettingsRepository
 import facade.SettingsRepositoryImpl
+import facade.SignatureExtractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import plugins.signature.SignatureExtractor
 import socket.SocketClient
+import socket.SocketDriver
+import socket.SocketResponseAggregator
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.io.File
@@ -35,6 +37,11 @@ val FacadeModule = module {
             }
         }
     }
+
+    single { SocketResponseAggregator() }
+
+    single { SocketDriver(get(), get()) }
+
     single { SocketClient() }
 
     single { CommandExecutor() }

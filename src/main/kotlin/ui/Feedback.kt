@@ -14,8 +14,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import core.CommandStatus
 import kotlinx.coroutines.delay
+import models.CommandStatus
 
 @Composable
 fun (BoxScope).Feedback(status: CommandStatus, errorMessage: String?, onDiscard: () -> Unit) {

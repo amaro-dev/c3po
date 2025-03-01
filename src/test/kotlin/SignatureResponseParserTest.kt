@@ -2,10 +2,10 @@ import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.prop
+import facade.SignatureResponseParser
+import models.SignatureInfo
+import models.Signer
 import org.junit.jupiter.api.Test
-import plugins.packages.SignatureResponseParser
-import plugins.signature.SignatureInfo
-import plugins.signature.Signer
 
 class SignatureResponseParserTest {
     @Test

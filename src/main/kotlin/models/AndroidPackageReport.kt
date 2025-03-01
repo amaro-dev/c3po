@@ -1,4 +1,6 @@
-package plugins.signature
+package models
+
+import facade.BoolState
 
 data class AndroidPackageReport(
     val filePath: String,

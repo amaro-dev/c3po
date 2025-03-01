@@ -4,10 +4,12 @@ import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import facade.SignatureExtractor
 import handle
+import models.AndroidPackageReport
 import plugins.PluginMiddleware
 
-class AndroidPackageMiddleware(
+class SignatureMiddleware(
     pluginName: String,
     private val signatureExtractor: SignatureExtractor
 ) : PluginMiddleware(pluginName) {

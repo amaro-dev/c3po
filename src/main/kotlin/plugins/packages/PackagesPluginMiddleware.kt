@@ -9,6 +9,7 @@ import core.Action
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import facade.SignatureResponseParser
 import handle
 import models.AppPackage
 import models.SleepState
@@ -69,28 +70,33 @@ class PackagesPluginMiddleware(
             is Action.DeliverSocketResponse -> {
                 if (action.reference.command == PackagesPlugin.EXTRACT_KEY_INSTRUCTION) {
                     val signature = SignatureResponseParser().parse(action.content)
-                    val response = state.windows[pluginName]
-                        ?.result
-                        ?.update({ (it as AppPackage).packageName == action.reference.arg }) {
-                            (it as AppPackage).copy(signerInfo = signature)
-                        }
-                        ?: emptyList()
+                    val response = updateByPackageName(state, action.reference.arg!!) {
+                        (it).copy(signerInfo = signature)
+                    }
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, response),
                     )
                 } else if (action.reference.command == PackagesPlugin.CHECK_ASLEEP_INSTRUCTION) {
                     val result = if (action.content.first().toBool()) SleepState.Asleep else SleepState.Awake
-                    val response = state.windows[pluginName]
-                        ?.result
-                        ?.update({ (it as AppPackage).packageName == action.reference.arg }) {
-                            (it as AppPackage).copy(sleepState = result)
-                        }
-                        ?: emptyList()
+                    val response = updateByPackageName(state, action.reference.arg!!) {
+                        it.copy(sleepState = result)
+                    }
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, response),
                     )
                 }
             }
         }
+    }
+
+    private fun updateByPackageName(
+        state: AppState,
+        packageName: String,
+        transform: (AppPackage) -> AppPackage
+    ): List<AppPackage> {
+        return (state.windows[pluginName]
+            ?.result as? List<AppPackage>)
+            ?.update({ it.packageName == packageName }) { transform(it) }
+            ?: emptyList()
     }
 }

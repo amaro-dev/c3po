@@ -1,4 +1,4 @@
-package plugins.signature
+package models
 
 data class SignatureInfo(
     val signer: Signer,

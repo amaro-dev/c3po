@@ -66,10 +66,13 @@ kover {
     reports {
         filters {
             excludes {
-                classes("ui.*")
-                classes("di.*")
-                classes("ui.**.*")
-                classes("*.DebugMiddleware*")
+                classes(
+                    "ui.*",
+                    "socket.SocketClient*",
+                    "di.*",
+                    "ui.**.*",
+                    "*.DebugMiddleware*"
+                )
             }
         }
     }

@@ -1,3 +1,3 @@
-package plugins.signature
+package exceptions
 
 class IncompleteSignerInformationException() : Exception()
