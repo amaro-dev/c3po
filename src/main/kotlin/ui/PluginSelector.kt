@@ -33,7 +33,7 @@ fun PluginSelector(
                 BaseRow {
                     Text(
                         it.name,
-                        style = MaterialTheme.typography.subtitle1,
+                        style = MaterialTheme.typography.h6,
                         color = contentColor
                     )
                 }

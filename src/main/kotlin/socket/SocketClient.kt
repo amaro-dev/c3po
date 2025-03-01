@@ -1,5 +1,6 @@
 package socket
 
+import debug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,7 +24,9 @@ class SocketClient {
     val isLive: Boolean
         get() = this::mClientSocket.isInitialized &&
                 mClientSocket.isConnected &&
-                !mClientSocket.isClosed && !isClosed
+                !mClientSocket.isClosed &&
+                !isClosed &&
+                mClientSocket.isBound
 
     fun connect(
         ip: String = SERVER_IP,
@@ -43,25 +46,29 @@ class SocketClient {
                 val message = input.readLine()
                 if (message != null) {
                     emit(message)
+                } else {
+                    break
                 }
             }
         } catch (e: Exception) {
+            println("Connection fail: ${e.message}")
             emit("Connection fail: ${e.message}")
             close()
         } finally {
             close()
+            emit("DISCONNECTED")
         }
     }.flowOn(Dispatchers.IO)
 
     fun send(command: String): Boolean {
         if (isClosed || !isLive) {
-            println("Connection is not open!")
+            debug("Connection is not open!")
             return false
         }
         try {
             output.write("$command\n")
             output.flush()
-            println("Sent: $command")
+            debug("Sent: $command")
             return true
         } catch (e: IOException) {
             println("Failed to send: ${e.message}")
@@ -76,7 +83,7 @@ class SocketClient {
             mClientSocket.close()
             input.close()
             output.close()
-            println("Connection closed")
+            debug("Connection closed")
         } catch (e: Throwable) {
             println("Error closing resources: ${e.message}")
         }

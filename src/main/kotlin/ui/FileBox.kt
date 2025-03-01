@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.awtTransferable
+import debug
 import java.awt.datatransfer.DataFlavor
 import java.io.File
 
@@ -21,7 +22,7 @@ fun FileBox(onFileReceived: (String) -> Unit) {
         object : DragAndDropTarget {
             override fun onDrop(event: DragAndDropEvent): Boolean {
                 val path = event.awtTransferable.getTransferData(DataFlavors.FilePath)
-                println("File path: $path")
+                debug("File path: $path")
                 onFileReceived((path as List<File>).first().absolutePath)
                 return true
             }

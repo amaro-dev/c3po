@@ -18,6 +18,7 @@ class DeviceMiddleware(
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
+                processor.reduce(Action.ClearDevice)
                 executor.go(ListDevicesCommand(), adbPath).handle(processor) { devices ->
                     processor.reduce(Action.DeliverDevices(devices))
                     // Select the device if it's the only one available

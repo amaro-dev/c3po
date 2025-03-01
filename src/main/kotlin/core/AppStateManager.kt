@@ -1,5 +1,6 @@
 package core
 
+import debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IReducer
@@ -15,7 +16,7 @@ class AppStateManager(
     override val reducer: IReducer<AppState> = mainReducer
 
     override fun reduce(action: IAction) {
-//        println("$action called by: ${Thread.currentThread().stackTrace[2].className}")
+        debug("$action called by: ${Thread.currentThread().stackTrace[2].className}")
         val oldState = state.value
         state.value = reducer.reduce(action, state.value)
         perform(Action.UpdatedState(oldState, state.value))
@@ -25,14 +26,14 @@ class AppStateManager(
     }
 
     override fun perform(action: IAction) {
-        println("Perform: $action")
+        debug("Perform: $action")
         super.perform(action)
     }
 
     private val scheduledActions = ConcurrentLinkedQueue<IAction>()
 
     override fun schedule(action: IAction) {
-        println("Scheduled: $action")
+        debug("Scheduled: $action")
         scheduledActions.add(action)
     }
 }

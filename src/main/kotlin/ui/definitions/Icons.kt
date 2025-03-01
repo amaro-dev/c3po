@@ -15,5 +15,8 @@ interface Icons {
         const val DEBUG = "ic_debug.svg"
         const val STOPPED = "ic_stopped.svg"
         const val KEY = "ic_key.svg"
+        const val SLEEPING = "ic_sleeping.svg"
+        const val AWAKE = "ic_awake.svg"
+        const val ASLEEP = "ic_asleep.svg"
     }
 }

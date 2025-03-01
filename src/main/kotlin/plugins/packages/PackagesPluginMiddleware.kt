@@ -11,7 +11,10 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
 import models.AppPackage
+import models.SleepState
 import plugins.PluginMiddleware
+import toBool
+import update
 
 class PackagesPluginMiddleware(
     pluginName: String,
@@ -20,30 +23,40 @@ class PackagesPluginMiddleware(
     override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         when (action) {
             is Action.StartPlugin,
-            PackagesPlugin.Actions.List,
-                -> {
-                execute(ListPackagesCommand(), state, executor).handle(processor) {
-                    processor.reduce(
-                        Action.DeliverPluginResult(pluginName, it),
-                    )
-                }
+            PackagesPlugin.Actions.List -> {
+                execute(ListPackagesCommand(), state, executor)
+                    .handle(processor) {
+                        processor.reduce(
+                            Action.DeliverPluginResult(pluginName, it),
+                        )
+                    }
             }
 
             is PackagesPlugin.Actions.Stop -> {
                 execute(StopAppCommand(action.packageInfo), state, executor)
-                    .onSuccess { processor.perform(PackagesPlugin.Actions.List) }
                     .handle(processor)
 
             }
 
             is PackagesPlugin.Actions.Uninstall -> {
-                execute(UninstallAppCommand(action.packageInfo), state, executor).handle(processor)
+                execute(UninstallAppCommand(action.packageInfo), state, executor)
+                    .onSuccess { processor.perform(PackagesPlugin.Actions.List) }
+                    .handle(processor)
             }
 
             is PackagesPlugin.Actions.ExtractKey -> {
                 processor.perform(
                     Action.SendSocketRequest(
                         PackagesPlugin.EXTRACT_KEY_INSTRUCTION,
+                        action.packageInfo.packageName,
+                    ),
+                )
+            }
+
+            is PackagesPlugin.Actions.CheckAsleep -> {
+                processor.perform(
+                    Action.SendSocketRequest(
+                        PackagesPlugin.CHECK_ASLEEP_INSTRUCTION,
                         action.packageInfo.packageName,
                     ),
                 )
@@ -56,12 +69,23 @@ class PackagesPluginMiddleware(
             is Action.DeliverSocketResponse -> {
                 if (action.reference.command == PackagesPlugin.EXTRACT_KEY_INSTRUCTION) {
                     val signature = SignatureResponseParser().parse(action.content)
-                    val response = state.windows[pluginName]?.result?.map {
-                        if ((it as AppPackage).packageName == action.reference.arg)
-                            it.copy(signerInfo = signature)
-                        else
-                            it
-                    } ?: emptyList()
+                    val response = state.windows[pluginName]
+                        ?.result
+                        ?.update({ (it as AppPackage).packageName == action.reference.arg }) {
+                            (it as AppPackage).copy(signerInfo = signature)
+                        }
+                        ?: emptyList()
+                    processor.reduce(
+                        Action.DeliverPluginResult(pluginName, response),
+                    )
+                } else if (action.reference.command == PackagesPlugin.CHECK_ASLEEP_INSTRUCTION) {
+                    val result = if (action.content.first().toBool()) SleepState.Asleep else SleepState.Awake
+                    val response = state.windows[pluginName]
+                        ?.result
+                        ?.update({ (it as AppPackage).packageName == action.reference.arg }) {
+                            (it as AppPackage).copy(sleepState = result)
+                        }
+                        ?: emptyList()
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, response),
                     )

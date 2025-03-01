@@ -16,6 +16,7 @@ sealed interface Action : IAction {
     ) : Action
 
     data object RefreshDevices : CommandAction
+    data object ClearDevice : Action
 
     data object ClearPlugins : Action
 

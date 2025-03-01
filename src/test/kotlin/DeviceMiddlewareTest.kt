@@ -31,6 +31,7 @@ class DeviceMiddlewareTest {
         middleware.asyncProcess(Action.RefreshDevices, state, processor)
 
         verify {
+            processor.reduce(Action.ClearDevice)
             processor.reduce(Action.DeliverDevices(listOf(device)))
             processor.perform(Action.SelectDevice(device))
         }

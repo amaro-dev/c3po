@@ -31,16 +31,16 @@ val AppModule = module {
             DeviceMiddleware(get()),
             PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))),
             ClipboardMiddleware(get()),
+            CompanionMiddleware(get()),
+            SettingsMiddleware(get()),
+            StatusMiddleware(get()),
+            SocketMiddleware(get(), get()),
             ConditionedDirectMiddleware(
                 Action.SelectPlugin::class,
                 Action.SelectDevice::class,
                 Action.ChangeFilter::class,
                 Action.ClearError::class,
-            ),
-            SettingsMiddleware(get()),
-            CompanionMiddleware(get()),
-            StatusMiddleware(get()),
-            SocketMiddleware(get())
+            )
         )
     }
 

@@ -4,6 +4,7 @@ import core.Action.ILoadSettingsIntoState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
 import transformIf
+import update
 
 class AppReducer : IReducer<AppState> {
     override fun reduce(
@@ -15,8 +16,17 @@ class AppReducer : IReducer<AppState> {
                 currentState.copy(currentDevice = action.device)
                     // If we change the device, clear plugin status
                     .transformIf(currentState.currentDevice != action.device) {
-                        it.copy(windows = emptyMap(), currentPlugin = null)
+                        it.copy(windows = emptyMap(), currentPlugin = null, companionState = CompanionState())
                     }
+            }
+
+            is Action.ClearDevice -> {
+                currentState.copy(
+                    currentDevice = null,
+                    currentPlugin = null,
+                    companionState = CompanionState(),
+                    windows = emptyMap()
+                )
             }
 
             is Action.DeliverDevices ->
@@ -77,15 +87,9 @@ class AppReducer : IReducer<AppState> {
             is Action.ChangeFilter ->
                 currentState.copy(
                     windows =
-                        currentState.windows.plus(
-                            Pair(
-                                action.pluginName,
-                                WindowResult(
-                                    action.searchTerm,
-                                    currentState.windows[action.pluginName]?.result ?: emptyList(),
-                                ),
-                            ),
-                        ),
+                        currentState.windows.update(action.pluginName) {
+                            it.copy(searchTerm = action.searchTerm)
+                        }
                 )
 
             is Action.Companion.UpdateState -> {

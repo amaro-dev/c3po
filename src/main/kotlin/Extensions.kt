@@ -42,5 +42,13 @@ fun Color.darkenedBy(amount: Float): Color {
 }
 
 fun debug(message: String) {
-//    println("[DEBUG] $message")
+    println("[DEBUG] $message")
+}
+
+inline fun <reified T> Collection<T>.update(condition: (T) -> Boolean, change: (T) -> T): List<T> {
+    return map { if (condition(it)) change(it) else it }
+}
+
+inline fun <reified T, reified R> Map<T, R>.update(key: T, transform: (R) -> R): Map<T, R> {
+    return if (containsKey(key)) plus(Pair(key, transform(this[key]!!))) else this
 }

@@ -1,6 +1,7 @@
 package core
 
 import Settings
+import debug
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
@@ -23,6 +24,7 @@ class CompanionMiddleware(
         when (action) {
             // When a device is selected we must check for companion app
             is Action.SelectDevice -> {
+                debug("Companion selected '${state.currentDevice}' and '${action.device}'")
                 if (state.currentDevice != action.device)
                     (processor as IActionScheduler).schedule(Action.Companion.CheckInstalled)
             }

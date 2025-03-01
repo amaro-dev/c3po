@@ -5,19 +5,16 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import socket.SocketClient
-import socket.SocketResponseAggregator
-import java.util.UUID
+import socket.SocketDriver
+import socket.SocketEvent
 
 class SocketMiddleware(
-    private val socketClient: SocketClient,
+    private val socketClient: SocketDriver,
+    private val scope: CoroutineScope
 ) : IMiddleware<AppState> {
-    private val aggregator = SocketResponseAggregator()
+
 
     override fun process(
         action: IAction,
@@ -26,32 +23,31 @@ class SocketMiddleware(
     ) {
         when (action) {
             is Action.SelectDevice -> {
-                if (socketClient.isLive) socketClient.close()
+                socketClient.reset()
             }
+
             is Action.SendSocketRequest -> {
-                val request = if (action.arg != null) {
-                    "${action.command}: ${action.arg}/${UUID.randomUUID()}"
-                } else {
-                    "${action.command}/${UUID.randomUUID()}"
-                }
-                socketClient.send(request)
+                socketClient.send(action.command, action.arg)
             }
 
             is Action.Companion.Connect -> {
-                CoroutineScope(Dispatchers.IO).launch {
+                scope.launch {
                     debug("Trying to connect ${SocketClient.SERVER_IP}:${SocketClient.SERVER_PORT}")
                     socketClient
-                        .connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
-                        .onEach {
-                            if (it == "CONNECTED") {
-                                processor.reduce(Action.Companion.UpdateState(state.companionState.setIsOnline()))
-                            }
-                        }.filterNot { it == "CONNECTED" }
-                        .onCompletion { processor.perform(Action.Companion.CheckInstalled) }
+                        .connect()
                         .collect {
-                            aggregator.parse(it)
-                            aggregator.readyToDeliver().forEach { msg ->
-                                processor.perform(Action.DeliverSocketResponse(msg.first, msg.second))
+                            when (it) {
+                                SocketEvent.Connected ->
+                                    processor.reduce(Action.Companion.UpdateState(state.companionState.setIsOnline()))
+
+                                SocketEvent.Disconnected -> {
+                                    processor.perform(Action.RefreshDevices)
+                                    processor.reduce(Action.Companion.UpdateState(state.companionState.setIsOffline()))
+                                }
+
+                                is SocketEvent.Message -> {
+                                    processor.perform(Action.DeliverSocketResponse(it.command, it.content))
+                                }
                             }
                         }
                 }

@@ -241,4 +241,27 @@ class AppReducerTest {
             prop(AppState::companionState).isEqualTo(newCompState)
         }
     }
+
+    @Test
+    fun `Reduce ClearDevice erases any device related state`() {
+        val mockedDevice: AdbDevice = mockk()
+        val initialState = AppState(
+            currentDevice = mockk(),
+            currentPlugin = "plugin",
+            windows = mapOf("plugin" to WindowResult<String>("", emptyList())),
+            companionState = CompanionState().setIsOnline(),
+            devices = listOf(mockedDevice)
+        )
+
+        val newState = AppReducer().reduce(Action.ClearDevice, initialState)
+        assertThat(newState).isEqualTo(AppState(devices = listOf(mockedDevice)))
+    }
+
+    @Test
+    fun `Reduce unknown action returns same state`() {
+        val initialState = AppState(currentPlugin = "abc", currentDevice = mockk())
+
+        val newState = AppReducer().reduce(Action.DoNothing, initialState)
+        assertThat(newState).isEqualTo(initialState)
+    }
 }
