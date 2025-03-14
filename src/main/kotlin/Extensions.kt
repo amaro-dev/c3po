@@ -42,7 +42,7 @@ fun Color.darkenedBy(amount: Float): Color {
 }
 
 fun debug(message: String) {
-    println("[DEBUG] $message")
+    //println("[DEBUG] $message")
 }
 
 inline fun <reified T> Collection<T>.update(condition: (T) -> Boolean, change: (T) -> T): List<T> {

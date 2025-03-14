@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.amaro"
-version = "1.0-SNAPSHOT"
+version = "2.0.1"
 val mainClassName = "Mainkt"
 val mainClassPath = "$group.$mainClassName"
 
@@ -49,7 +49,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
-            packageVersion = "2.0.0"
+            packageVersion = project.version.toString()
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))
