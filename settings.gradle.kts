@@ -13,3 +13,7 @@ pluginManagement {
 }
 
 rootProject.name = "c3po"
+
+include(":c3po-core")
+include(":c3po-desktop")
+include(":c3po-plugin")
