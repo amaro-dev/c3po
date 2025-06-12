@@ -24,7 +24,7 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
         private val LOG = Logger.getInstance(ActivitiesPanel::class.java)
     }
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var currentDevice: AdbDevice? = null
 
     private val activitiesTableModel = ActivitiesTableModel()

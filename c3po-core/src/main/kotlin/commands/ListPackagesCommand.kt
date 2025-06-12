@@ -2,8 +2,13 @@ package commands
 
 import models.AppPackage
 
-class ListPackagesCommand : AdbCommand<List<AppPackage>> {
-    override val command: String = "shell dumpsys package"
+class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
+    override val commandSpec: CommandSpec = CommandSpec(
+        baseCommand = "dumpsys package",
+        executionType = CommandExecutionType.SYSTEM_DUMP,
+        timeoutMs = 30000L, // 30 seconds for dumpsys commands
+        requiresShell = true
+    )
 
     override fun parse(result: String): List<AppPackage> {
         val packageLinePart = "\\s{2}Package\\s\\[(.*)\\].*"
@@ -11,30 +16,27 @@ class ListPackagesCommand : AdbCommand<List<AppPackage>> {
         val versionCodeAndTargetPart = "\\r?\\n\\s{4}versionCode=(\\d+).*\\stargetSdk=(\\d+)"
         val versionNamePart = "\\r?\\n\\s{4}versionName=(.*)"
         val regex = Regex("$packageLinePart$ignoredLinesPart$versionCodeAndTargetPart$ignoredLinesPart$versionNamePart")
-        return result
-            .substring(result.indexOf("Packages:"))
-            .let {
-                regex.findAll(it).map {
-                    AppPackage(
-                        it.groups[1]?.value ?: "",
-                        try {
-                            it.groups[4]?.value ?: ""
-                        } catch (ex: IndexOutOfBoundsException) {
-                            ""
-                        },
-                        try {
-                            it.groups[2]?.value?.toInt() ?: -1
-                        } catch (ex: IndexOutOfBoundsException) {
-                            -1
-                        },
-                        try {
-                            it.groups[3]?.value?.toInt() ?: -1
-                        } catch (ex: IndexOutOfBoundsException) {
-                            -1
-                        },
-                    )
-                }
-            }.toList()
+
+        val packagesIndex = result.indexOf("Packages:")
+        if (packagesIndex == -1) {
+            println("DEBUG: Packages section not found in dumpsys output")
+            println("DEBUG: Output length: ${result.length}")
+            println("DEBUG: First 500 chars: ${result.take(500)}")
+            return emptyList()
+        }
+
+        val packagesSection = result.substring(packagesIndex)
+
+        return regex.findAll(packagesSection)
+            .map { matchResult ->
+                AppPackage(
+                    packageName = matchResult.groupValues[1],
+                    versionName = matchResult.groupValues[4],
+                    versionCode = matchResult.groupValues[2].toIntOrNull() ?: -1,
+                    targetSdk = matchResult.groupValues[3].toIntOrNull() ?: -1
+                )
+            }
             .sortedBy { it.packageName }
+            .toList()
     }
 }

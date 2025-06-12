@@ -24,7 +24,7 @@ class C3POToolWindow(private val project: Project) {
     }
 
     private val commandExecutor = PluginCommandExecutor(project)
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private var selectedDevice: AdbDevice? = null
 
@@ -78,30 +78,47 @@ class C3POToolWindow(private val project: Project) {
     }
 
     private fun refreshDevices() {
-        scope.launch {
-            try {
-                val devices = commandExecutor.getConnectedDevices()
-                SwingUtilities.invokeLater {
-                    devicePanel.updateDevices(devices)
+        // Don't block UI initialization - launch safely
+        try {
+            scope.launch {
+                try {
+                    val devices = commandExecutor.getConnectedDevices()
+                    SwingUtilities.invokeLater {
+                        devicePanel.updateDevices(devices)
+                    }
+                } catch (e: Exception) {
+                    LOG.error("Failed to refresh devices", e)
+                    // Show empty device list on error
+                    SwingUtilities.invokeLater {
+                        devicePanel.updateDevices(emptyList())
+                    }
                 }
-            } catch (e: Exception) {
-                LOG.error("Failed to refresh devices", e)
+            }
+        } catch (e: Exception) {
+            LOG.error("Failed to launch device refresh coroutine", e)
+            // Fallback: show empty device list
+            SwingUtilities.invokeLater {
+                devicePanel.updateDevices(emptyList())
             }
         }
     }
 
     private fun refreshCurrentTabData() {
         selectedDevice?.let { device ->
-            scope.launch {
-                try {
-                    // Refresh data based on current tab
-                    when (tabsComponent.selectedIndex) {
-                        0 -> activitiesPanel.refresh()  // Activities tab
-                        1 -> packagesPanel.refresh()    // Packages tab
+            try {
+                scope.launch {
+                    try {
+                        // Refresh data based on current tab
+                        when (tabsComponent.selectedIndex) {
+                            0 -> activitiesPanel.refresh()  // Activities tab
+                            1 -> packagesPanel.refresh()    // Packages tab
+                        }
+                    } catch (e: Exception) {
+                        LOG.error("Failed to refresh tab data", e)
                     }
-                } catch (e: Exception) {
-                    LOG.error("Failed to refresh tab data", e)
                 }
+            } catch (e: Exception) {
+                LOG.error("Failed to launch tab refresh coroutine", e)
             }
         }
     }

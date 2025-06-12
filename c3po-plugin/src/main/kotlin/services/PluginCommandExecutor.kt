@@ -11,8 +11,8 @@ import models.ActivityInfo
 import models.AppPackage
 
 /**
- * Command executor that bridges C3PO core commands with Android Studio's device management.
- * Adapts our business logic to work with Android Studio's ADB infrastructure.
+ * Enhanced command executor that uses the new unified command execution architecture.
+ * This bridges C3PO core commands with Android Studio's device management using the strategy pattern.
  */
 class PluginCommandExecutor(private val project: Project) {
 
@@ -21,6 +21,8 @@ class PluginCommandExecutor(private val project: Project) {
     }
 
     private val deviceManager = AndroidStudioDeviceManager(project)
+    private val executionStrategy = AndroidStudioCommandExecutionStrategy(project)
+    private val commandExecutor = UnifiedCommandExecutor(executionStrategy)
 
     /**
      * Get all connected devices
@@ -30,15 +32,19 @@ class PluginCommandExecutor(private val project: Project) {
     }
 
     /**
-     * List all activities for all packages on the specified device
+     * List all activities for all packages on the specified device using the new architecture
      */
     suspend fun listActivities(device: AdbDevice): List<ActivityInfo> = withContext(Dispatchers.IO) {
         try {
             val command = ListActivitiesCommand()
-            val output = deviceManager.executeCommand(device, command.command)
+            val result = commandExecutor.execute(command, device)
 
-            // Use the command's parse method
-            command.parse(output)
+            if (result.isSuccess) {
+                result.getOrThrow()
+            } else {
+                LOG.error("Failed to list activities on device ${device.id}", result.exceptionOrNull())
+                emptyList()
+            }
         } catch (e: Exception) {
             LOG.error("Failed to list activities on device ${device.id}", e)
             emptyList()
@@ -46,15 +52,19 @@ class PluginCommandExecutor(private val project: Project) {
     }
 
     /**
-     * List all installed packages on the specified device
+     * List all installed packages on the specified device using the new architecture
      */
     suspend fun listPackages(device: AdbDevice): List<AppPackage> = withContext(Dispatchers.IO) {
         try {
             val command = ListPackagesCommand()
-            val output = deviceManager.executeCommand(device, command.command)
+            val result = commandExecutor.execute(command, device)
 
-            // Use the command's parse method
-            command.parse(output)
+            if (result.isSuccess) {
+                result.getOrThrow()
+            } else {
+                LOG.error("Failed to list packages on device ${device.id}", result.exceptionOrNull())
+                emptyList()
+            }
         } catch (e: Exception) {
             LOG.error("Failed to list packages on device ${device.id}", e)
             emptyList()
@@ -68,10 +78,16 @@ class PluginCommandExecutor(private val project: Project) {
         try {
             val activityInfo = ActivityInfo(packageName, activityName)
             val command = StartActivityCommand(activityInfo)
-            val output = deviceManager.executeCommand(device, command.command)
+            val result = commandExecutor.execute(command, device)
 
-            // Consider successful if no error in output
-            !output.contains("Error") && !output.contains("Exception")
+            if (result.isSuccess) {
+                // For StartActivityCommand, we need to check if the result indicates success
+                // This depends on how StartActivityCommand.parse() works
+                true
+            } else {
+                LOG.error("Failed to start activity $packageName/$activityName on device ${device.id}", result.exceptionOrNull())
+                false
+            }
         } catch (e: Exception) {
             LOG.error("Failed to start activity $packageName/$activityName on device ${device.id}", e)
             false

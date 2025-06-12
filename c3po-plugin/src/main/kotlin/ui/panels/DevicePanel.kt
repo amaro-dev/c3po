@@ -47,6 +47,7 @@ class DevicePanel(
             if (devices.isEmpty()) {
                 deviceComboBox.addItem(DeviceItem(null, "No devices connected"))
                 deviceComboBox.isEnabled = false
+                onDeviceSelected(null)
             } else {
                 deviceComboBox.isEnabled = true
                 devices.forEach { device ->
@@ -54,11 +55,19 @@ class DevicePanel(
                 }
 
                 // Try to maintain selection
+                var selectionMade = false
                 currentSelection?.device?.let { selectedDevice ->
                     val matchingIndex = devices.indexOfFirst { it.id == selectedDevice.id }
                     if (matchingIndex >= 0) {
                         deviceComboBox.selectedIndex = matchingIndex
+                        selectionMade = true
                     }
+                }
+
+                // If no previous selection or previous device not found, select first device
+                if (!selectionMade && devices.isNotEmpty()) {
+                    deviceComboBox.selectedIndex = 0
+                    onDeviceSelected(devices.first())
                 }
             }
         }

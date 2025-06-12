@@ -11,9 +11,15 @@ repositories {
     google()
 }
 
+configurations {
+    // Create a configuration for bundling dependencies
+    create("bundle")
+}
+
 dependencies {
-    // Core module dependency
+    // Core module dependency - bundle it with the plugin
     implementation(project(":c3po-core"))
+    add("bundle", project(":c3po-core"))
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
@@ -31,6 +37,21 @@ intellij {
 }
 
 tasks {
+    // Include bundled dependencies in the plugin
+    prepareSandbox {
+        from(configurations["bundle"]) {
+            into("${pluginName.get()}/lib")
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    buildPlugin {
+        from(configurations["bundle"]) {
+            into("lib")
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
     patchPluginXml {
         sinceBuild.set("232")
         untilBuild.set("252.*") // Updated to support newer Android Studio versions

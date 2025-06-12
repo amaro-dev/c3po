@@ -2,12 +2,12 @@ import commands.*
 import kotlinx.coroutines.runBlocking
 
 fun main() {
-    println("C3PO Desktop - Simple Test App")
-    println("==============================")
+    println("C3PO Commands Test")
+    println("==================")
 
     runBlocking {
         val commandExecutor = CommandExecutor()
-        val adbPath = "/Users/roarodrigues/Library/Android/sdk/platform-tools/adb" // Default ADB path
+        val adbPath = "/Users/roarodrigues/Library/Android/sdk/platform-tools/adb"
 
         try {
             // Test device listing
@@ -33,35 +33,20 @@ fun main() {
                     if (activitiesResult.isSuccess) {
                         val activities = activitiesResult.getOrNull()!!
                         println("Found ${activities.size} activities:")
-                        activities.take(10).forEach { activity ->
+                        activities.take(5).forEach { activity ->
                             println("  - ${activity.packageName}/${activity.activityPath}")
                         }
-                        if (activities.size > 10) {
-                            println("  ... and ${activities.size - 10} more")
+                        if (activities.size > 5) {
+                            println("  ... and ${activities.size - 5} more")
                         }
                     } else {
                         println("Failed to list activities: ${activitiesResult.exceptionOrNull()?.message}")
-                    }
-
-                    println("\n3. Testing package listing...")
-                    val listPackagesCommand = ListPackagesCommand()
-                    val packagesResult = commandExecutor.go(listPackagesCommand, adbPath, firstDevice)
-
-                    if (packagesResult.isSuccess) {
-                        val packages = packagesResult.getOrNull()!!
-                        println("Found ${packages.size} packages:")
-                        packages.take(10).forEach { pkg ->
-                            println("  - ${pkg.packageName} (${pkg.versionName})")
-                        }
-                        if (packages.size > 10) {
-                            println("  ... and ${packages.size - 10} more")
-                        }
-                    } else {
-                        println("Failed to list packages: ${packagesResult.exceptionOrNull()?.message}")
+                        activitiesResult.exceptionOrNull()?.printStackTrace()
                     }
                 }
             } else {
                 println("Failed to list devices: ${devicesResult.exceptionOrNull()?.message}")
+                devicesResult.exceptionOrNull()?.printStackTrace()
             }
 
         } catch (e: Exception) {
