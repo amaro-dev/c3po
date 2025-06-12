@@ -33,7 +33,7 @@ intellij {
 tasks {
     patchPluginXml {
         sinceBuild.set("232")
-        untilBuild.set("242.*")
+        untilBuild.set("252.*") // Updated to support newer Android Studio versions
     }
 
     signPlugin {
