@@ -29,7 +29,7 @@ class C3POToolWindow(private val project: Project) {
     private var selectedDevice: AdbDevice? = null
 
     // UI Components
-    private val devicePanel = DevicePanel(::onDeviceSelected)
+    private val devicePanel = DevicePanel(::onDeviceSelected, ::refreshDevices)
     private val activitiesPanel = ActivitiesPanel(commandExecutor)
     private val packagesPanel = PackagesPanel(commandExecutor)
 

@@ -9,7 +9,10 @@ import java.awt.FlowLayout
  * Panel for device selection and management.
  * Shows connected devices and allows user to select which device to work with.
  */
-class DevicePanel(private val onDeviceSelected: (AdbDevice?) -> Unit) {
+class DevicePanel(
+    private val onDeviceSelected: (AdbDevice?) -> Unit,
+    private val onRefreshRequested: () -> Unit = {}
+) {
 
     private val deviceComboBox = JComboBox<DeviceItem>()
     private val refreshButton = JButton("Refresh")
@@ -28,7 +31,7 @@ class DevicePanel(private val onDeviceSelected: (AdbDevice?) -> Unit) {
 
         // Refresh button
         refreshButton.addActionListener {
-            // Refresh will be handled by parent component
+            onRefreshRequested()
         }
         panel.add(refreshButton)
 

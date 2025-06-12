@@ -6,6 +6,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.TimeUnit
 import models.AdbDevice
 
 /**
@@ -23,14 +25,29 @@ class AndroidStudioDeviceManager(private val project: Project) {
      */
     suspend fun getConnectedDevices(): List<AdbDevice> = withContext(Dispatchers.IO) {
         try {
+            LOG.info("Attempting to get connected devices...")
             val adbService = AdbService.getInstance()
-            val debugBridge = adbService.getDebugBridge(project).get()
+            LOG.info("AdbService instance obtained")
 
-            val devices = debugBridge?.devices?.map { device ->
+            val debugBridgeFuture = adbService.getDebugBridge(project)
+            LOG.info("Debug bridge future obtained")
+
+            val debugBridge = withTimeoutOrNull(5000) {
+                debugBridgeFuture.get(5, TimeUnit.SECONDS)
+            }
+            LOG.info("Debug bridge: $debugBridge")
+
+            if (debugBridge == null) {
+                LOG.warn("Debug bridge is null - ADB might not be initialized")
+                return@withContext emptyList()
+            }
+
+            val devices = debugBridge.devices?.map { device ->
+                LOG.info("Found device: ${device.serialNumber} - ${device.name}")
                 convertToAdbDevice(device)
             } ?: emptyList()
 
-            LOG.info("Found ${devices.size} connected devices")
+            LOG.info("Found ${devices.size} connected devices: ${devices.map { "${it.name} (${it.id})" }}")
             devices
         } catch (e: Exception) {
             LOG.error("Failed to get connected devices", e)
