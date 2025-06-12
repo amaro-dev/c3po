@@ -3,7 +3,7 @@ import core.AppState
 import core.CompanionMiddleware
 import core.CompanionState
 import core.IActionScheduler
-import dev.amaro.sonic.IProcessor
+import core.IProcessor
 import facade.CompanionCommander
 import io.mockk.coEvery
 import io.mockk.coVerify

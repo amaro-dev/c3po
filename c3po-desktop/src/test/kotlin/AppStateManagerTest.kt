@@ -1,8 +1,8 @@
 import core.Action
 import core.AppState
 import core.AppStateManager
-import dev.amaro.sonic.IAction
-import dev.amaro.sonic.IReducer
+import core.IAction
+import core.IReducer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk

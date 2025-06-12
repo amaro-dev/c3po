@@ -11,8 +11,8 @@ import core.PluginSelectorMiddleware
 import core.SettingsMiddleware
 import core.SocketMiddleware
 import core.StatusMiddleware
-import dev.amaro.sonic.ConditionedDirectMiddleware
-import dev.amaro.sonic.IMiddleware
+import core.ConditionedDirectMiddleware
+import core.IMiddleware
 import di.Names.MIDDLEWARE_LIST_DEPENDENCY
 import di.Names.PLUGIN_LIST_DEPENDENCY
 import org.koin.core.qualifier.named

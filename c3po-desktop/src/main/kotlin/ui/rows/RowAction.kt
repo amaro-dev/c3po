@@ -1,6 +1,6 @@
 package ui.rows
 
-import dev.amaro.sonic.IAction
+import core.IAction
 
 data class RowAction(
     val icon: String,

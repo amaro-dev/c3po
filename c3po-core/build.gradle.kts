@@ -13,9 +13,12 @@ repositories {
 
 dependencies {
     // Core dependencies for business logic
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("io.insert-koin:koin-core:4.0.2")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("io.insert-koin:koin-core:3.5.0")
     implementation("dev.amaro:sonic:0.5.1")
+    implementation("io.sentry:sentry:7.0.0")
+    implementation("commons-io:commons-io:2.11.0")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))

@@ -4,7 +4,7 @@ import core.Action
 import core.App
 import core.AppState
 import core.AppStateManager
-import dev.amaro.sonic.IAction
+import core.IAction
 import di.Names
 import io.mockk.clearMocks
 import io.mockk.every

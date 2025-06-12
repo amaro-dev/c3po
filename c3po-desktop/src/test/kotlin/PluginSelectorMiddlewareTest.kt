@@ -1,8 +1,8 @@
 import core.Action
 import core.AppState
 import core.PluginSelectorMiddleware
-import dev.amaro.sonic.IMiddleware
-import dev.amaro.sonic.IProcessor
+import core.IMiddleware
+import core.IProcessor
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

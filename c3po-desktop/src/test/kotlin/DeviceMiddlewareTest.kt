@@ -3,7 +3,7 @@ import core.Action
 import core.AppState
 import core.DeviceMiddleware
 import core.IActionScheduler
-import dev.amaro.sonic.IProcessor
+import core.IProcessor
 import io.mockk.Matcher
 import io.mockk.MockKMatcherScope
 import io.mockk.coEvery

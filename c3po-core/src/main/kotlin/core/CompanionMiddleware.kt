@@ -2,9 +2,9 @@ package core
 
 import Settings
 import debug
-import core.AsyncMiddlewareBase
-import core.IAction
-import core.IProcessor
+import dev.amaro.sonic.AsyncMiddlewareBase
+import dev.amaro.sonic.IAction
+import dev.amaro.sonic.IProcessor
 import facade.CompanionCommander
 import handle
 import kotlinx.coroutines.CoroutineScope

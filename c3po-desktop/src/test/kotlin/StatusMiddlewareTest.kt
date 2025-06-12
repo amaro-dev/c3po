@@ -1,7 +1,7 @@
 import core.Action
 import core.AppState
 import core.StatusMiddleware
-import dev.amaro.sonic.IProcessor
+import core.IProcessor
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.advanceTimeBy

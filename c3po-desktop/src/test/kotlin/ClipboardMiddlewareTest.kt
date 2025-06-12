@@ -5,7 +5,7 @@ import assertk.assertions.isInstanceOf
 import core.Action
 import core.AppState
 import core.ClipboardMiddleware
-import dev.amaro.sonic.IProcessor
+import core.IProcessor
 import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.just

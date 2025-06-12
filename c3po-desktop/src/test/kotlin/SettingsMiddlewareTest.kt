@@ -3,7 +3,7 @@ import assertk.assertions.isEqualTo
 import core.Action
 import core.AppState
 import core.SettingsMiddleware
-import dev.amaro.sonic.IProcessor
+import core.IProcessor
 import facade.SettingsRepository
 import io.mockk.CapturingSlot
 import io.mockk.every
