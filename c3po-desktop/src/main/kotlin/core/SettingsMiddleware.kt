@@ -1,9 +1,9 @@
 package core
 
 import Settings
-import core.IAction
-import core.IMiddleware
-import core.IProcessor
+import dev.amaro.sonic.IAction
+import dev.amaro.sonic.IMiddleware
+import dev.amaro.sonic.IProcessor
 import facade.SettingsRepository
 import handle
 import java.util.Properties

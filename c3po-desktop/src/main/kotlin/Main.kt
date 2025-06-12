@@ -1,74 +1,112 @@
-import commands.*
-import kotlinx.coroutines.runBlocking
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
+import androidx.compose.ui.window.application
+import core.Action
+import core.App
+import core.AppState
+import di.AppModule
+import di.FacadeModule
+import models.CommandStatus
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import ui.AppTheme
+import ui.CompanionStatus
+import ui.DeviceSelector
+import ui.MainScreen
+import ui.PluginSelector
+import ui.RunningAndroid
+import ui.definitions.Dimens
+import ui.definitions.Texts
+import ui.horizontalPadding
 
-fun main() {
-    println("C3PO Desktop - Simple Test App")
-    println("==============================")
 
-    runBlocking {
-        val commandExecutor = CommandExecutor()
-        val adbPath = "/Users/roarodrigues/Library/Android/sdk/platform-tools/adb" // Default ADB path
-
-        try {
-            // Test device listing
-            println("\n1. Testing device detection...")
-            val listDevicesCommand = ListDevicesCommand()
-            val devicesResult = commandExecutor.go(listDevicesCommand, adbPath)
-
-            if (devicesResult.isSuccess) {
-                val devices = devicesResult.getOrNull()!!
-                println("Found ${devices.size} device(s):")
-                devices.forEach { device ->
-                    println("  - ${device.name} (${device.id})")
-                }
-
-                if (devices.isNotEmpty()) {
-                    val firstDevice = devices.first()
-                    println("\n2. Testing activity listing on device: ${firstDevice.name}")
-
-                    // Test activity listing
-                    val listActivitiesCommand = ListActivitiesCommand()
-                    val activitiesResult = commandExecutor.go(listActivitiesCommand, adbPath, firstDevice)
-
-                    if (activitiesResult.isSuccess) {
-                        val activities = activitiesResult.getOrNull()!!
-                        println("Found ${activities.size} activities:")
-                        activities.take(10).forEach { activity ->
-                            println("  - ${activity.packageName}/${activity.activityPath}")
+fun main() =
+    application {
+        startKoin {
+            modules(AppModule, FacadeModule)
+        }
+        val myApp = App()
+        myApp.start()
+        Metrics().start()
+        Window(
+            onCloseRequest = {
+                stopKoin()
+                myApp.exit()
+                exitApplication()
+            },
+            title = "C3PO - The Android Explorer",
+            state =
+                WindowState(
+                    width = Dimens.WINDOW_WIDTH.dp,
+                    height = Dimens.WINDOW_HEIGHT.dp,
+                ),
+        ) {
+            AppTheme {
+                MainScreen(
+                    myApp
+                ) { state, onClick ->
+                    Row(Modifier.fillMaxWidth()) {
+                        DeviceSelector(
+                            state.devices,
+                            state.currentDevice,
+                            Modifier.weight(1f)
+                        ) { onClick(Action.SelectDevice(it)) }
+                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
+                        IconButton(onClick = { onClick(Action.RefreshDevices) }) {
+                            Icon(Icons.Filled.Refresh, Texts.EMPTY)
                         }
-                        if (activities.size > 10) {
-                            println("  ... and ${activities.size - 10} more")
+                    }
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp - 1.dp))
+                    Box(
+                        Modifier.fillMaxWidth().height(1.dp)
+                            .background(MaterialTheme.colors.onSurface)
+                    )
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
+                    Row(Modifier.horizontalPadding()) {
+                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp), contentAlignment = Alignment.CenterEnd) {
+                            CompanionStatus(state.companionState)
                         }
-                    } else {
-                        println("Failed to list activities: ${activitiesResult.exceptionOrNull()?.message}")
+                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
+                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp)) {
+                            RunningStatus(state)
+                        }
+                    }
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
+                    Box(
+                        Modifier.fillMaxWidth().height(1.dp)
+                            .background(MaterialTheme.colors.onSurface)
+                    )
+                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
+                    if (state.currentDevice != null) {
+                        PluginSelector(myApp.plugins, state.currentPlugin, onClick)
                     }
 
-                    println("\n3. Testing package listing...")
-                    val listPackagesCommand = ListPackagesCommand()
-                    val packagesResult = commandExecutor.go(listPackagesCommand, adbPath, firstDevice)
-
-                    if (packagesResult.isSuccess) {
-                        val packages = packagesResult.getOrNull()!!
-                        println("Found ${packages.size} packages:")
-                        packages.take(10).forEach { pkg ->
-                            println("  - ${pkg.packageName} (${pkg.versionName})")
-                        }
-                        if (packages.size > 10) {
-                            println("  ... and ${packages.size - 10} more")
-                        }
-                    } else {
-                        println("Failed to list packages: ${packagesResult.exceptionOrNull()?.message}")
-                    }
                 }
-            } else {
-                println("Failed to list devices: ${devicesResult.exceptionOrNull()?.message}")
             }
-
-        } catch (e: Exception) {
-            println("Error: ${e.message}")
-            e.printStackTrace()
         }
     }
 
-    println("\nTest completed!")
+
+@Composable
+fun RunningStatus(state: AppState) {
+    if (state.commandStatus == CommandStatus.Running) {
+        RunningAndroid()
+    }
 }

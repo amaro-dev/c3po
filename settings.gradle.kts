@@ -15,5 +15,5 @@ pluginManagement {
 rootProject.name = "c3po"
 
 include(":c3po-core")
-// include(":c3po-desktop")  // Temporarily disabled until plugin architecture is complete
+include(":c3po-desktop")  // Re-enabled to fix compatibility issues
 include(":c3po-plugin")

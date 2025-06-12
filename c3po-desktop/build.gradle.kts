@@ -31,6 +31,9 @@ dependencies {
     // Core module dependency
     implementation(project(":c3po-core"))
 
+    // Sonic library for Redux/State Management
+    implementation("dev.amaro:sonic:0.5.1")
+
     // Desktop UI dependencies
     implementation(compose.desktop.currentOs)
     implementation("org.jetbrains.compose.runtime:runtime:1.7.3")

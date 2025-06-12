@@ -1,10 +1,10 @@
 package core
 
 import debug
-import core.IAction
-import core.IMiddleware
-import core.IReducer
-import core.StateManager
+import dev.amaro.sonic.IAction
+import dev.amaro.sonic.IMiddleware
+import dev.amaro.sonic.IReducer
+import dev.amaro.sonic.StateManager
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class AppStateManager(

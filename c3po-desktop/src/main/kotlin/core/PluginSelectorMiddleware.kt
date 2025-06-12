@@ -1,8 +1,8 @@
 package core
 
-import core.IAction
-import core.IMiddleware
-import core.IProcessor
+import dev.amaro.sonic.IAction
+import dev.amaro.sonic.IMiddleware
+import dev.amaro.sonic.IProcessor
 
 class PluginSelectorMiddleware(
     plugins: List<plugins.Plugin<*>>,

@@ -1,6 +1,6 @@
 package core
 
-import core.IAction
+import dev.amaro.sonic.IAction
 import models.AdbDevice
 import socket.CommandEntry
 import java.util.Properties

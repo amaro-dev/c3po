@@ -1,6 +1,6 @@
 package core
 
-import core.IAction
+import dev.amaro.sonic.IAction
 import di.Names
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get

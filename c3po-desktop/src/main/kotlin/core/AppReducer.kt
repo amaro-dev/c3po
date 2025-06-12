@@ -1,8 +1,8 @@
 package core
 
 import core.Action.ILoadSettingsIntoState
-import core.IAction
-import core.IReducer
+import dev.amaro.sonic.IAction
+import dev.amaro.sonic.IReducer
 import models.CommandStatus
 import models.SettingsState
 import models.WindowResult
