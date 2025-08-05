@@ -11,15 +11,9 @@ repositories {
     google()
 }
 
-configurations {
-    // Create a configuration for bundling dependencies
-    create("bundle")
-}
-
 dependencies {
-    // Core module dependency - bundle it with the plugin
+    // Core module dependency
     implementation(project(":c3po-core"))
-    add("bundle", project(":c3po-core"))
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
@@ -37,16 +31,27 @@ intellij {
 }
 
 tasks {
-    // Include bundled dependencies in the plugin
+    // Ensure core module is included in the plugin JAR
+    jar {
+        from(configurations.runtimeClasspath.get().filter {
+            it.name.contains("c3po-core")
+        }.map { zipTree(it) })
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    // Include core module in sandbox for testing
     prepareSandbox {
-        from(configurations["bundle"]) {
+        val coreProject = project(":c3po-core")
+        from(coreProject.tasks.jar.get().outputs.files) {
             into("${pluginName.get()}/lib")
         }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
+    // Include core module in final plugin distribution
     buildPlugin {
-        from(configurations["bundle"]) {
+        val coreProject = project(":c3po-core")
+        from(coreProject.tasks.jar.get().outputs.files) {
             into("lib")
         }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE

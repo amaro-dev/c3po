@@ -5,17 +5,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import kotlinx.coroutines.*
-import models.AdbDevice
 import services.PluginCommandExecutor
 import ui.panels.ActivitiesPanel
-import ui.panels.DevicePanel
 import ui.panels.PackagesPanel
 import javax.swing.*
 import java.awt.BorderLayout
 
 /**
  * Main tool window for C3PO Android Explorer.
- * Provides tabbed interface for device exploration with MVP features.
+ * Simplified to work with Android Studio's built-in device management.
+ * No custom device selector - relies on Android Studio's device infrastructure.
  */
 class C3POToolWindow(private val project: Project) {
 
@@ -26,14 +25,15 @@ class C3POToolWindow(private val project: Project) {
     private val commandExecutor = PluginCommandExecutor(project)
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private var selectedDevice: AdbDevice? = null
-
-    // UI Components
-    private val devicePanel = DevicePanel(::onDeviceSelected, ::refreshDevices)
+    // UI Components - simplified without device panel
     private val activitiesPanel = ActivitiesPanel(commandExecutor)
     private val packagesPanel = PackagesPanel(commandExecutor)
-
     private val tabsComponent = JBTabbedPane()
+    private val debugLabel = JLabel("Debug: Initializing...")
+
+    // Track currently displayed device
+    private var selectedDeviceId: String? = null
+    private var monitorJob: Job? = null
 
     fun getContent(): JComponent {
         return createMainPanel()
@@ -42,17 +42,60 @@ class C3POToolWindow(private val project: Project) {
     private fun createMainPanel(): JPanel {
         val mainPanel = JPanel(BorderLayout())
 
-        // Device selection at the top
-        mainPanel.add(devicePanel.createPanel(), BorderLayout.NORTH)
+        // Info panel at the top explaining device usage
+        val infoPanel = createInfoPanel()
+        mainPanel.add(infoPanel, BorderLayout.NORTH)
+
+        // Debug label for troubleshooting
+        mainPanel.add(debugLabel, BorderLayout.SOUTH)
 
         // Tabbed content in the center
         setupTabs()
         mainPanel.add(tabsComponent, BorderLayout.CENTER)
 
-        // Initialize device list
-        refreshDevices()
+        // Initialize data for selected device
+        refreshAllData()
+
+        // Start background job to watch for device selection changes every 2 seconds
+        monitorJob = scope.launch {
+            while (isActive) {
+                try {
+                    val devices = commandExecutor.getConnectedDevices()
+                    val currentId = devices.firstOrNull()?.id
+                    if (currentId != selectedDeviceId) {
+                        SwingUtilities.invokeLater {
+                            debugLabel.text = "Debug: Device changed, refreshing..."
+                        }
+                        refreshAllData()
+                    }
+                } catch (e: Exception) {
+                    LOG.warn("Device monitor error", e)
+                }
+                delay(2000)
+            }
+        }
 
         return mainPanel
+    }
+
+    private fun createInfoPanel(): JPanel {
+        val panel = JPanel(BorderLayout())
+        val infoLabel =
+            JLabel("<html><b>C3PO Android Explorer</b> - Works with all connected devices via Android Studio's device management</html>")
+        infoLabel.border = BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        panel.add(infoLabel, BorderLayout.CENTER)
+
+        val refreshButton = JButton("Refresh")
+        refreshButton.addActionListener {
+            // Direct refresh of current tab
+            when (tabsComponent.selectedIndex) {
+                0 -> activitiesPanel.refresh()
+                1 -> packagesPanel.refresh()
+            }
+        }
+        panel.add(refreshButton, BorderLayout.EAST)
+
+        return panel
     }
 
     private fun setupTabs() {
@@ -63,67 +106,68 @@ class C3POToolWindow(private val project: Project) {
         tabsComponent.addTab("Packages", JBScrollPane(packagesPanel.createPanel()))
     }
 
-    private fun onDeviceSelected(device: AdbDevice?) {
-        selectedDevice = device
-        LOG.info("Device selected: ${device?.name ?: "None"}")
-
-        // Update tabs with new device
-        device?.let {
-            activitiesPanel.setDevice(it)
-            packagesPanel.setDevice(it)
-
-            // Refresh data for new device
-            refreshCurrentTabData()
-        }
-    }
-
-    private fun refreshDevices() {
-        // Don't block UI initialization - launch safely
+    private fun refreshAllData() {
         try {
+            LOG.info("=== Starting device refresh ===")
+            SwingUtilities.invokeLater {
+                debugLabel.text = "Debug: Starting device refresh..."
+            }
+
             scope.launch {
                 try {
-                    val devices = commandExecutor.getConnectedDevices()
+                    LOG.info("Getting connected devices...")
                     SwingUtilities.invokeLater {
-                        devicePanel.updateDevices(devices)
+                        debugLabel.text = "Debug: Getting connected devices..."
+                    }
+
+                    val devices = commandExecutor.getConnectedDevices()
+                    LOG.info("Found ${devices.size} connected devices: ${devices.map { "${it.name} (${it.id})" }}")
+
+                    SwingUtilities.invokeLater {
+                        debugLabel.text = "Debug: Found ${devices.size} devices: ${
+                            devices.map { it.name }.joinToString(", ").takeIf { it.isNotEmpty() } ?: "None"
+                        }"
+
+                        // Use only the first connected device to match Android Studio's selected device
+                        val selectedDevices = devices.take(1)
+                        LOG.info("Updating panels with selected device list: ${selectedDevices.map { it.name }}")
+
+                        activitiesPanel.setDevices(selectedDevices)
+                        packagesPanel.setDevices(selectedDevices)
+
+                        // Refresh data for current tab
+                        LOG.info("Refreshing current tab data...")
+                        refreshCurrentTabData()
+
+                        selectedDeviceId = selectedDevices.firstOrNull()?.id
                     }
                 } catch (e: Exception) {
                     LOG.error("Failed to refresh devices", e)
-                    // Show empty device list on error
                     SwingUtilities.invokeLater {
-                        devicePanel.updateDevices(emptyList())
+                        debugLabel.text = "Debug: Error getting devices: ${e.message}"
+                        // Show empty data on error
+                        activitiesPanel.setDevices(emptyList())
+                        packagesPanel.setDevices(emptyList())
                     }
                 }
             }
         } catch (e: Exception) {
             LOG.error("Failed to launch device refresh coroutine", e)
-            // Fallback: show empty device list
             SwingUtilities.invokeLater {
-                devicePanel.updateDevices(emptyList())
+                debugLabel.text = "Debug: Failed to start refresh: ${e.message}"
             }
         }
     }
 
     private fun refreshCurrentTabData() {
-        selectedDevice?.let { device ->
-            try {
-                scope.launch {
-                    try {
-                        // Refresh data based on current tab
-                        when (tabsComponent.selectedIndex) {
-                            0 -> activitiesPanel.refresh()  // Activities tab
-                            1 -> packagesPanel.refresh()    // Packages tab
-                        }
-                    } catch (e: Exception) {
-                        LOG.error("Failed to refresh tab data", e)
-                    }
-                }
-            } catch (e: Exception) {
-                LOG.error("Failed to launch tab refresh coroutine", e)
-            }
+        when (tabsComponent.selectedIndex) {
+            0 -> activitiesPanel.refresh()
+            1 -> packagesPanel.refresh()
         }
     }
 
     fun dispose() {
         scope.cancel()
+        monitorJob?.cancel()
     }
 }

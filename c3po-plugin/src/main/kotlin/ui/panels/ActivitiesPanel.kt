@@ -15,8 +15,8 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
 /**
- * Panel displaying activities from the selected device.
- * MVP feature: Shows activities and allows launching them.
+ * Panel displaying activities from all connected devices.
+ * Simplified to work with Android Studio's device management.
  */
 class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
 
@@ -25,11 +25,11 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private var currentDevice: AdbDevice? = null
+    private var currentDevices: List<AdbDevice> = emptyList()
 
     private val activitiesTableModel = ActivitiesTableModel()
     private val activitiesTable = JBTable(activitiesTableModel)
-    private val statusLabel = JBLabel("Select a device to view activities")
+    private val statusLabel = JBLabel("Connect devices via Android Studio to view activities")
 
     fun createPanel(): JPanel {
         val panel = JPanel(BorderLayout())
@@ -61,8 +61,8 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
 
         // Set column widths
         val columnModel = activitiesTable.columnModel
-        columnModel.getColumn(0).preferredWidth = 200 // Package
-        columnModel.getColumn(1).preferredWidth = 300 // Activity
+        columnModel.getColumn(0).preferredWidth = 250 // Package
+        columnModel.getColumn(1).preferredWidth = 350 // Activity
     }
 
     private fun createActionPanel(): JPanel {
@@ -72,30 +72,56 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
         launchButton.addActionListener { launchSelectedActivity() }
         panel.add(launchButton)
 
-        val refreshButton = JButton("Refresh")
-        refreshButton.addActionListener { refresh() }
-        panel.add(refreshButton)
-
         return panel
     }
 
-    fun setDevice(device: AdbDevice) {
-        currentDevice = device
-        statusLabel.text = "Loading activities from ${device.name}..."
-        refresh()
+    fun setDevices(devices: List<AdbDevice>) {
+        currentDevices = devices
+        if (devices.isEmpty()) {
+            statusLabel.text = "No devices connected"
+            SwingUtilities.invokeLater {
+                activitiesTableModel.updateActivities(emptyList())
+            }
+        } else {
+            statusLabel.text = "Loading activities..."
+            refresh()
+        }
     }
 
     fun refresh() {
-        val device = currentDevice ?: return
-
         scope.launch {
             try {
-                statusLabel.text = "Loading activities..."
-                val activities = commandExecutor.listActivities(device)
+                SwingUtilities.invokeLater {
+                    statusLabel.text = "Loading activities..."
+                }
+
+                // Get current devices
+                val devices = commandExecutor.getConnectedDevices()
+                currentDevices = devices.take(1) // Take only first device
+
+                if (currentDevices.isEmpty()) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "No devices connected"
+                        activitiesTableModel.updateActivities(emptyList())
+                    }
+                    return@launch
+                }
+
+                val allActivities = mutableListOf<ActivityWithDevice>()
+
+                // Load activities from first device only
+                val device = currentDevices.first()
+                try {
+                    val activities = commandExecutor.listActivities(device)
+                    val activitiesWithDevice = activities.map { ActivityWithDevice(device, it) }
+                    allActivities.addAll(activitiesWithDevice)
+                } catch (e: Exception) {
+                    LOG.error("Failed to load activities from device ${device.name}", e)
+                }
 
                 SwingUtilities.invokeLater {
-                    activitiesTableModel.updateActivities(activities)
-                    statusLabel.text = "Found ${activities.size} activities"
+                    activitiesTableModel.updateActivities(allActivities)
+                    statusLabel.text = "Found ${allActivities.size} activities"
                 }
             } catch (e: Exception) {
                 LOG.error("Failed to load activities", e)
@@ -109,27 +135,30 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
     private fun launchSelectedActivity() {
         val selectedRow = activitiesTable.selectedRow
         if (selectedRow >= 0) {
-            val activity = activitiesTableModel.getActivityAt(selectedRow)
-            val device = currentDevice
+            val activityWithDevice = activitiesTableModel.getActivityAt(selectedRow)
+            val device = activityWithDevice.device
+            val activity = activityWithDevice.activity
 
-            if (device != null) {
-                scope.launch {
-                    try {
-                        statusLabel.text = "Launching ${activity.packageName}/${activity.activityPath}..."
-                        val success = commandExecutor.startActivity(device, activity.packageName, activity.activityPath)
+            scope.launch {
+                try {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text =
+                            "Launching ${activity.packageName}/${activity.activityPath} on ${device.name}..."
+                    }
 
-                        SwingUtilities.invokeLater {
-                            statusLabel.text = if (success) {
-                                "Activity launched successfully"
-                            } else {
-                                "Failed to launch activity"
-                            }
+                    val success = commandExecutor.startActivity(device, activity.packageName, activity.activityPath)
+
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = if (success) {
+                            "Activity launched successfully on ${device.name}"
+                        } else {
+                            "Failed to launch activity on ${device.name}"
                         }
-                    } catch (e: Exception) {
-                        LOG.error("Failed to launch activity", e)
-                        SwingUtilities.invokeLater {
-                            statusLabel.text = "Error launching activity: ${e.message}"
-                        }
+                    }
+                } catch (e: Exception) {
+                    LOG.error("Failed to launch activity", e)
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "Error launching activity: ${e.message}"
                     }
                 }
             }
@@ -137,10 +166,18 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
     }
 
     /**
-     * Table model for activities
+     * Data class to hold activity with its associated device
+     */
+    private data class ActivityWithDevice(
+        val device: AdbDevice,
+        val activity: ActivityInfo
+    )
+
+    /**
+     * Table model for activities with device information
      */
     private class ActivitiesTableModel : AbstractTableModel() {
-        private val activities = mutableListOf<ActivityInfo>()
+        private val activities = mutableListOf<ActivityWithDevice>()
         private val columnNames = arrayOf("Package", "Activity")
 
         override fun getRowCount(): Int = activities.size
@@ -148,20 +185,20 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
         override fun getColumnName(column: Int): String = columnNames[column]
 
         override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-            val activity = activities[rowIndex]
+            val activityWithDevice = activities[rowIndex]
             return when (columnIndex) {
-                0 -> activity.packageName
-                1 -> activity.activityPath
+                0 -> activityWithDevice.activity.packageName
+                1 -> activityWithDevice.activity.activityPath
                 else -> ""
             }
         }
 
-        fun updateActivities(newActivities: List<ActivityInfo>) {
+        fun updateActivities(newActivities: List<ActivityWithDevice>) {
             activities.clear()
             activities.addAll(newActivities)
             fireTableDataChanged()
         }
 
-        fun getActivityAt(rowIndex: Int): ActivityInfo = activities[rowIndex]
+        fun getActivityAt(rowIndex: Int): ActivityWithDevice = activities[rowIndex]
     }
 }

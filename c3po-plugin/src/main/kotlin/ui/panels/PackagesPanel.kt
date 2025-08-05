@@ -13,8 +13,8 @@ import javax.swing.table.AbstractTableModel
 import java.awt.BorderLayout
 
 /**
- * Panel displaying installed packages from the selected device.
- * MVP feature: Shows installed applications and their information.
+ * Panel displaying installed packages from all connected devices.
+ * Simplified to work with Android Studio's device management.
  */
 class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
 
@@ -23,11 +23,11 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private var currentDevice: AdbDevice? = null
+    private var currentDevices: List<AdbDevice> = emptyList()
 
     private val packagesTableModel = PackagesTableModel()
     private val packagesTable = JBTable(packagesTableModel)
-    private val statusLabel = JBLabel("Select a device to view packages")
+    private val statusLabel = JBLabel("Connect devices via Android Studio to view packages")
 
     fun createPanel(): JPanel {
         val panel = JPanel(BorderLayout())
@@ -50,7 +50,7 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
 
         // Set column widths
         val columnModel = packagesTable.columnModel
-        columnModel.getColumn(0).preferredWidth = 300 // Package Name
+        columnModel.getColumn(0).preferredWidth = 250 // Package Name
         columnModel.getColumn(1).preferredWidth = 100 // Version Name
         columnModel.getColumn(2).preferredWidth = 80  // Version Code
         columnModel.getColumn(3).preferredWidth = 80  // Target SDK
@@ -59,30 +59,58 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
     private fun createActionPanel(): JPanel {
         val panel = JPanel()
 
-        val refreshButton = JButton("Refresh")
-        refreshButton.addActionListener { refresh() }
-        panel.add(refreshButton)
+        // Future action buttons can be added here
 
         return panel
     }
 
-    fun setDevice(device: AdbDevice) {
-        currentDevice = device
-        statusLabel.text = "Loading packages from ${device.name}..."
-        refresh()
+    fun setDevices(devices: List<AdbDevice>) {
+        currentDevices = devices
+        if (devices.isEmpty()) {
+            statusLabel.text = "No devices connected"
+            SwingUtilities.invokeLater {
+                packagesTableModel.updatePackages(emptyList())
+            }
+        } else {
+            statusLabel.text = "Loading packages..."
+            refresh()
+        }
     }
 
     fun refresh() {
-        val device = currentDevice ?: return
-
         scope.launch {
             try {
-                statusLabel.text = "Loading packages..."
-                val packages = commandExecutor.listPackages(device)
+                SwingUtilities.invokeLater {
+                    statusLabel.text = "Loading packages..."
+                }
+
+                // Get current devices
+                val devices = commandExecutor.getConnectedDevices()
+                currentDevices = devices.take(1) // Take only first device
+
+                if (currentDevices.isEmpty()) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "No devices connected"
+                        packagesTableModel.updatePackages(emptyList())
+                    }
+                    return@launch
+                }
+
+                val allPackages = mutableListOf<PackageWithDevice>()
+
+                // Load packages from first device only
+                val device = currentDevices.first()
+                try {
+                    val packages = commandExecutor.listPackages(device)
+                    val packagesWithDevice = packages.map { PackageWithDevice(device, it) }
+                    allPackages.addAll(packagesWithDevice)
+                } catch (e: Exception) {
+                    LOG.error("Failed to load packages from device ${device.name}", e)
+                }
 
                 SwingUtilities.invokeLater {
-                    packagesTableModel.updatePackages(packages)
-                    statusLabel.text = "Found ${packages.size} packages"
+                    packagesTableModel.updatePackages(allPackages)
+                    statusLabel.text = "Found ${allPackages.size} packages"
                 }
             } catch (e: Exception) {
                 LOG.error("Failed to load packages", e)
@@ -94,10 +122,18 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
     }
 
     /**
-     * Table model for packages
+     * Data class to hold package with its associated device
+     */
+    private data class PackageWithDevice(
+        val device: AdbDevice,
+        val appPackage: AppPackage
+    )
+
+    /**
+     * Table model for packages with device information
      */
     private class PackagesTableModel : AbstractTableModel() {
-        private val packages = mutableListOf<AppPackage>()
+        private val packages = mutableListOf<PackageWithDevice>()
         private val columnNames = arrayOf("Package Name", "Version Name", "Version Code", "Target SDK")
 
         override fun getRowCount(): Int = packages.size
@@ -105,7 +141,8 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
         override fun getColumnName(column: Int): String = columnNames[column]
 
         override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-            val pkg = packages[rowIndex]
+            val packageWithDevice = packages[rowIndex]
+            val pkg = packageWithDevice.appPackage
             return when (columnIndex) {
                 0 -> pkg.packageName
                 1 -> pkg.versionName.ifBlank { "N/A" }
@@ -115,12 +152,12 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
             }
         }
 
-        fun updatePackages(newPackages: List<AppPackage>) {
+        fun updatePackages(newPackages: List<PackageWithDevice>) {
             packages.clear()
             packages.addAll(newPackages)
             fireTableDataChanged()
         }
 
-        fun getPackageAt(rowIndex: Int): AppPackage = packages[rowIndex]
+        fun getPackageAt(rowIndex: Int): PackageWithDevice = packages[rowIndex]
     }
 }
