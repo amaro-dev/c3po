@@ -11,9 +11,13 @@ import plugins.PluginMiddleware
 
 class SignatureMiddleware(
     pluginName: String,
-    private val signatureExtractor: SignatureExtractor
+    private val signatureExtractor: SignatureExtractor,
 ) : PluginMiddleware(pluginName) {
-    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override suspend fun asyncProcess(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         if (action is SignaturePlugin.Actions.LoadFile) {
             signatureExtractor.getCertificateFingerprint(action.filePath).handle(processor) {
                 processor.reduce(Action.DeliverPluginResult(pluginName, listOf(it)))

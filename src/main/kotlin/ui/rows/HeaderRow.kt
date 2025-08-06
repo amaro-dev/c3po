@@ -26,7 +26,6 @@ fun HeaderRow(content: String) {
     }
 }
 
-
 @Composable
 @Preview()
 private fun previewRow() {
@@ -35,6 +34,5 @@ private fun previewRow() {
             Spacer(Modifier.height(20.dp))
             HeaderRow("Test q gf j A")
         }
-
     }
 }

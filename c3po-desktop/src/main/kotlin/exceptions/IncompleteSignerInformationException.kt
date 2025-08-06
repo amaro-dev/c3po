@@ -1,3 +1,3 @@
 package exceptions
 
-class IncompleteSignerInformationException() : Exception()
+class IncompleteSignerInformationException : Exception()

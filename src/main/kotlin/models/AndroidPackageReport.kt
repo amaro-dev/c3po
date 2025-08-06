@@ -10,5 +10,5 @@ data class AndroidPackageReport(
     val isV2Compliant: BoolState,
     val isV3Compliant: BoolState,
     val isV31Compliant: BoolState,
-    val isV4Compliant: BoolState
+    val isV4Compliant: BoolState,
 )

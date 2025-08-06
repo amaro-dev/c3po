@@ -78,7 +78,7 @@ private fun DeviceOption(
             device.name ?: UNKNOWN,
             style = MaterialTheme.typography.body1,
             softWrap = false,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
         Text(device.id, style = MaterialTheme.typography.caption)
     }

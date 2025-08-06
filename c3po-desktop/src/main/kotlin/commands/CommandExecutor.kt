@@ -11,10 +11,10 @@ class CommandExecutor {
     ): Result<T> {
         val finalCommand = CommandBuilder.build(command, adbPath, device)
         val result = CommandRunner.run(File(adbPath.substringBeforeLast("/")), finalCommand)
-        return if (result.isFailure)
+        return if (result.isFailure) {
             Result.failure(result.exceptionOrNull() ?: UnknownError())
-        else
+        } else {
             Result.success(command.parse(result.getOrNull()!!))
+        }
     }
-
 }

@@ -20,9 +20,10 @@ class CommandExecutorTest {
     fun `If everything is well returns the result`() =
         runBlocking {
             val response = mockk<AdbDevice>(relaxed = true)
-            val command = mockk<AdbCommand<AdbDevice>>(relaxed = true) {
-                every { parse("") } returns response
-            }
+            val command =
+                mockk<AdbCommand<AdbDevice>>(relaxed = true) {
+                    every { parse("") } returns response
+                }
             mockkObject(CommandRunner)
             coEvery { CommandRunner.run(any<File>(), any()) } returns Result.success("")
             val executor = CommandExecutor()
@@ -34,9 +35,10 @@ class CommandExecutorTest {
     fun `If it fails returns de exception`() =
         runBlocking {
             val response = mockk<AdbDevice>(relaxed = true)
-            val command = mockk<AdbCommand<AdbDevice>>(relaxed = true) {
-                every { parse("") } returns response
-            }
+            val command =
+                mockk<AdbCommand<AdbDevice>>(relaxed = true) {
+                    every { parse("") } returns response
+                }
             val exception = Exception("Failure")
             mockkObject(CommandRunner)
             coEvery { CommandRunner.run(any<File>(), any()) } returns Result.failure(exception)
@@ -46,35 +48,37 @@ class CommandExecutorTest {
         }
 
     @Test
-    fun `Calls CommandRunner with the folder where adb is located`() = runBlocking {
-        val response = mockk<AdbDevice>(relaxed = true)
-        val command = mockk<AdbCommand<AdbDevice>>(relaxed = true) {
-            every { parse("") } returns response
+    fun `Calls CommandRunner with the folder where adb is located`() =
+        runBlocking {
+            val response = mockk<AdbDevice>(relaxed = true)
+            val command =
+                mockk<AdbCommand<AdbDevice>>(relaxed = true) {
+                    every { parse("") } returns response
+                }
+            val exception = Exception("Failure")
+            mockkObject(CommandRunner)
+            coEvery { CommandRunner.run(any<File>(), any()) } returns Result.failure(exception)
+            CommandExecutor().go(command, "/path/to/adb", null)
+            coVerify { CommandRunner.run(File("/path/to"), any()) }
+            clearMocks(CommandRunner)
         }
-        val exception = Exception("Failure")
-        mockkObject(CommandRunner)
-        coEvery { CommandRunner.run(any<File>(), any()) } returns Result.failure(exception)
-        CommandExecutor().go(command, "/path/to/adb", null)
-        coVerify { CommandRunner.run(File("/path/to"), any()) }
-        clearMocks(CommandRunner)
-    }
 
     @Test
-    fun `Calls CommandRunner with the built params from CommandBuilder`() = runBlocking {
-        val response = mockk<AdbDevice>(relaxed = true)
-        val command = mockk<AdbCommand<AdbDevice>>(relaxed = true) {
-            every { parse("") } returns response
+    fun `Calls CommandRunner with the built params from CommandBuilder`() =
+        runBlocking {
+            val response = mockk<AdbDevice>(relaxed = true)
+            val command =
+                mockk<AdbCommand<AdbDevice>>(relaxed = true) {
+                    every { parse("") } returns response
+                }
+            val exception = Exception("Failure")
+            mockkObject(CommandRunner)
+            coEvery { CommandRunner.run(any<File>(), any()) } returns Result.failure(exception)
+            mockkObject(CommandBuilder)
+            every { CommandBuilder.build(any(), any(), any()) } returns arrayOf("param1", "param2", "param3")
+
+            CommandExecutor().go(command, "/path/to/adb", null)
+            coVerify { CommandRunner.run(any(), arrayOf("param1", "param2", "param3")) }
+            clearMocks(CommandRunner, CommandBuilder)
         }
-        val exception = Exception("Failure")
-        mockkObject(CommandRunner)
-        coEvery { CommandRunner.run(any<File>(), any()) } returns Result.failure(exception)
-        mockkObject(CommandBuilder)
-        every { CommandBuilder.build(any(), any(), any()) } returns arrayOf("param1", "param2", "param3")
-
-        CommandExecutor().go(command, "/path/to/adb", null)
-        coVerify { CommandRunner.run(any(), arrayOf("param1", "param2", "param3")) }
-        clearMocks(CommandRunner, CommandBuilder)
-    }
-
-
 }

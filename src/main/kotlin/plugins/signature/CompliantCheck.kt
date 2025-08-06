@@ -16,10 +16,11 @@ fun CompliantCheck(value: BoolState) {
     when (value) {
         BoolState.TRUE -> Image(Icons.Default.Check, "", colorFilter = ColorFilter.tint(Color.Green.darkenedBy(0.1f)))
         BoolState.FALSE -> Image(Icons.Default.Close, "", colorFilter = ColorFilter.tint(Color.Red))
-        BoolState.NOT_FOUND -> Image(
-            Icons.Default.Warning,
-            "",
-            colorFilter = ColorFilter.tint(Color.Yellow.darkenedBy(0.1f))
-        )
+        BoolState.NOT_FOUND ->
+            Image(
+                Icons.Default.Warning,
+                "",
+                colorFilter = ColorFilter.tint(Color.Yellow.darkenedBy(0.1f)),
+            )
     }
 }

@@ -25,9 +25,10 @@ import ui.definitions.Texts.Companion.ADB_PATH
 fun SettingsBox(onAction: (Action) -> Unit) {
     var adbPathValue by remember { mutableStateOf(Texts.EMPTY) }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colors.surface),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(color = MaterialTheme.colors.surface),
         contentAlignment = Alignment.Center,
     ) {
         Column(

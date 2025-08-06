@@ -10,14 +10,15 @@ import org.junit.jupiter.api.Test
 class SignatureResponseParserTest {
     @Test
     fun `Parse full response`() {
-        val response = listOf(
-            "1",
-            "CN=Newland Payment Verify,OU=Newland Payment,O=Newland Payment Technology Co. Ltd,L=FZ,ST=FJ,C=CN",
-            "AlgName",
-            "SHA256",
-            "SHA1",
-            "MD5"
-        )
+        val response =
+            listOf(
+                "1",
+                "CN=Newland Payment Verify,OU=Newland Payment,O=Newland Payment Technology Co. Ltd,L=FZ,ST=FJ,C=CN",
+                "AlgName",
+                "SHA256",
+                "SHA1",
+                "MD5",
+            )
 
         assertThat(SignatureResponseParser().parse(response)).all {
             prop(SignatureInfo::signer).all {
@@ -32,8 +33,5 @@ class SignatureResponseParserTest {
             prop(SignatureInfo::sha1Digest).isEqualTo("SHA1")
             prop(SignatureInfo::md5Digest).isEqualTo("MD5")
         }
-
     }
-
-
 }

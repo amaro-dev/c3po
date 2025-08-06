@@ -3,12 +3,13 @@ package commands
 import models.AppPackage
 
 class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
-    override val commandSpec: CommandSpec = CommandSpec(
-        baseCommand = "dumpsys package",
-        executionType = CommandExecutionType.SYSTEM_DUMP,
-        timeoutMs = 30000L, // 30 seconds for dumpsys commands
-        requiresShell = true
-    )
+    override val commandSpec: CommandSpec =
+        CommandSpec(
+            baseCommand = "dumpsys package",
+            executionType = CommandExecutionType.SYSTEM_DUMP,
+            timeoutMs = 30000L, // 30 seconds for dumpsys commands
+            requiresShell = true,
+        )
 
     override fun parse(result: String): List<AppPackage> {
         val packagesIndex = result.indexOf("Packages:")
@@ -76,10 +77,9 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
                             packageName = packageName,
                             versionName = versionName,
                             versionCode = versionCode,
-                            targetSdk = targetSdk
-                        )
+                            targetSdk = targetSdk,
+                        ),
                     )
-
                 }
             }
             i++

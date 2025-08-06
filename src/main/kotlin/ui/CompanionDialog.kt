@@ -24,7 +24,10 @@ import core.Action
 import ui.definitions.Dimens
 
 @Composable
-fun CompanionDialog(fullDisclaimer: Boolean, onAction: OnAction) {
+fun CompanionDialog(
+    fullDisclaimer: Boolean,
+    onAction: OnAction,
+) {
     Dialog({}, properties = DialogProperties()) {
         Column(Modifier.clip(RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))) {
             Surface(color = MaterialTheme.colors.primary) {
@@ -33,7 +36,7 @@ fun CompanionDialog(fullDisclaimer: Boolean, onAction: OnAction) {
                 }
             }
             Surface(
-                color = MaterialTheme.colors.background
+                color = MaterialTheme.colors.background,
             ) {
                 Column(modifier = Modifier.padding(20.dp, 16.dp)) {
                     if (fullDisclaimer) {
@@ -45,7 +48,7 @@ fun CompanionDialog(fullDisclaimer: Boolean, onAction: OnAction) {
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                        horizontalArrangement = Arrangement.End,
                     ) {
                         Button({
                             onAction(Action.ChangeSettingsProperty(Settings.ACCEPT_COMPANION, "true"))

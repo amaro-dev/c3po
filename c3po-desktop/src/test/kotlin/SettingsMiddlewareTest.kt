@@ -2,8 +2,8 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import core.Action
 import core.AppState
-import core.SettingsMiddleware
 import core.IProcessor
+import core.SettingsMiddleware
 import facade.SettingsRepository
 import io.mockk.CapturingSlot
 import io.mockk.every
@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test
 import java.util.Properties
 
 class SettingsMiddlewareTest {
-
     @Test
     fun `Handle LoadSettings action`() {
         val properties: Properties = mockk(relaxed = true)
-        val settingsRepository: SettingsRepository = mockk(relaxed = true) {
-            every { load() } returns Result.success(properties)
-        }
+        val settingsRepository: SettingsRepository =
+            mockk(relaxed = true) {
+                every { load() } returns Result.success(properties)
+            }
         val middleware = SettingsMiddleware(settingsRepository)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
@@ -33,9 +33,10 @@ class SettingsMiddlewareTest {
     @Test
     fun `Handle LoadSettings action triggers RefreshDevices`() {
         val properties: Properties = mockk(relaxed = true)
-        val settingsRepository: SettingsRepository = mockk(relaxed = true) {
-            every { load() } returns Result.success(properties)
-        }
+        val settingsRepository: SettingsRepository =
+            mockk(relaxed = true) {
+                every { load() } returns Result.success(properties)
+            }
         val middleware = SettingsMiddleware(settingsRepository)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
@@ -48,9 +49,10 @@ class SettingsMiddlewareTest {
 
     @Test
     fun `Handle LoadSettings informs when failing to load settings`() {
-        val settingsRepository: SettingsRepository = mockk(relaxed = true) {
-            every { load() } returns Result.failure(Exception())
-        }
+        val settingsRepository: SettingsRepository =
+            mockk(relaxed = true) {
+                every { load() } returns Result.failure(Exception())
+            }
         val middleware = SettingsMiddleware(settingsRepository)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 

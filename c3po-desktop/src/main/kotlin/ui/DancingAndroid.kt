@@ -36,28 +36,31 @@ fun RunningAndroid() {
     val offset by infiniteTransition.animateFloat(
         initialValue = -50f,
         targetValue = 50f, // Altura do pulo
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 200
-            },
-            repeatMode = RepeatMode.Reverse
-        )
+        animationSpec =
+            infiniteRepeatable(
+                animation =
+                    keyframes {
+                        durationMillis = 200
+                    },
+                repeatMode = RepeatMode.Reverse,
+            ),
     )
     val earsRotation by infiniteTransition.animateFloat(
         initialValue = -5f,
         targetValue = 5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 200, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 200, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
     )
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         Canvas(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             val canvasWidth = max(size.width, size.height) / 2
             val canvasHeight = canvasWidth
@@ -106,7 +109,7 @@ fun RunningAndroid() {
                 sweepAngle = 180f,
                 useCenter = true,
                 size = Size(headRadius * 2, headRadius * 2),
-                topLeft = Offset(centerX - headRadius, top)
+                topLeft = Offset(centerX - headRadius, top),
             )
 
             // Antena Direita
@@ -130,7 +133,7 @@ fun RunningAndroid() {
                 sweepAngle = 360f,
                 useCenter = true,
                 size = Size(eyesRadius * 2, eyesRadius * 2),
-                topLeft = Offset(eyesPlace, top + headRadius * 0.5f)
+                topLeft = Offset(eyesPlace, top + headRadius * 0.5f),
             )
 
             // Perna esquerda
@@ -155,7 +158,7 @@ fun RunningAndroid() {
             drawRect(
                 color = androidColor,
                 topLeft = Offset(centerX - bodyWidth / 2, topBody),
-                size = Size(bodyWidth, bodyHeight)
+                size = Size(bodyWidth, bodyHeight),
             )
 
             // Braço direito

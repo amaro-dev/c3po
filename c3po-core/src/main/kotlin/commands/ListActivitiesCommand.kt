@@ -3,12 +3,13 @@ package commands
 import models.ActivityInfo
 
 class ListActivitiesCommand : EnhancedAdbCommand<List<ActivityInfo>> {
-    override val commandSpec: CommandSpec = CommandSpec(
-        baseCommand = "dumpsys package",
-        executionType = CommandExecutionType.SYSTEM_DUMP,
-        timeoutMs = 30000L, // 30 seconds for dumpsys commands
-        requiresShell = true
-    )
+    override val commandSpec: CommandSpec =
+        CommandSpec(
+            baseCommand = "dumpsys package",
+            executionType = CommandExecutionType.SYSTEM_DUMP,
+            timeoutMs = 30000L, // 30 seconds for dumpsys commands
+            requiresShell = true,
+        )
 
     private fun log(message: String) {
         // Use System.err for logging since it's more likely to be captured
@@ -64,45 +65,43 @@ class ListActivitiesCommand : EnhancedAdbCommand<List<ActivityInfo>> {
         log("Total lines after split: ${lines.size}")
         log("First 10 lines after split:")
         lines.take(10).forEachIndexed { index, line ->
-            log("Line $index: '${line}' (starts with 8 spaces: ${line.startsWith("        ")})")
+            log("Line $index: '$line' (starts with 8 spaces: ${line.startsWith("        ")})")
         }
 
         // The issue is that after substring(), the lines lose their original indentation
         // We need to look for lines that contain activity patterns instead of relying on indentation
-        val activities = lines
-            .drop(1) // Skip the "android.intent.action.MAIN:" line
-            .takeWhile { line ->
-                // Continue while we have activity lines or empty lines
-                // Stop when we hit another action or section
-                !line.trim().startsWith("android.") && !line.trim().endsWith(":") && line.trim().isNotEmpty()
-            }
-            .filter { line ->
-                // Filter for lines that look like activities: contain "/" and have a hash prefix
-                line.trim().isNotEmpty() && line.contains("/") && line.matches(Regex("\\s*\\w+\\s+.+/.+"))
-            }
-            .mapNotNull { line ->
-                try {
-                    log("Processing line: '$line'")
-                    // Remove the hash prefix (e.g., "c587056 ") from the beginning
-                    val cleanLine = line.trim().replaceFirst(Regex("^\\w+\\s+"), "")
-                    log("Clean line: '$cleanLine'")
+        val activities =
+            lines
+                .drop(1) // Skip the "android.intent.action.MAIN:" line
+                .takeWhile { line ->
+                    // Continue while we have activity lines or empty lines
+                    // Stop when we hit another action or section
+                    !line.trim().startsWith("android.") && !line.trim().endsWith(":") && line.trim().isNotEmpty()
+                }.filter { line ->
+                    // Filter for lines that look like activities: contain "/" and have a hash prefix
+                    line.trim().isNotEmpty() && line.contains("/") && line.matches(Regex("\\s*\\w+\\s+.+/.+"))
+                }.mapNotNull { line ->
+                    try {
+                        log("Processing line: '$line'")
+                        // Remove the hash prefix (e.g., "c587056 ") from the beginning
+                        val cleanLine = line.trim().replaceFirst(Regex("^\\w+\\s+"), "")
+                        log("Clean line: '$cleanLine'")
 
-                    if (cleanLine.contains('/')) {
-                        val (pkg, activity) = cleanLine.split('/', limit = 2)
-                        val activityInfo = ActivityInfo(pkg.trim(), activity.trim())
-                        log("Created ActivityInfo: $activityInfo")
-                        activityInfo
-                    } else {
-                        log("Clean line does not contain '/': '$cleanLine'")
+                        if (cleanLine.contains('/')) {
+                            val (pkg, activity) = cleanLine.split('/', limit = 2)
+                            val activityInfo = ActivityInfo(pkg.trim(), activity.trim())
+                            log("Created ActivityInfo: $activityInfo")
+                            activityInfo
+                        } else {
+                            log("Clean line does not contain '/': '$cleanLine'")
+                            null
+                        }
+                    } catch (e: Exception) {
+                        log("Failed to parse activity line: $line - Error: ${e.message}")
                         null
                     }
-                } catch (e: Exception) {
-                    log("Failed to parse activity line: $line - Error: ${e.message}")
-                    null
-                }
-            }
-            .distinct()
-            .sortedBy { "${it.packageName}/${it.activityPath}" }
+                }.distinct()
+                .sortedBy { "${it.packageName}/${it.activityPath}" }
 
         log("Parsing completed. Found ${activities.size} activities")
         if (activities.isNotEmpty()) {

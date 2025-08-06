@@ -17,13 +17,16 @@ import facade.BoolState
 import ui.definitions.Dimens
 
 @Composable
-fun ComplianceBox(label: String, value: BoolState) {
+fun ComplianceBox(
+    label: String,
+    value: BoolState,
+) {
     Column(
-        Modifier.border(1.dp, MaterialTheme.colors.onSurface, shape = RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
+        Modifier
+            .border(1.dp, MaterialTheme.colors.onSurface, shape = RoundedCornerShape(Dimens.ROUNDED_CORNER.dp))
             .width(64.dp)
             .padding(Dimens.HORIZONTAL_SPACER.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(label)
         Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))

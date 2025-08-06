@@ -43,9 +43,10 @@ fun MySearchField(
                 leadingIcon = {
                     Icon(Icons.Filled.Search, Texts.EMPTY, Modifier.size(Dimens.ICON_SIZE_SMALL.dp))
                 },
-                colors = TextFieldDefaults.textFieldColors(
-                    cursorColor = Color.Black
-                )
+                colors =
+                    TextFieldDefaults.textFieldColors(
+                        cursorColor = Color.Black,
+                    ),
             )
         }
     }

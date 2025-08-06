@@ -13,9 +13,13 @@ import plugins.PluginMiddleware
 
 class ActivitiesPluginMiddleware(
     pluginName: String,
-    private val executor: CommandExecutor
+    private val executor: CommandExecutor,
 ) : PluginMiddleware(pluginName) {
-    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override suspend fun asyncProcess(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.StartPlugin,
             ActivitiesPlugin.Actions.List,

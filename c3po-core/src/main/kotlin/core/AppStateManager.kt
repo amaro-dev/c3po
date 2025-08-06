@@ -11,8 +11,8 @@ class AppStateManager(
     initialState: AppState,
     mainReducer: IReducer<AppState>,
     vararg middleware: IMiddleware<AppState>,
-) : StateManager<AppState>(initialState, middleware.toList()), IActionScheduler {
-
+) : StateManager<AppState>(initialState, middleware.toList()),
+    IActionScheduler {
     override val reducer: IReducer<AppState> = mainReducer
 
     override fun reduce(action: IAction) {

@@ -6,7 +6,11 @@ import socket.CommandEntry
 import java.util.Properties
 
 sealed interface Action : IAction {
-    data class UpdatedState(val old: AppState, val new: AppState) : Action
+    data class UpdatedState(
+        val old: AppState,
+        val new: AppState,
+    ) : Action
+
     interface CommandAction : Action
 
     data object DoNothing : Action
@@ -16,6 +20,7 @@ sealed interface Action : IAction {
     ) : Action
 
     data object RefreshDevices : CommandAction
+
     data object ClearDevice : Action
 
     data object ClearPlugins : Action
@@ -34,21 +39,30 @@ sealed interface Action : IAction {
 
     data object ClearError : Action
 
-
     data object LoadSettings : Action
+
     data class ChangeSettingsProperty(
         val key: String,
         val value: String,
     ) : Action
+
     data object SaveSettings : Action
+
     data object SettingsNotFound : Action
+
     interface ILoadSettingsIntoState {
         val props: Properties
     }
-    data class LoadSettingsIntoState(override val props: Properties) : Action, ILoadSettingsIntoState
+
+    data class LoadSettingsIntoState(
+        override val props: Properties,
+    ) : Action,
+        ILoadSettingsIntoState
+
     data class LoadSettingsIntoStateAndSave(
         override val props: Properties,
-    ) : Action, ILoadSettingsIntoState
+    ) : Action,
+        ILoadSettingsIntoState
 
     data class DeliverDevices(
         val devices: List<AdbDevice>,
@@ -82,12 +96,17 @@ sealed interface Action : IAction {
 
         //        data object StartService : Action
         data object Connect : Action
-        data object Install : Action
-        data object SkipForDevice : Action
-        data object DoNotUse : Action
-        data class UpdateState(val state: CompanionState) : Action
-    }
 
+        data object Install : Action
+
+        data object SkipForDevice : Action
+
+        data object DoNotUse : Action
+
+        data class UpdateState(
+            val state: CompanionState,
+        ) : Action
+    }
 
     data class DeliverSocketResponse(
         val reference: CommandEntry,
@@ -98,5 +117,4 @@ sealed interface Action : IAction {
         val command: String,
         val arg: String?,
     ) : Action
-
 }

@@ -31,9 +31,11 @@ class ServicesPlugin(
 ) : plugins.Plugin<Pair<String, List<ActivityInfo>>> {
     sealed interface Actions : IAction {
         data object LIST : Actions, CommandAction
+
         data class Launch(
-            val activityInfo: ActivityInfo
-        ) : Actions, CommandAction
+            val activityInfo: ActivityInfo,
+        ) : Actions,
+            CommandAction
     }
 
     companion object {
@@ -71,17 +73,16 @@ class ServicesPlugin(
                             RowAction(
                                 Icons.LAUNCH,
                                 "Start activity",
-                                Actions.Launch((activity.second as ActivityInfo))
+                                Actions.Launch((activity.second as ActivityInfo)),
                             ),
                         ),
-                        onAction
+                        onAction,
                     ) {
                         Text(
                             text = (activity.second as ActivityInfo).activityPath,
-                            style = MaterialTheme.typography.body2
+                            style = MaterialTheme.typography.body2,
                         )
                     }
-
                 }
                 Divider(
                     color = MaterialTheme.colors.onBackground,

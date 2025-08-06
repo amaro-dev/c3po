@@ -8,25 +8,28 @@ import java.util.UUID
 
 class SocketDriver(
     private val client: SocketClient,
-    private val aggregator: SocketResponseAggregator
+    private val aggregator: SocketResponseAggregator,
 ) {
-
     fun reset() {
         if (client.isLive) client.close()
     }
 
-    fun send(command: String, arg: String?) {
-        val request = if (arg != null) {
-            "${command}: ${arg}/${UUID.randomUUID()}"
-        } else {
-            "${command}/${UUID.randomUUID()}"
-        }
+    fun send(
+        command: String,
+        arg: String?,
+    ) {
+        val request =
+            if (arg != null) {
+                "$command: $arg/${UUID.randomUUID()}"
+            } else {
+                "$command/${UUID.randomUUID()}"
+            }
         client.send(request)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun connect(): Flow<SocketEvent> {
-        return client
+    fun connect(): Flow<SocketEvent> =
+        client
             .connect(SocketClient.SERVER_IP, SocketClient.SERVER_PORT)
             .flatMapConcat {
                 if (it.startsWith("CONNECTED")) {
@@ -35,9 +38,12 @@ class SocketDriver(
                     flowOf(SocketEvent.Disconnected)
                 } else {
                     aggregator.parse(it)
-                    flowOf(*aggregator.readyToDeliver().map { msg -> SocketEvent.Message(msg.first, msg.second) }
-                        .toTypedArray())
+                    flowOf(
+                        *aggregator
+                            .readyToDeliver()
+                            .map { msg -> SocketEvent.Message(msg.first, msg.second) }
+                            .toTypedArray(),
+                    )
                 }
             }
-    }
 }

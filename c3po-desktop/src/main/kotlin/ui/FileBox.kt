@@ -18,23 +18,24 @@ import java.io.File
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun FileBox(onFileReceived: (String) -> Unit) {
-    val callback = remember {
-        object : DragAndDropTarget {
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                val path = event.awtTransferable.getTransferData(DataFlavors.FilePath)
-                debug("File path: $path")
-                onFileReceived((path as List<File>).first().absolutePath)
-                return true
+    val callback =
+        remember {
+            object : DragAndDropTarget {
+                override fun onDrop(event: DragAndDropEvent): Boolean {
+                    val path = event.awtTransferable.getTransferData(DataFlavors.FilePath)
+                    debug("File path: $path")
+                    onFileReceived((path as List<File>).first().absolutePath)
+                    return true
+                }
             }
         }
-    }
     Box(
         Modifier
             .fillMaxSize()
             .dragAndDropTarget(
                 shouldStartDragAndDrop = { event -> true },
-                target = callback
-            )
+                target = callback,
+            ),
     ) {}
 }
 

@@ -22,7 +22,6 @@ import plugins.Plugin
 import socket.SocketClient
 
 class AppTest {
-
     private val stateManager: AppStateManager = mockk(relaxed = true)
     private val plugin: List<Plugin<*>> = mockk(relaxed = true)
     private val socketClient: SocketClient = mockk(relaxed = true)
@@ -35,7 +34,7 @@ class AppTest {
                     single { stateManager }
                     single(named(Names.PLUGIN_LIST_DEPENDENCY)) { plugin }
                     single<SocketClient> { socketClient }
-                }
+                },
             )
         }
     }

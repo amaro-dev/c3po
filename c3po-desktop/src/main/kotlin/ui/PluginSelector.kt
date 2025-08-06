@@ -26,19 +26,20 @@ fun PluginSelector(
             Surface(
                 color = surfaceColor,
                 contentColor = contentColor,
-                modifier = Modifier.clickable {
-                    onSelect(Action.StartPlugin(it.id))
-                }.fillMaxWidth()
+                modifier =
+                    Modifier
+                        .clickable {
+                            onSelect(Action.StartPlugin(it.id))
+                        }.fillMaxWidth(),
             ) {
                 BaseRow {
                     Text(
                         it.name,
                         style = MaterialTheme.typography.h6,
-                        color = contentColor
+                        color = contentColor,
                     )
                 }
             }
-
         }
     }
 }

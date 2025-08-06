@@ -9,7 +9,6 @@ import com.intellij.openapi.diagnostic.Logger
  * This can be invoked from toolbar or shortcut.
  */
 class ConnectDeviceAction : AnAction() {
-
     companion object {
         private val LOG = Logger.getInstance(ConnectDeviceAction::class.java)
     }

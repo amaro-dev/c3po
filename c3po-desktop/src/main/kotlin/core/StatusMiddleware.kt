@@ -9,15 +9,14 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class StatusMiddleware(
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
 ) : IMiddleware<AppState> {
-
     private val isRunning = AtomicBoolean(false)
 
     override fun process(
         action: IAction,
         state: AppState,
-        processor: IProcessor<AppState>
+        processor: IProcessor<AppState>,
     ) {
         if (state.commandStatus.isResult()) {
             if (!isRunning.getAndSet(true)) {

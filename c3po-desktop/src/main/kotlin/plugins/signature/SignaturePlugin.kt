@@ -18,7 +18,7 @@ import ui.FileBox
 import ui.OnAction
 
 class SignaturePlugin(
-    signatureExtractor: SignatureExtractor
+    signatureExtractor: SignatureExtractor,
 ) : plugins.Plugin<AndroidPackageReport> {
     override val id: String = "SIGNATURE"
 
@@ -26,16 +26,19 @@ class SignaturePlugin(
 
     override val middleware: IMiddleware<AppState> = SignatureMiddleware(id, signatureExtractor)
 
-
     sealed interface Actions : IAction {
-        data class LoadFile(val filePath: String) : Actions
+        data class LoadFile(
+            val filePath: String,
+        ) : Actions
     }
 
-    override fun isResponsibleFor(action: IAction): Boolean =
-        action is SignaturePlugin.Actions
+    override fun isResponsibleFor(action: IAction): Boolean = action is SignaturePlugin.Actions
 
     @Composable
-    override fun present(result: WindowResult<AndroidPackageReport>, onAction: OnAction) {
+    override fun present(
+        result: WindowResult<AndroidPackageReport>,
+        onAction: OnAction,
+    ) {
         Box(Modifier.fillMaxSize().padding(20.dp), contentAlignment = Alignment.Center) {
             FileBox { onAction(Actions.LoadFile(it)) }
             if (result.result.isEmpty()) {

@@ -38,7 +38,7 @@ kover {
         filters {
             excludes {
                 classes(
-                    "*.DebugMiddleware*"
+                    "*.DebugMiddleware*",
                 )
             }
         }

@@ -26,9 +26,16 @@ import ui.horizontalPadding
 import ui.verticalPadding
 
 @Composable
-fun SignatureCard(signatureInfo: SignatureInfo, onAction: OnAction) {
-    val type = if (signatureInfo.signer.isDebug) androidx.compose.material.icons.Icons.Filled.Warning else
-        androidx.compose.material.icons.Icons.Filled.Check
+fun SignatureCard(
+    signatureInfo: SignatureInfo,
+    onAction: OnAction,
+) {
+    val type =
+        if (signatureInfo.signer.isDebug) {
+            androidx.compose.material.icons.Icons.Filled.Warning
+        } else {
+            androidx.compose.material.icons.Icons.Filled.Check
+        }
     Surface(color = MaterialTheme.colors.surface) {
         Column(Modifier.fillMaxWidth().horizontalPadding().verticalPadding()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -43,10 +50,8 @@ fun SignatureCard(signatureInfo: SignatureInfo, onAction: OnAction) {
             SignatureInfoRow("MD5", signatureInfo.md5Digest) { onAction(Action.CopyText(it)) }
             SignatureInfoRow("SHA1", signatureInfo.sha1Digest) { onAction(Action.CopyText(it)) }
             SignatureInfoRow("SHA256", signatureInfo.sha256Digest) { onAction(Action.CopyText(it)) }
-
         }
     }
-
 }
 
 @Composable
@@ -57,8 +62,8 @@ fun previewSign() {
             Signer("commonName", "organizationUnit", "organization", "locality", "state", "CC"),
             "test",
             "test",
-            "test"
-
-        ), {}
+            "test",
+        ),
+        {},
     )
 }

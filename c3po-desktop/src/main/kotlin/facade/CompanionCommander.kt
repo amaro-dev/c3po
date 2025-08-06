@@ -12,56 +12,75 @@ import models.AdbDevice
 import java.io.File
 
 interface CompanionCommander {
+    suspend fun isInstalled(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Boolean>
 
-    suspend fun isInstalled(adbPath: String, device: AdbDevice): Result<Boolean>
+    suspend fun prepare(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit>
 
-    suspend fun prepare(adbPath: String, device: AdbDevice): Result<Unit>
-
-    suspend fun installAndPrepare(adbPath: String, device: AdbDevice): Result<Unit>
+    suspend fun installAndPrepare(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit>
 }
 
 class CompanionCommanderImpl(
     private val executor: CommandExecutor,
-    private val resourcesPath: File
+    private val resourcesPath: File,
 ) : CompanionCommander {
     companion object {
         private const val SERVICE_NAME = "CompanionService"
         private const val PACKAGE_NAME = "dev.amaro.c3po.companion"
     }
 
-    private suspend fun install(adbPath: String, device: AdbDevice): Result<Boolean> {
-        return executor.go(
+    private suspend fun install(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Boolean> =
+        executor.go(
             InstallApkCommand("${resourcesPath.absolutePath}/R2D2.apk"),
             adbPath,
-            device
+            device,
         )
-    }
 
-    override suspend fun isInstalled(adbPath: String, device: AdbDevice): Result<Boolean> {
-        return executor.go(CheckAppInstalledCommand(PACKAGE_NAME), adbPath, device)
-    }
+    override suspend fun isInstalled(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Boolean> = executor.go(CheckAppInstalledCommand(PACKAGE_NAME), adbPath, device)
 
-    private suspend fun stopService(adbPath: String, device: AdbDevice): Result<Unit> {
-        return executor.go(
+    private suspend fun stopService(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit> =
+        executor.go(
             StopServiceCommand(ActivityInfo(PACKAGE_NAME, "$PACKAGE_NAME.$SERVICE_NAME"), device),
             adbPath,
-            device
+            device,
         )
-    }
 
-    private suspend fun startService(adbPath: String, device: AdbDevice): Result<Unit> {
-        return executor.go(
+    private suspend fun startService(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit> =
+        executor.go(
             StartServiceCommand(ActivityInfo(PACKAGE_NAME, "$PACKAGE_NAME.$SERVICE_NAME"), device),
             adbPath,
             device,
         )
-    }
 
-    private suspend fun openPorts(adbPath: String, device: AdbDevice): Result<Unit> {
-        return executor.go(ForwardPortCommand("9500"), adbPath, device)
-    }
+    private suspend fun openPorts(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit> = executor.go(ForwardPortCommand("9500"), adbPath, device)
 
-    override suspend fun prepare(adbPath: String, device: AdbDevice): Result<Unit> {
+    override suspend fun prepare(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit> {
         stopService(adbPath, device)
         startService(adbPath, device).onFailure {
             return Result.failure(IllegalStateException("Could not start the Companion App service: $it", it))
@@ -73,7 +92,10 @@ class CompanionCommanderImpl(
         return Result.success(Unit)
     }
 
-    override suspend fun installAndPrepare(adbPath: String, device: AdbDevice): Result<Unit> {
+    override suspend fun installAndPrepare(
+        adbPath: String,
+        device: AdbDevice,
+    ): Result<Unit> {
         install(adbPath, device).onFailure {
             return Result.failure(IllegalStateException("Could not install"))
         }

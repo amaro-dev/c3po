@@ -94,7 +94,7 @@ fun main() {
 }
 
 enum class PermissionFlag(
-    val isBase: Boolean = false
+    val isBase: Boolean = false,
 ) {
     APPOP(),
     CONFIGURATOR(),

@@ -5,7 +5,7 @@ import models.AdbDevice
 
 class StopServiceCommand(
     packageName: ActivityInfo,
-    adbDevice: AdbDevice
+    adbDevice: AdbDevice,
 ) : AdbCommand<Unit> {
     override val command: String = "shell am force-stop ${packageName.packageName}"
 

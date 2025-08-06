@@ -19,19 +19,30 @@ data class CompanionState(
     fun shouldOffer() = !has(INSTALLED) && has(CHECKED_FOR_PRESENCE) && !has(ASKED_FOR_PERMISSION)
 
     fun setHasAccepted() = CompanionState(state + ACCEPTED)
+
     fun setIsInstalled() = CompanionState(state + INSTALLED)
 
     fun setIsOnline() = CompanionState(state + ONLINE)
+
     fun setIsOffline() = CompanionState(state - ONLINE)
+
     fun setSkipped() = CompanionState(state + SKIPPED)
+
     fun setAsked() = CompanionState(state + ASKED_FOR_PERMISSION)
+
     fun setCheckedForPresence() = CompanionState(state + CHECKED_FOR_PRESENCE)
 }
 
 sealed interface CompanionS {
     data object Disconnected : CompanionS
+
     data object Preparing : CompanionS
+
     data object Connecting : CompanionS
+
     data object ConnectionFailed : CompanionS
-    data class Connected(val version: String) : CompanionS
+
+    data class Connected(
+        val version: String,
+    ) : CompanionS
 }

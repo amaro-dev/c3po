@@ -10,13 +10,13 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 
 class AppStateManagerTest {
-
     @Test
     fun `On reduce, call reducer with the proper parameters`() {
         val oldState = AppState()
-        val reducer: IReducer<AppState> = mockk(relaxed = true) {
-            every { reduce(any(), any()) } returns AppState()
-        }
+        val reducer: IReducer<AppState> =
+            mockk(relaxed = true) {
+                every { reduce(any(), any()) } returns AppState()
+            }
         val stateManager = spyk(AppStateManager(oldState, reducer))
         val action: IAction = mockk(relaxed = true)
 
@@ -29,9 +29,10 @@ class AppStateManagerTest {
     fun `On reduce, perform UpdateState informing the old and new states`() {
         val oldState = AppState()
         val newState = AppState(currentDevice = mockk())
-        val reducer: IReducer<AppState> = mockk(relaxed = true) {
-            every { reduce(any(), any()) } returns newState
-        }
+        val reducer: IReducer<AppState> =
+            mockk(relaxed = true) {
+                every { reduce(any(), any()) } returns newState
+            }
         val stateManager = spyk(AppStateManager(oldState, reducer))
         val action = mockk<IAction>(relaxed = true)
 
@@ -42,9 +43,10 @@ class AppStateManagerTest {
 
     @Test
     fun `After reduce, perform any scheduled actions`() {
-        val reducer: IReducer<AppState> = mockk(relaxed = true) {
-            every { reduce(any(), any()) } returns AppState()
-        }
+        val reducer: IReducer<AppState> =
+            mockk(relaxed = true) {
+                every { reduce(any(), any()) } returns AppState()
+            }
         val stateManager = spyk(AppStateManager(AppState(), reducer))
         val action = mockk<IAction>(relaxed = true)
 
@@ -58,5 +60,4 @@ class AppStateManagerTest {
 
         verify(exactly = 1) { stateManager.perform(scheduledAction) }
     }
-
 }

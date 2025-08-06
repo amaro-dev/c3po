@@ -5,9 +5,8 @@ import models.AdbDevice
 
 class StartServiceCommand(
     packageName: ActivityInfo,
-    adbDevice: AdbDevice
+    adbDevice: AdbDevice,
 ) : AdbCommand<Unit> {
-
     private val instruction = if (adbDevice.sdk >= 26) "start-foreground-service" else "startservice"
 
     override val command: String = "shell am $instruction ${packageName.fullPath}"

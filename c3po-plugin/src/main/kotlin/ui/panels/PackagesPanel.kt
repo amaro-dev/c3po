@@ -8,16 +8,17 @@ import kotlinx.coroutines.*
 import models.AdbDevice
 import models.AppPackage
 import services.PluginCommandExecutor
+import java.awt.BorderLayout
 import javax.swing.*
 import javax.swing.table.AbstractTableModel
-import java.awt.BorderLayout
 
 /**
  * Panel displaying installed packages from all connected devices.
  * Simplified to work with Android Studio's device management.
  */
-class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
-
+class PackagesPanel(
+    private val commandExecutor: PluginCommandExecutor,
+) {
     companion object {
         private val LOG = Logger.getInstance(PackagesPanel::class.java)
     }
@@ -52,8 +53,8 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
         val columnModel = packagesTable.columnModel
         columnModel.getColumn(0).preferredWidth = 250 // Package Name
         columnModel.getColumn(1).preferredWidth = 100 // Version Name
-        columnModel.getColumn(2).preferredWidth = 80  // Version Code
-        columnModel.getColumn(3).preferredWidth = 80  // Target SDK
+        columnModel.getColumn(2).preferredWidth = 80 // Version Code
+        columnModel.getColumn(3).preferredWidth = 80 // Target SDK
     }
 
     private fun createActionPanel(): JPanel {
@@ -126,7 +127,7 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
      */
     private data class PackageWithDevice(
         val device: AdbDevice,
-        val appPackage: AppPackage
+        val appPackage: AppPackage,
     )
 
     /**
@@ -137,10 +138,15 @@ class PackagesPanel(private val commandExecutor: PluginCommandExecutor) {
         private val columnNames = arrayOf("Package Name", "Version Name", "Version Code", "Target SDK")
 
         override fun getRowCount(): Int = packages.size
+
         override fun getColumnCount(): Int = columnNames.size
+
         override fun getColumnName(column: Int): String = columnNames[column]
 
-        override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
+        override fun getValueAt(
+            rowIndex: Int,
+            columnIndex: Int,
+        ): Any {
             val packageWithDevice = packages[rowIndex]
             val pkg = packageWithDevice.appPackage
             return when (columnIndex) {

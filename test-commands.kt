@@ -48,7 +48,6 @@ fun main() {
                 println("Failed to list devices: ${devicesResult.exceptionOrNull()?.message}")
                 devicesResult.exceptionOrNull()?.printStackTrace()
             }
-
         } catch (e: Exception) {
             println("Error: ${e.message}")
             e.printStackTrace()

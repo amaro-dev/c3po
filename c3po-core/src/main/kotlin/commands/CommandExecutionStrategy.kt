@@ -14,7 +14,10 @@ interface CommandExecutionStrategy {
      * @param commandSpec The command specification containing all necessary information
      * @return The raw command output
      */
-    suspend fun executeCommand(device: AdbDevice, commandSpec: CommandSpec): Result<String>
+    suspend fun executeCommand(
+        device: AdbDevice,
+        commandSpec: CommandSpec,
+    ): Result<String>
 }
 
 /**
@@ -27,21 +30,18 @@ data class CommandSpec(
      * Example: "dumpsys package" (not "shell dumpsys package")
      */
     val baseCommand: String,
-
     /**
      * The type of command execution required
      */
     val executionType: CommandExecutionType,
-
     /**
      * Optional timeout in milliseconds
      */
     val timeoutMs: Long = 10000L,
-
     /**
      * Whether this command requires shell access
      */
-    val requiresShell: Boolean = true
+    val requiresShell: Boolean = true,
 )
 
 /**
@@ -71,5 +71,5 @@ enum class CommandExecutionType {
     /**
      * System service dumps
      */
-    SYSTEM_DUMP
+    SYSTEM_DUMP,
 }

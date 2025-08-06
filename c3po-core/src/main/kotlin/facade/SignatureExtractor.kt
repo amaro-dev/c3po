@@ -14,32 +14,38 @@ class SignatureExtractor {
         private const val V3_1_DISCLAIMER = "Verified using v3.1 scheme (APK Signature Scheme v3.1): "
         private const val V4_DISCLAIMER = "Verified using v4 scheme (APK Signature Scheme v4): "
     }
-    suspend fun getCertificateFingerprint(filePath: String): Result<AndroidPackageReport> {
-        val output = CommandRunner.run(
-            File(""),
-            arrayOf(
-                "/Users/roarodrigues/Library/Android/sdk/build-tools/34.0.0/apksigner",
-                "verify",
-                "--verbose",
-                "--print-certs",
-                filePath
-            )
-        ).onFailure {
-            return Result.failure(it)
-        }.getOrNull()!!
-        val signerCount = output
-            .takeIf { "Number of signers:" in it }
-            ?.substringAfter("Number of signers:")
-            ?.substringBefore("\n")
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() && it.isNotBlank() }
 
-        val signer = Signer.fromParams(
-            *output.substringAfter("Signer #1 certificate DN: ")
-                .substringBefore("\n")
-                .split(",")
-                .toTypedArray()
-        )
+    suspend fun getCertificateFingerprint(filePath: String): Result<AndroidPackageReport> {
+        val output =
+            CommandRunner
+                .run(
+                    File(""),
+                    arrayOf(
+                        "/Users/roarodrigues/Library/Android/sdk/build-tools/34.0.0/apksigner",
+                        "verify",
+                        "--verbose",
+                        "--print-certs",
+                        filePath,
+                    ),
+                ).onFailure {
+                    return Result.failure(it)
+                }.getOrNull()!!
+        val signerCount =
+            output
+                .takeIf { "Number of signers:" in it }
+                ?.substringAfter("Number of signers:")
+                ?.substringBefore("\n")
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() && it.isNotBlank() }
+
+        val signer =
+            Signer.fromParams(
+                *output
+                    .substringAfter("Signer #1 certificate DN: ")
+                    .substringBefore("\n")
+                    .split(",")
+                    .toTypedArray(),
+            )
         val sha256 = output.substringAfter("Signer #1 certificate SHA-256 digest: ").substringBefore("\n")
         val sha1 = output.substringAfter("Signer #1 certificate SHA-1 digest: ").substringBefore("\n")
         val md5 = output.substringAfter("Signer #1 certificate MD5 digest: ").substringBefore("\n")
@@ -52,22 +58,24 @@ class SignatureExtractor {
                 isCompliant(output, V2_DISCLAIMER),
                 isCompliant(output, V3_DISCLAIMER),
                 isCompliant(output, V3_1_DISCLAIMER),
-                isCompliant(output, V4_DISCLAIMER)
-            )
+                isCompliant(output, V4_DISCLAIMER),
+            ),
         )
     }
 
-    private fun isCompliant(output: String, message: String): BoolState {
-        return output.takeIf { message in output }
+    private fun isCompliant(
+        output: String,
+        message: String,
+    ): BoolState =
+        output
+            .takeIf { message in output }
             ?.substringAfter(message)
             ?.substringBefore("\n")
             ?.let { BoolState.valueOf(it.uppercase().trim()) } ?: BoolState.NOT_FOUND
-    }
-
 }
 
 enum class BoolState {
     TRUE,
     FALSE,
-    NOT_FOUND
+    NOT_FOUND,
 }

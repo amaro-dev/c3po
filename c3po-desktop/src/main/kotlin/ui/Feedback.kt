@@ -18,12 +18,16 @@ import kotlinx.coroutines.delay
 import models.CommandStatus
 
 @Composable
-fun (BoxScope).Feedback(status: CommandStatus, errorMessage: String?, onDiscard: () -> Unit) {
+fun (BoxScope).Feedback(
+    status: CommandStatus,
+    errorMessage: String?,
+    onDiscard: () -> Unit,
+) {
     AnimatedVisibility(
         visible = status == CommandStatus.Failed,
         enter = slideInVertically { (40.dp.value).toInt() } + fadeIn(),
         exit = slideOutVertically { (40.dp.value).toInt() } + fadeOut(),
-        modifier = Modifier.align(Alignment.BottomCenter)
+        modifier = Modifier.align(Alignment.BottomCenter),
     ) {
         Snackbar(modifier = Modifier.horizontalPadding().baselinePadding()) {
             Row(verticalAlignment = Alignment.CenterVertically) {

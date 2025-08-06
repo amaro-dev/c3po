@@ -19,48 +19,57 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import plugins.activities.ActivitiesPlugin
 import plugins.attrs.DeviceAttrsPlugin
+import plugins.automation.AutomationMiddleware
+import plugins.automation.AutomationPlugin
+import plugins.automation.ScriptStorage
 import plugins.intents.pending.PendingIntentsPlugin
 import plugins.packages.PackagesPlugin
 import plugins.permissions.PermissionsPlugin
 import plugins.services.ServicesPlugin
 import plugins.signature.SignaturePlugin
 
-val AppModule = module {
-    factory(named(Names.MIDDLEWARE_LIST_DEPENDENCY)) {
-        arrayOf(
-            DeviceMiddleware(get()),
-            PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))),
-            ClipboardMiddleware(get()),
-            CompanionMiddleware(get()),
-            SettingsMiddleware(get()),
-            StatusMiddleware(get()),
-            SocketMiddleware(get(), get()),
-            ConditionedDirectMiddleware(
-                Action.SelectPlugin::class,
-                Action.SelectDevice::class,
-                Action.ChangeFilter::class,
-                Action.ClearError::class,
+val AppModule =
+    module {
+        factory(named(Names.MIDDLEWARE_LIST_DEPENDENCY)) {
+            arrayOf(
+                DeviceMiddleware(get()),
+                PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))),
+                ClipboardMiddleware(get()),
+                CompanionMiddleware(get()),
+                SettingsMiddleware(get()),
+                StatusMiddleware(get()),
+                SocketMiddleware(get(), get()),
+                ConditionedDirectMiddleware(
+                    Action.SelectPlugin::class,
+                    Action.SelectDevice::class,
+                    Action.ChangeFilter::class,
+                    Action.ClearError::class,
+                ),
             )
-        )
-    }
+        }
 
-    factory(named(PLUGIN_LIST_DEPENDENCY)) {
-        listOf(
-            ActivitiesPlugin(get()),
-            PackagesPlugin(get()),
-            DeviceAttrsPlugin(get()),
-            ServicesPlugin(get()),
-            PermissionsPlugin(get()),
-            PendingIntentsPlugin(get()),
-            SignaturePlugin(get())
-        )
-    }
+        factory(named(PLUGIN_LIST_DEPENDENCY)) {
+            listOf(
+                ActivitiesPlugin(get()),
+                PackagesPlugin(get()),
+                DeviceAttrsPlugin(get()),
+                ServicesPlugin(get()),
+                PermissionsPlugin(get()),
+                PendingIntentsPlugin(get()),
+                SignaturePlugin(get()),
+                AutomationPlugin(get()),
+            )
+        }
 
-    single {
-        AppStateManager(
-            AppState(),
-            AppReducer(),
-            *get<Array<IMiddleware<AppState>>>(named(MIDDLEWARE_LIST_DEPENDENCY))
-        )
+        single { ScriptStorage() }
+
+        single { AutomationMiddleware("AUTOMATION", get()) }
+
+        single {
+            AppStateManager(
+                AppState(),
+                AppReducer(),
+                *get<Array<IMiddleware<AppState>>>(named(MIDDLEWARE_LIST_DEPENDENCY)),
+            )
+        }
     }
-}

@@ -44,18 +44,18 @@ private fun previewRow() {
         Column {
             Spacer(Modifier.height(20.dp))
             Spacer(
-                Modifier.height(1.dp)
+                Modifier
+                    .height(1.dp)
                     .fillMaxWidth()
-                    .background(Color.Black)
+                    .background(Color.Black),
             )
             BaseRow(Modifier) { Text("Custom Row") }
             Spacer(
-                Modifier.height(1.dp)
+                Modifier
+                    .height(1.dp)
                     .fillMaxWidth()
-                    .background(Color.Black)
+                    .background(Color.Black),
             )
-
         }
-
     }
 }

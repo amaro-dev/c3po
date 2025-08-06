@@ -16,92 +16,100 @@ import socket.SocketEvent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SocketMiddlewareTest {
+    @Test
+    fun `When device is selected, reset the driver`() =
+        runTest {
+            val socketDriver: SocketDriver = mockk(relaxed = true)
+
+            val middleware = SocketMiddleware(socketDriver, this)
+
+            middleware.process(Action.SelectDevice(mockk()), AppState(), mockk())
+
+            verify { socketDriver.reset() }
+        }
 
     @Test
-    fun `When device is selected, reset the driver`() = runTest {
-        val socketDriver: SocketDriver = mockk(relaxed = true)
+    fun `When sending a request call the driver`() =
+        runTest {
+            val socketDriver: SocketDriver = mockk(relaxed = true)
 
-        val middleware = SocketMiddleware(socketDriver, this)
+            val middleware = SocketMiddleware(socketDriver, this)
 
-        middleware.process(Action.SelectDevice(mockk()), AppState(), mockk())
+            middleware.process(Action.SendSocketRequest("cmd", "arg"), AppState(), mockk())
 
-        verify { socketDriver.reset() }
-    }
+            verify { socketDriver.send("cmd", "arg") }
+        }
 
     @Test
-    fun `When sending a request call the driver`() = runTest {
-        val socketDriver: SocketDriver = mockk(relaxed = true)
+    fun `When connecting to client, listen to the driver`() =
+        runTest {
+            val socketDriver: SocketDriver = mockk(relaxed = true)
 
-        val middleware = SocketMiddleware(socketDriver, this)
+            val middleware = SocketMiddleware(socketDriver, this)
 
-        middleware.process(Action.SendSocketRequest("cmd", "arg"), AppState(), mockk())
+            middleware.process(Action.Companion.Connect, AppState(), mockk())
+            advanceUntilIdle()
 
-        verify { socketDriver.send("cmd", "arg") }
-    }
+            verify { socketDriver.connect() }
+        }
 
     @Test
-    fun `When connecting to client, listen to the driver`() = runTest {
-        val socketDriver: SocketDriver = mockk(relaxed = true)
+    fun `When driver informs it's connected, updates the state`() =
+        runTest {
+            val socketDriver: SocketDriver =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf(SocketEvent.Connected)
+                }
+            val processor: IProcessor<AppState> = mockk(relaxed = true)
 
-        val middleware = SocketMiddleware(socketDriver, this)
+            val middleware = SocketMiddleware(socketDriver, this)
 
-        middleware.process(Action.Companion.Connect, AppState(), mockk())
-        advanceUntilIdle()
+            middleware.process(Action.Companion.Connect, AppState(), processor)
+            advanceUntilIdle()
 
-        verify { socketDriver.connect() }
-    }
+            verify {
+                processor.reduce(Action.Companion.UpdateState(AppState().companionState.setIsOnline()))
+            }
+        }
 
     @Test
-    fun `When driver informs it's connected, updates the state`() = runTest {
-        val socketDriver: SocketDriver = mockk(relaxed = true) {
-            every { connect() } returns flowOf(SocketEvent.Connected)
+    fun `When driver informs it's disconnected, updates the state`() =
+        runTest {
+            val socketDriver: SocketDriver =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf(SocketEvent.Disconnected)
+                }
+            val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+            val middleware = SocketMiddleware(socketDriver, this)
+
+            middleware.process(Action.Companion.Connect, AppState(), processor)
+            advanceUntilIdle()
+
+            verify {
+                processor.perform(Action.RefreshDevices)
+                processor.reduce(Action.Companion.UpdateState(AppState().companionState.setIsOffline()))
+            }
         }
-        val processor: IProcessor<AppState> = mockk(relaxed = true)
-
-        val middleware = SocketMiddleware(socketDriver, this)
-
-        middleware.process(Action.Companion.Connect, AppState(), processor)
-        advanceUntilIdle()
-
-        verify {
-            processor.reduce(Action.Companion.UpdateState(AppState().companionState.setIsOnline()))
-        }
-    }
 
     @Test
-    fun `When driver informs it's disconnected, updates the state`() = runTest {
-        val socketDriver: SocketDriver = mockk(relaxed = true) {
-            every { connect() } returns flowOf(SocketEvent.Disconnected)
+    fun `When driver delivers the content, it should deliver to requester`() =
+        runTest {
+            val command: CommandEntry = mockk()
+            val content: List<String> = listOf("abc")
+            val socketDriver: SocketDriver =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf(SocketEvent.Message(command, content))
+                }
+            val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+            val middleware = SocketMiddleware(socketDriver, this)
+
+            middleware.process(Action.Companion.Connect, AppState(), processor)
+            advanceUntilIdle()
+
+            verify {
+                processor.perform(Action.DeliverSocketResponse(command, content))
+            }
         }
-        val processor: IProcessor<AppState> = mockk(relaxed = true)
-
-        val middleware = SocketMiddleware(socketDriver, this)
-
-        middleware.process(Action.Companion.Connect, AppState(), processor)
-        advanceUntilIdle()
-
-        verify {
-            processor.perform(Action.RefreshDevices)
-            processor.reduce(Action.Companion.UpdateState(AppState().companionState.setIsOffline()))
-        }
-    }
-
-    @Test
-    fun `When driver delivers the content, it should deliver to requester`() = runTest {
-        val command: CommandEntry = mockk()
-        val content: List<String> = listOf("abc")
-        val socketDriver: SocketDriver = mockk(relaxed = true) {
-            every { connect() } returns flowOf(SocketEvent.Message(command, content))
-        }
-        val processor: IProcessor<AppState> = mockk(relaxed = true)
-
-        val middleware = SocketMiddleware(socketDriver, this)
-
-        middleware.process(Action.Companion.Connect, AppState(), processor)
-        advanceUntilIdle()
-
-        verify {
-            processor.perform(Action.DeliverSocketResponse(command, content))
-        }
-    }
 }

@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 import java.util.Properties
 
 class AppReducerTest {
-
     @Test
     fun `Reduce SelectDevice action`() {
         val initialState = AppState()
@@ -34,11 +33,12 @@ class AppReducerTest {
     fun `Reduce SelectDevice action changing current one clears windows`() {
         val device1: AdbDevice = mockk(relaxed = true)
         val device2: AdbDevice = mockk(relaxed = true)
-        val initialState = AppState(
-            currentDevice = device1,
-            windows = mapOf("" to WindowResult("", listOf(""))),
-            currentPlugin = "plugin"
-        )
+        val initialState =
+            AppState(
+                currentDevice = device1,
+                windows = mapOf("" to WindowResult("", listOf(""))),
+                currentPlugin = "plugin",
+            )
         val action = Action.SelectDevice(device2)
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -89,10 +89,11 @@ class AppReducerTest {
 
     @Test
     fun `Reduce DeliverPluginResult action with previous result`() {
-        val initialState = AppState(
-            commandStatus = CommandStatus.Running,
-            windows = mapOf("plugin" to WindowResult("previous", listOf("old")))
-        )
+        val initialState =
+            AppState(
+                commandStatus = CommandStatus.Running,
+                windows = mapOf("plugin" to WindowResult("previous", listOf("old"))),
+            )
         val result = listOf("new")
         val action = Action.DeliverPluginResult("plugin", result)
         val newState = AppReducer().reduce(action, initialState)
@@ -102,7 +103,6 @@ class AppReducerTest {
             prop(AppState::currentPlugin).isEqualTo("plugin")
         }
     }
-
 
     @Test
     fun `Reduce LoadSettingsIntoState action`() {
@@ -140,10 +140,11 @@ class AppReducerTest {
 
     @Test
     fun `Reduce ClearPlugins `() {
-        val initialState = AppState(
-            windows = mapOf("plugin" to WindowResult("", listOf(""))),
-            currentPlugin = "plugin"
-        )
+        val initialState =
+            AppState(
+                windows = mapOf("plugin" to WindowResult("", listOf(""))),
+                currentPlugin = "plugin",
+            )
         val action = Action.ClearPlugins
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -154,9 +155,10 @@ class AppReducerTest {
 
     @Test
     fun `Reduce SelectPlugin `() {
-        val initialState = AppState(
-            currentPlugin = "plugin"
-        )
+        val initialState =
+            AppState(
+                currentPlugin = "plugin",
+            )
         val action = Action.SelectPlugin("new-plugin")
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -166,9 +168,10 @@ class AppReducerTest {
 
     @Test
     fun `Reduce ChangeFilter `() {
-        val initialState = AppState(
-            windows = mapOf("plugin" to WindowResult("abc", listOf("result"))),
-        )
+        val initialState =
+            AppState(
+                windows = mapOf("plugin" to WindowResult("abc", listOf("result"))),
+            )
         val action = Action.ChangeFilter("plugin", "123")
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -178,10 +181,11 @@ class AppReducerTest {
 
     @Test
     fun `Reduce SetCommandRunning`() {
-        val initialState = AppState(
-            commandStatus = CommandStatus.Failed,
-            errorMessage = "some error"
-        )
+        val initialState =
+            AppState(
+                commandStatus = CommandStatus.Failed,
+                errorMessage = "some error",
+            )
         val action = Action.SetCommandRunning
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -192,10 +196,11 @@ class AppReducerTest {
 
     @Test
     fun `Reduce SetCommandCompleted`() {
-        val initialState = AppState(
-            commandStatus = CommandStatus.Failed,
-            errorMessage = "some error"
-        )
+        val initialState =
+            AppState(
+                commandStatus = CommandStatus.Failed,
+                errorMessage = "some error",
+            )
         val action = Action.SetCommandCompleted
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -206,9 +211,10 @@ class AppReducerTest {
 
     @Test
     fun `Reduce SetCommandError`() {
-        val initialState = AppState(
-            commandStatus = CommandStatus.Idle,
-        )
+        val initialState =
+            AppState(
+                commandStatus = CommandStatus.Idle,
+            )
         val action = Action.SetCommandError("some-error")
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -219,10 +225,11 @@ class AppReducerTest {
 
     @Test
     fun `Reduce ClearError`() {
-        val initialState = AppState(
-            commandStatus = CommandStatus.Failed,
-            errorMessage = "some error"
-        )
+        val initialState =
+            AppState(
+                commandStatus = CommandStatus.Failed,
+                errorMessage = "some error",
+            )
         val action = Action.ClearError
         val newState = AppReducer().reduce(action, initialState)
         assertThat(newState).all {
@@ -245,13 +252,14 @@ class AppReducerTest {
     @Test
     fun `Reduce ClearDevice erases any device related state`() {
         val mockedDevice: AdbDevice = mockk()
-        val initialState = AppState(
-            currentDevice = mockk(),
-            currentPlugin = "plugin",
-            windows = mapOf("plugin" to WindowResult<String>("", emptyList())),
-            companionState = CompanionState().setIsOnline(),
-            devices = listOf(mockedDevice)
-        )
+        val initialState =
+            AppState(
+                currentDevice = mockk(),
+                currentPlugin = "plugin",
+                windows = mapOf("plugin" to WindowResult<String>("", emptyList())),
+                companionState = CompanionState().setIsOnline(),
+                devices = listOf(mockedDevice),
+            )
 
         val newState = AppReducer().reduce(Action.ClearDevice, initialState)
         assertThat(newState).isEqualTo(AppState(devices = listOf(mockedDevice)))

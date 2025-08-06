@@ -26,7 +26,10 @@ import ui.definitions.Dimens
 import ui.onHover
 
 @Composable
-fun PermissionRow(permission: Map.Entry<String, List<PermissionFlag>>, onAction: (IAction) -> Unit) {
+fun PermissionRow(
+    permission: Map.Entry<String, List<PermissionFlag>>,
+    onAction: (IAction) -> Unit,
+) {
     var isHovering: Boolean by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxWidth()) {
@@ -52,7 +55,7 @@ fun PermissionRow(permission: Map.Entry<String, List<PermissionFlag>>, onAction:
             isHovering,
             { isHovering = it },
             { onAction(Action.CopyText(permission.key)) },
-            Modifier.align(Alignment.CenterStart)
+            Modifier.align(Alignment.CenterStart),
         )
     }
 }

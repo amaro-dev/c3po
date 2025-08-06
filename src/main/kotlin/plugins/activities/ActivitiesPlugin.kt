@@ -82,7 +82,7 @@ class ActivitiesPlugin(
                         ) {
                             Text(
                                 text = it.activityPath,
-                                style = MaterialTheme.typography.body2
+                                style = MaterialTheme.typography.body2,
                             )
                         }
                     }

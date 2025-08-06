@@ -11,8 +11,11 @@ import handle
 class DeviceMiddleware(
     private val executor: CommandExecutor,
 ) : AsyncMiddlewareBase<AppState>() {
-
-    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override suspend fun asyncProcess(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
 
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)

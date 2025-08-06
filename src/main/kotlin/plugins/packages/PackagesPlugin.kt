@@ -61,7 +61,6 @@ class PackagesPlugin(
         data class CheckAsleep(
             val packageInfo: AppPackage,
         ) : Actions
-
     }
 
     override val name: String = "Installed packages"
@@ -71,9 +70,11 @@ class PackagesPlugin(
     override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =
-        action is Actions || (action is Action.DeliverSocketResponse &&
-                (action.reference.command in arrayOf(EXTRACT_KEY_INSTRUCTION, CHECK_ASLEEP_INSTRUCTION))
-                )
+        action is Actions ||
+                (
+                        action is Action.DeliverSocketResponse &&
+                                (action.reference.command in arrayOf(EXTRACT_KEY_INSTRUCTION, CHECK_ASLEEP_INSTRUCTION))
+                        )
 
     @Composable
     override fun present(

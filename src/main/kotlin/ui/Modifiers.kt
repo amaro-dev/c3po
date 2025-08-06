@@ -19,20 +19,23 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ui.definitions.Dimens
 
-fun Modifier.baselinePadding(bottom: Int = Dimens.ROW_VERTICAL_MARGIN_BOTTOM) = padding(
-    top = (bottom * 0.6f).dp,
-    bottom = bottom.dp
-)
+fun Modifier.baselinePadding(bottom: Int = Dimens.ROW_VERTICAL_MARGIN_BOTTOM) =
+    padding(
+        top = (bottom * 0.6f).dp,
+        bottom = bottom.dp,
+    )
 
-fun Modifier.horizontalPadding() = padding(
-    start = Dimens.ROW_HORIZONTAL_MARGIN.dp,
-    end = Dimens.ROW_HORIZONTAL_MARGIN.dp
-)
+fun Modifier.horizontalPadding() =
+    padding(
+        start = Dimens.ROW_HORIZONTAL_MARGIN.dp,
+        end = Dimens.ROW_HORIZONTAL_MARGIN.dp,
+    )
 
-fun Modifier.verticalPadding() = padding(
-    top = Dimens.ROW_VERTICAL_MARGIN.dp,
-    bottom = Dimens.ROW_VERTICAL_MARGIN.dp
-)
+fun Modifier.verticalPadding() =
+    padding(
+        top = Dimens.ROW_VERTICAL_MARGIN.dp,
+        bottom = Dimens.ROW_VERTICAL_MARGIN.dp,
+    )
 
 fun Modifier.allPaddings() = horizontalPadding().verticalPadding()
 
@@ -62,15 +65,17 @@ fun Modifier.onHover(event: (Boolean) -> Unit) =
 @Composable
 fun Modifier.popTransition(visible: Boolean): Modifier {
     val offsetAnim by animateIntOffsetAsState(
-        targetValue = if (visible) {
-            IntOffset(0, Dimens.SQUARE_BUTTON_SIZE_REGULAR - 2)
-        } else {
-            IntOffset.Zero
-        },
-        label = "offset"
+        targetValue =
+            if (visible) {
+                IntOffset(0, Dimens.SQUARE_BUTTON_SIZE_REGULAR - 2)
+            } else {
+                IntOffset.Zero
+            },
+        label = "offset",
     )
-    val transparency = animateFloatAsState(
-        targetValue = if (!visible) 0f else 1f
-    )
+    val transparency =
+        animateFloatAsState(
+            targetValue = if (!visible) 0f else 1f,
+        )
     return offset { offsetAnim }.alpha(transparency.value)
 }

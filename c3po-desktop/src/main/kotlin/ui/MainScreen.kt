@@ -1,6 +1,5 @@
 package ui
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,23 +28,27 @@ import core.Action
 import core.App
 import models.SettingsState
 
-
 @Composable
-fun MainScreen(app: App, sideSection: Section) {
+fun MainScreen(
+    app: App,
+    sideSection: Section,
+) {
     val state = app.listen().collectAsState().value
     var size by remember { mutableStateOf(Size.Zero) }
     Box(
-        Modifier.fillMaxSize()
+        Modifier
+            .fillMaxSize()
             .onGloballyPositioned { coordinates ->
                 size = coordinates.size.toSize()
-            }
+            },
     ) {
         Row(Modifier.fillMaxSize()) {
             Surface(
                 color = MaterialTheme.colors.surface,
-                modifier = Modifier
-                    .width(275.dp)
-                    .fillMaxHeight()
+                modifier =
+                    Modifier
+                        .width(275.dp)
+                        .fillMaxHeight(),
             ) {
                 Column(Modifier.fillMaxSize()) {
                     sideSection(state) { app.perform(it) }
@@ -54,7 +57,7 @@ fun MainScreen(app: App, sideSection: Section) {
             Spacer(Modifier.background(MaterialTheme.colors.primary).width(4.dp).fillMaxHeight())
             Surface(
                 color = MaterialTheme.colors.background,
-                modifier = Modifier.weight(1f).defaultMinSize(450.dp).fillMaxHeight()
+                modifier = Modifier.weight(1f).defaultMinSize(450.dp).fillMaxHeight(),
             ) {
                 Column(Modifier.fillMaxSize()) {
                     state.currentPlugin?.let { name ->
@@ -76,7 +79,6 @@ fun MainScreen(app: App, sideSection: Section) {
 //                    }
                 }
             }
-
         }
         Feedback(state.commandStatus, state.errorMessage) { app.perform(Action.ClearError) }
     }

@@ -14,7 +14,10 @@ import androidx.compose.ui.unit.sp
 import ui.definitions.Dimens
 
 @Composable
-fun RowInfo(label: String, value: String) {
+fun RowInfo(
+    label: String,
+    value: String,
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = MaterialTheme.typography.body2.copy(fontSize = 12.sp, fontWeight = FontWeight.Black))
         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))

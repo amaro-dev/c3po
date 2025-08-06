@@ -24,18 +24,23 @@ import ui.definitions.Texts
 import ui.onHover
 
 @Composable
-fun SignatureInfoRow(label: String, value: String, onCopy: ((String) -> Unit)? = null) {
+fun SignatureInfoRow(
+    label: String,
+    value: String,
+    onCopy: ((String) -> Unit)? = null,
+) {
     var isHoveringValue: Boolean by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.baselinePadding(Dimens.VERTICAL_SPACER)
+        modifier = Modifier.baselinePadding(Dimens.VERTICAL_SPACER),
     ) {
         Text("$label:", style = MaterialTheme.typography.subtitle2)
         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
         Text(
             value,
             style = MaterialTheme.typography.body2,
-            modifier = Modifier.weight(1f).onHover { isHoveringValue = it })
+            modifier = Modifier.weight(1f).onHover { isHoveringValue = it },
+        )
 
         if (onCopy != null) {
             Icon(
@@ -48,6 +53,4 @@ fun SignatureInfoRow(label: String, value: String, onCopy: ((String) -> Unit)? =
             )
         }
     }
-
-
 }

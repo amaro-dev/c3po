@@ -53,8 +53,7 @@ class ListPendingActivityIntentsCommand : AdbCommand<List<Pair<String, List<Pend
                     ),
                     it["requestCode"]?.toInt(),
                 )
-            }
-            .groupBy { it.packageName }
+            }.groupBy { it.packageName }
             .toList()
     }
 }

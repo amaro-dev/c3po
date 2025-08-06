@@ -21,11 +21,12 @@ fun PermissionStamp(permissionFlag: PermissionFlag) {
         text = permissionFlag.name,
         style = MaterialTheme.typography.overline.copy(fontSize = TextUnit(8f, TextUnitType.Sp)),
         color = permissionFlag.getPermissionForegroundColor(),
-        modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .border(1.dp, permissionFlag.getPermissionBorderColor())
-            .background(permissionFlag.getPermissionBackgroundColor())
-            .baselinePadding(2)
-            .padding(start = 6.dp, end = 6.dp)
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .border(1.dp, permissionFlag.getPermissionBorderColor())
+                .background(permissionFlag.getPermissionBackgroundColor())
+                .baselinePadding(2)
+                .padding(start = 6.dp, end = 6.dp),
     )
 }

@@ -11,10 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 class CompanionMiddleware(
-    private val commander: CompanionCommander
+    private val commander: CompanionCommander,
 ) : AsyncMiddlewareBase<AppState>(CoroutineScope(Dispatchers.IO)) {
-
-
     override suspend fun asyncProcess(
         action: IAction,
         state: AppState,
@@ -25,19 +23,20 @@ class CompanionMiddleware(
             // When a device is selected we must check for companion app
             is Action.SelectDevice -> {
                 debug("Companion selected '${state.currentDevice}' and '${action.device}'")
-                if (state.currentDevice != action.device)
+                if (state.currentDevice != action.device) {
                     (processor as IActionScheduler).schedule(Action.Companion.CheckInstalled)
+                }
             }
 
             is Action.Companion.Install -> {
                 if (state.hasDeviceSet) {
                     processor.reduce(Action.SetCommandRunning)
-                    commander.installAndPrepare(adbPath, state.currentDevice!!)
+                    commander
+                        .installAndPrepare(adbPath, state.currentDevice!!)
                         .onSuccess { processor.perform(Action.Companion.Connect) }
                         .handle(processor)
                 }
             }
-
 
             is Action.Companion.CheckInstalled -> {
                 state.currentDevice?.let { device ->
@@ -55,12 +54,11 @@ class CompanionMiddleware(
 
             is Action.Companion.Prepare -> {
                 if (state.currentDevice == null) return
-                commander.prepare(adbPath, state.currentDevice)
+                commander
+                    .prepare(adbPath, state.currentDevice)
                     .onSuccess { processor.perform(Action.Companion.Connect) }
                     .handle(processor)
             }
-
         }
     }
-
 }

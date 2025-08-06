@@ -19,8 +19,8 @@ class SettingsRepositoryImpl(
         }
     }
 
-    override fun save(settings: Properties): Result<Unit> {
-        return try {
+    override fun save(settings: Properties): Result<Unit> =
+        try {
             val settingsFile = File(resourcesPath, settingsFile)
             if (!settingsFile.exists()) settingsFile.createNewFile()
             settings.store(settingsFile.outputStream(), null)
@@ -28,14 +28,12 @@ class SettingsRepositoryImpl(
         } catch (ex: Throwable) {
             Result.failure(ex)
         }
-    }
 
-    override fun createPathIfNeeded(): Result<Unit> {
-        return try {
+    override fun createPathIfNeeded(): Result<Unit> =
+        try {
             if (!resourcesPath.exists()) resourcesPath.mkdirs()
             Result.success(Unit)
         } catch (ex: Exception) {
             Result.failure(ex)
         }
-    }
 }

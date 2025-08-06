@@ -21,10 +21,15 @@ class PackagesPluginMiddleware(
     pluginName: String,
     private val executor: CommandExecutor,
 ) : PluginMiddleware(pluginName) {
-    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override suspend fun asyncProcess(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.StartPlugin,
-            PackagesPlugin.Actions.List -> {
+            PackagesPlugin.Actions.List,
+                -> {
                 execute(ListPackagesCommand(), state, executor)
                     .handle(processor) {
                         processor.reduce(
@@ -36,7 +41,6 @@ class PackagesPluginMiddleware(
             is PackagesPlugin.Actions.Stop -> {
                 execute(StopAppCommand(action.packageInfo), state, executor)
                     .handle(processor)
-
             }
 
             is PackagesPlugin.Actions.Uninstall -> {
@@ -70,17 +74,19 @@ class PackagesPluginMiddleware(
             is Action.DeliverSocketResponse -> {
                 if (action.reference.command == PackagesPlugin.EXTRACT_KEY_INSTRUCTION) {
                     val signature = SignatureResponseParser().parse(action.content)
-                    val response = updateByPackageName(state, action.reference.arg!!) {
-                        (it).copy(signerInfo = signature)
-                    }
+                    val response =
+                        updateByPackageName(state, action.reference.arg!!) {
+                            (it).copy(signerInfo = signature)
+                        }
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, response),
                     )
                 } else if (action.reference.command == PackagesPlugin.CHECK_ASLEEP_INSTRUCTION) {
                     val result = if (action.content.first().toBool()) SleepState.Asleep else SleepState.Awake
-                    val response = updateByPackageName(state, action.reference.arg!!) {
-                        it.copy(sleepState = result)
-                    }
+                    val response =
+                        updateByPackageName(state, action.reference.arg!!) {
+                            it.copy(sleepState = result)
+                        }
                     processor.reduce(
                         Action.DeliverPluginResult(pluginName, response),
                     )
@@ -92,11 +98,11 @@ class PackagesPluginMiddleware(
     private fun updateByPackageName(
         state: AppState,
         packageName: String,
-        transform: (AppPackage) -> AppPackage
-    ): List<AppPackage> {
-        return (state.windows[pluginName]
-            ?.result as? List<AppPackage>)
-            ?.update({ it.packageName == packageName }) { transform(it) }
+        transform: (AppPackage) -> AppPackage,
+    ): List<AppPackage> =
+        (
+                state.windows[pluginName]
+                    ?.result as? List<AppPackage>
+                )?.update({ it.packageName == packageName }) { transform(it) }
             ?: emptyList()
-    }
 }

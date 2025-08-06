@@ -1,7 +1,6 @@
 import commands.AdbCommand
 import commands.PlaceholderAdb
 
-
 class FakeCommand(
     override val command: String,
 ) : AdbCommand<String> {
@@ -10,6 +9,7 @@ class FakeCommand(
 
 class FakePlaceholderCommand(
     override val command: String,
-) : AdbCommand<String>, PlaceholderAdb {
+) : AdbCommand<String>,
+    PlaceholderAdb {
     override fun parse(result: String): String = result
 }

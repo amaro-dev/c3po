@@ -8,7 +8,7 @@ import org.koin.core.qualifier.named
 import plugins.Plugin
 import socket.SocketClient
 
-class App() : KoinComponent {
+class App : KoinComponent {
     private val socketClient: SocketClient = get()
 
     val plugins: List<Plugin<*>> = get(named(Names.PLUGIN_LIST_DEPENDENCY))

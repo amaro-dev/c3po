@@ -26,13 +26,13 @@ fun CopyButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enterAnimation: EnterTransition = slideInHorizontally(),
-    exitAnimation: ExitTransition = slideOutHorizontally()
+    exitAnimation: ExitTransition = slideOutHorizontally(),
 ) {
     AnimatedVisibility(
         visible,
         enter = enterAnimation,
         exit = exitAnimation,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Box(
             modifier =

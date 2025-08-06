@@ -33,5 +33,5 @@ class SocketResponseAggregator {
 data class CommandEntry(
     val id: String,
     val command: String,
-    val arg: String? = null
+    val arg: String? = null,
 )

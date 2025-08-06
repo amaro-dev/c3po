@@ -43,7 +43,6 @@ typealias OnAction = (IAction) -> Unit
 
 typealias Section = @Composable ColumnScope.(AppState, ((IAction) -> Unit)) -> Unit
 
-
 fun slideInHorizontallyFromRight() = slideIn(initialOffset = { IntOffset(it.width, 0) })
 
 fun slideOutHorizontallyToRight() = slideOut(targetOffset = { IntOffset(it.width, 0) })

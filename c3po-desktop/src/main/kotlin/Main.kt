@@ -36,7 +36,6 @@ import ui.definitions.Dimens
 import ui.definitions.Texts
 import ui.horizontalPadding
 
-
 fun main() =
     application {
         startKoin {
@@ -60,13 +59,13 @@ fun main() =
         ) {
             AppTheme {
                 MainScreen(
-                    myApp
+                    myApp,
                 ) { state, onClick ->
                     Row(Modifier.fillMaxWidth()) {
                         DeviceSelector(
                             state.devices,
                             state.currentDevice,
-                            Modifier.weight(1f)
+                            Modifier.weight(1f),
                         ) { onClick(Action.SelectDevice(it)) }
                         Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
                         IconButton(onClick = { onClick(Action.RefreshDevices) }) {
@@ -75,8 +74,10 @@ fun main() =
                     }
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp - 1.dp))
                     Box(
-                        Modifier.fillMaxWidth().height(1.dp)
-                            .background(MaterialTheme.colors.onSurface)
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colors.onSurface),
                     )
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     Row(Modifier.horizontalPadding()) {
@@ -90,19 +91,19 @@ fun main() =
                     }
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     Box(
-                        Modifier.fillMaxWidth().height(1.dp)
-                            .background(MaterialTheme.colors.onSurface)
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colors.onSurface),
                     )
                     Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
                     if (state.currentDevice != null) {
                         PluginSelector(myApp.plugins, state.currentPlugin, onClick)
                     }
-
                 }
             }
         }
     }
-
 
 @Composable
 fun RunningStatus(state: AppState) {

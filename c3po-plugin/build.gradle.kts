@@ -33,16 +33,24 @@ intellij {
 tasks {
     // Ensure core module is included in the plugin JAR
     jar {
-        from(configurations.runtimeClasspath.get().filter {
-            it.name.contains("c3po-core")
-        }.map { zipTree(it) })
+        from(
+            configurations.runtimeClasspath
+                .get()
+                .filter {
+                    it.name.contains("c3po-core")
+                }.map { zipTree(it) },
+        )
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
     // Include core module in sandbox for testing
     prepareSandbox {
         val coreProject = project(":c3po-core")
-        from(coreProject.tasks.jar.get().outputs.files) {
+        from(
+            coreProject.tasks.jar
+                .get()
+                .outputs.files,
+        ) {
             into("${pluginName.get()}/lib")
         }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -51,7 +59,11 @@ tasks {
     // Include core module in final plugin distribution
     buildPlugin {
         val coreProject = project(":c3po-core")
-        from(coreProject.tasks.jar.get().outputs.files) {
+        from(
+            coreProject.tasks.jar
+                .get()
+                .outputs.files,
+        ) {
             into("lib")
         }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE

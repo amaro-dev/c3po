@@ -36,7 +36,6 @@ fun Favourite(content: @Composable () -> Unit) {
                     .onHover { isHovering = it }
                     .popTransition(isHovering)
                     .clickable { state = !state },
-
-            )
+        )
     }
 }

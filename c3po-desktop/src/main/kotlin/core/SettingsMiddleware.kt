@@ -10,8 +10,7 @@ import java.util.Properties
 
 class SettingsMiddleware(
     private val settingsRepository: SettingsRepository,
-
-    ) : IMiddleware<AppState> {
+) : IMiddleware<AppState> {
     override fun process(
         action: IAction,
         state: AppState,
@@ -19,12 +18,12 @@ class SettingsMiddleware(
     ) {
         when (action) {
             is Action.LoadSettings -> {
-                settingsRepository.load()
+                settingsRepository
+                    .load()
                     .onSuccess {
                         processor.reduce(Action.LoadSettingsIntoState(it))
                         processor.perform(Action.RefreshDevices)
-                    }
-                    .onFailure {
+                    }.onFailure {
                         processor.reduce(Action.SettingsNotFound)
                     }
             }

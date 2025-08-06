@@ -16,9 +16,10 @@ interface EnhancedAdbCommand<T> : AdbCommand<T> {
      * Default implementation that derives the legacy command string from commandSpec
      */
     override val command: String
-        get() = if (commandSpec.requiresShell) {
-            "shell ${commandSpec.baseCommand}"
-        } else {
-            commandSpec.baseCommand
-        }
+        get() =
+            if (commandSpec.requiresShell) {
+                "shell ${commandSpec.baseCommand}"
+            } else {
+                commandSpec.baseCommand
+            }
 }

@@ -79,7 +79,7 @@ kover {
                     "socket.SocketClient*",
                     "di.*",
                     "ui.**.*",
-                    "*.DebugMiddleware*"
+                    "*.DebugMiddleware*",
                 )
             }
         }

@@ -22,7 +22,8 @@ class SocketClient {
     private var isClosed = true
 
     val isLive: Boolean
-        get() = this::mClientSocket.isInitialized &&
+        get() =
+            this::mClientSocket.isInitialized &&
                 mClientSocket.isConnected &&
                 !mClientSocket.isClosed &&
                 !isClosed &&
@@ -30,35 +31,36 @@ class SocketClient {
 
     fun connect(
         ip: String = SERVER_IP,
-        port: Int = SERVER_PORT
-    ): Flow<String> = flow {
-        try {
-            mClientSocket = Socket(ip, port)
-            input = mClientSocket.getInputStream().bufferedReader()
-            output = mClientSocket.getOutputStream().bufferedWriter()
-            isClosed = false
+        port: Int = SERVER_PORT,
+    ): Flow<String> =
+        flow {
+            try {
+                mClientSocket = Socket(ip, port)
+                input = mClientSocket.getInputStream().bufferedReader()
+                output = mClientSocket.getOutputStream().bufferedWriter()
+                isClosed = false
 
-            // Initial wakeup message
-            kotlinx.coroutines.delay(500)
-            send("wakeup/1")
+                // Initial wakeup message
+                kotlinx.coroutines.delay(500)
+                send("wakeup/1")
 
-            while (isLive) {
-                val message = input.readLine()
-                if (message != null) {
-                    emit(message)
-                } else {
-                    break
+                while (isLive) {
+                    val message = input.readLine()
+                    if (message != null) {
+                        emit(message)
+                    } else {
+                        break
+                    }
                 }
+            } catch (e: Exception) {
+                println("Connection fail: ${e.message}")
+                emit("Connection fail: ${e.message}")
+                close()
+            } finally {
+                close()
+                emit("DISCONNECTED")
             }
-        } catch (e: Exception) {
-            println("Connection fail: ${e.message}")
-            emit("Connection fail: ${e.message}")
-            close()
-        } finally {
-            close()
-            emit("DISCONNECTED")
-        }
-    }.flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
 
     fun send(command: String): Boolean {
         if (isClosed || !isLive) {

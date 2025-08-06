@@ -10,13 +10,11 @@ import com.intellij.openapi.diagnostic.Logger
  */
 @Service
 class C3POApplicationService {
-
     companion object {
         private val LOG = Logger.getInstance(C3POApplicationService::class.java)
 
-        fun getInstance(): C3POApplicationService {
-            return ApplicationManager.getApplication().getService(C3POApplicationService::class.java)
-        }
+        fun getInstance(): C3POApplicationService =
+            ApplicationManager.getApplication().getService(C3POApplicationService::class.java)
     }
 
     init {

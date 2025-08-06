@@ -11,16 +11,19 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 object CommandRunner {
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun run(adbPath: File, args: Array<String>): Result<String> {
+    suspend fun run(
+        adbPath: File,
+        args: Array<String>,
+    ): Result<String> {
         debug("Command: (PATH: $adbPath) '${args.joinToString(" ")}'")
         return withContext(Dispatchers.IO) {
             debug("Will start command")
-            val process = ProcessBuilder()
-                .command(*args)
+            val process =
+                ProcessBuilder()
+                    .command(*args)
 //                .directory(adbPath)
-                .start()
+                    .start()
             debug("Command started")
             val response = async { process.inputReader().readText().trim() }
             val error = async { process.errorReader().readText().trim() }
@@ -40,10 +43,11 @@ object CommandRunner {
                 debug("Command exit ($exitCode): $errorMessage")
                 debug("Content: $content")
                 if (exitCode != 0) {
-                    if (deviceNotFoundMessage.containsMatchIn(errorMessage))
+                    if (deviceNotFoundMessage.containsMatchIn(errorMessage)) {
                         Result.failure(DeviceNotFoundException())
-                    else
+                    } else {
                         Result.failure(Exception("Code: $exitCode - $errorMessage"))
+                    }
                 } else {
                     Result.success(content)
                 }

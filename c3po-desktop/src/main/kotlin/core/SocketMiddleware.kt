@@ -12,10 +12,8 @@ import socket.SocketEvent
 
 class SocketMiddleware(
     private val socketClient: SocketDriver,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
 ) : IMiddleware<AppState> {
-
-
     override fun process(
         action: IAction,
         state: AppState,

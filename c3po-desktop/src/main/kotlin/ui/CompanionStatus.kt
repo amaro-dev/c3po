@@ -16,11 +16,12 @@ import ui.definitions.Texts
 fun CompanionStatus(companionState: CompanionState) {
     val (icon, description, color) =
         when {
-            companionState.isOnline() -> Triple(
-                Icons.ONLINE,
-                Texts.CONNECTED_TO_COMPANION,
-                MaterialTheme.colors.primary
-            )
+            companionState.isOnline() ->
+                Triple(
+                    Icons.ONLINE,
+                    Texts.CONNECTED_TO_COMPANION,
+                    MaterialTheme.colors.primary,
+                )
 
             else -> Triple(Icons.CONNECTING, Texts.DISCONNECTED_FROM_COMPANION, MaterialTheme.colors.onPrimary)
         }

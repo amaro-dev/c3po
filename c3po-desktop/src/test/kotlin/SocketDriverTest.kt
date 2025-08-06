@@ -16,12 +16,12 @@ import socket.SocketEvent
 import socket.SocketResponseAggregator
 
 class SocketDriverTest {
-
     @Test
     fun `When resetting the connection, closes it if it's alive`() {
-        val socketClient: SocketClient = mockk(relaxed = true) {
-            every { isLive } returns true
-        }
+        val socketClient: SocketClient =
+            mockk(relaxed = true) {
+                every { isLive } returns true
+            }
         val driver = SocketDriver(socketClient, mockk())
 
         driver.reset()
@@ -31,9 +31,10 @@ class SocketDriverTest {
 
     @Test
     fun `When resetting the connection, do not close it if it's not alive`() {
-        val socketClient: SocketClient = mockk(relaxed = true) {
-            every { isLive } returns false
-        }
+        val socketClient: SocketClient =
+            mockk(relaxed = true) {
+                every { isLive } returns false
+            }
         val driver = SocketDriver(socketClient, mockk())
 
         driver.reset()
@@ -79,41 +80,48 @@ class SocketDriverTest {
     }
 
     @Test
-    fun `When connecting to the client, listen for connection messages`() = runTest {
-        val socketClient: SocketClient = mockk(relaxed = true) {
-            every { connect() } returns flowOf("CONNECTED")
+    fun `When connecting to the client, listen for connection messages`() =
+        runTest {
+            val socketClient: SocketClient =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf("CONNECTED")
+                }
+
+            val driver = SocketDriver(socketClient, mockk())
+
+            assertThat(driver.connect().first()).isEqualTo(SocketEvent.Connected)
         }
-
-        val driver = SocketDriver(socketClient, mockk())
-
-        assertThat(driver.connect().first()).isEqualTo(SocketEvent.Connected)
-    }
 
     @Test
-    fun `When connecting to the client, listen for disconnection messages`() = runTest {
-        val socketClient: SocketClient = mockk(relaxed = true) {
-            every { connect() } returns flowOf("DISCONNECTED")
+    fun `When connecting to the client, listen for disconnection messages`() =
+        runTest {
+            val socketClient: SocketClient =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf("DISCONNECTED")
+                }
+
+            val driver = SocketDriver(socketClient, mockk())
+
+            assertThat(driver.connect().first()).isEqualTo(SocketEvent.Disconnected)
         }
-
-        val driver = SocketDriver(socketClient, mockk())
-
-        assertThat(driver.connect().first()).isEqualTo(SocketEvent.Disconnected)
-    }
 
     @Test
-    fun `When connecting to the client, listen for content messages`() = runTest {
-        val commandEntry: CommandEntry = mockk()
-        val content = listOf("abc")
-        val aggregator: SocketResponseAggregator = mockk(relaxed = true) {
-            every { readyToDeliver() } returns listOf(Pair(commandEntry, content))
-        }
-        val socketClient: SocketClient = mockk(relaxed = true) {
-            every { connect() } returns flowOf("anything")
-        }
+    fun `When connecting to the client, listen for content messages`() =
+        runTest {
+            val commandEntry: CommandEntry = mockk()
+            val content = listOf("abc")
+            val aggregator: SocketResponseAggregator =
+                mockk(relaxed = true) {
+                    every { readyToDeliver() } returns listOf(Pair(commandEntry, content))
+                }
+            val socketClient: SocketClient =
+                mockk(relaxed = true) {
+                    every { connect() } returns flowOf("anything")
+                }
 
-        val driver = SocketDriver(socketClient, aggregator)
+            val driver = SocketDriver(socketClient, aggregator)
 
-        assertThat(driver.connect().first())
-            .isEqualTo(SocketEvent.Message(commandEntry, content))
-    }
+            assertThat(driver.connect().first())
+                .isEqualTo(SocketEvent.Message(commandEntry, content))
+        }
 }

@@ -13,7 +13,11 @@ class PendingIntentsMiddleware(
     pluginName: String,
     private val executor: CommandExecutor,
 ) : PluginMiddleware(pluginName) {
-    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    override suspend fun asyncProcess(
+        action: IAction,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
         when (action) {
             is Action.StartPlugin,
             PendingIntentsPlugin.Actions.List,

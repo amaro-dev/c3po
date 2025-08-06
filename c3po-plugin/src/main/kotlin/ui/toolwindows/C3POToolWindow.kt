@@ -8,16 +8,17 @@ import kotlinx.coroutines.*
 import services.PluginCommandExecutor
 import ui.panels.ActivitiesPanel
 import ui.panels.PackagesPanel
-import javax.swing.*
 import java.awt.BorderLayout
+import javax.swing.*
 
 /**
  * Main tool window for C3PO Android Explorer.
  * Simplified to work with Android Studio's built-in device management.
  * No custom device selector - relies on Android Studio's device infrastructure.
  */
-class C3POToolWindow(private val project: Project) {
-
+class C3POToolWindow(
+    private val project: Project,
+) {
     companion object {
         private val LOG = Logger.getInstance(C3POToolWindow::class.java)
     }
@@ -35,9 +36,7 @@ class C3POToolWindow(private val project: Project) {
     private var selectedDeviceId: String? = null
     private var monitorJob: Job? = null
 
-    fun getContent(): JComponent {
-        return createMainPanel()
-    }
+    fun getContent(): JComponent = createMainPanel()
 
     private fun createMainPanel(): JPanel {
         val mainPanel = JPanel(BorderLayout())
@@ -57,23 +56,24 @@ class C3POToolWindow(private val project: Project) {
         refreshAllData()
 
         // Start background job to watch for device selection changes every 2 seconds
-        monitorJob = scope.launch {
-            while (isActive) {
-                try {
-                    val devices = commandExecutor.getConnectedDevices()
-                    val currentId = devices.firstOrNull()?.id
-                    if (currentId != selectedDeviceId) {
-                        SwingUtilities.invokeLater {
-                            debugLabel.text = "Debug: Device changed, refreshing..."
+        monitorJob =
+            scope.launch {
+                while (isActive) {
+                    try {
+                        val devices = commandExecutor.getConnectedDevices()
+                        val currentId = devices.firstOrNull()?.id
+                        if (currentId != selectedDeviceId) {
+                            SwingUtilities.invokeLater {
+                                debugLabel.text = "Debug: Device changed, refreshing..."
+                            }
+                            refreshAllData()
                         }
-                        refreshAllData()
+                    } catch (e: Exception) {
+                        LOG.warn("Device monitor error", e)
                     }
-                } catch (e: Exception) {
-                    LOG.warn("Device monitor error", e)
+                    delay(2000)
                 }
-                delay(2000)
             }
-        }
 
         return mainPanel
     }

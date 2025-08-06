@@ -43,7 +43,11 @@ fun Report(reportData: AndroidPackageReport) {
         RowInfo("SHA256 digest:", reportData.signature.sha256Digest)
         RowInfo("SHA1 digest:", reportData.signature.sha1Digest)
         RowInfo("MD5 digest:", reportData.signature.md5Digest)
-        RowInfo("Is Debug:", reportData.signature.signer.isDebug.toString())
+        RowInfo(
+            "Is Debug:",
+            reportData.signature.signer.isDebug
+                .toString(),
+        )
 
         if (!reportData.signature.signer.isDebug) {
             RowInfo("Organization:", reportData.signature.signer.organization ?: "Not found")

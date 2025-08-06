@@ -62,13 +62,13 @@ fun DeviceAttrRow(
             { onAction(Action.CopyText(value ?: Texts.EMPTY)) },
             Modifier.align(Alignment.CenterEnd),
             slideInHorizontallyFromRight(),
-            slideOutHorizontallyToRight()
+            slideOutHorizontallyToRight(),
         )
         CopyButton(
             isHoveringAttr,
             { isHoveringAttr = it },
             { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) },
-            Modifier.align(Alignment.CenterStart)
+            Modifier.align(Alignment.CenterStart),
         )
     }
 }

@@ -22,37 +22,38 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
-val FacadeModule = module {
+val FacadeModule =
+    module {
 
-    single {
-        CoroutineScope(Dispatchers.IO)
-    }
+        single {
+            CoroutineScope(Dispatchers.IO)
+        }
 
-    single<File>(named(RESOURCES_PATH_DEPENDENCY)) {
-        if (Settings.isDebug()) {
-            File(Paths.get("build/resources/main").absolutePathString())
-        } else {
-            File(Settings.productionSettingsFolder()).apply {
-                if (!exists()) Files.createDirectory(toPath())
+        single<File>(named(RESOURCES_PATH_DEPENDENCY)) {
+            if (Settings.isDebug()) {
+                File(Paths.get("build/resources/main").absolutePathString())
+            } else {
+                File(Settings.productionSettingsFolder()).apply {
+                    if (!exists()) Files.createDirectory(toPath())
+                }
             }
         }
+
+        single { SocketResponseAggregator() }
+
+        single { SocketDriver(get(), get()) }
+
+        single { SocketClient() }
+
+        single { CommandExecutor() }
+
+        factory { SignatureExtractor() }
+
+        factory<SettingsRepository> {
+            SettingsRepositoryImpl(get(named(RESOURCES_PATH_DEPENDENCY)), Settings.FILE_NAME)
+        }
+
+        factory<CompanionCommander> { CompanionCommanderImpl(get(), get(named(RESOURCES_PATH_DEPENDENCY))) }
+
+        factory<Clipboard> { Toolkit.getDefaultToolkit().systemClipboard }
     }
-
-    single { SocketResponseAggregator() }
-
-    single { SocketDriver(get(), get()) }
-
-    single { SocketClient() }
-
-    single { CommandExecutor() }
-
-    factory { SignatureExtractor() }
-
-    factory<SettingsRepository> {
-        SettingsRepositoryImpl(get(named(RESOURCES_PATH_DEPENDENCY)), Settings.FILE_NAME)
-    }
-
-    factory<CompanionCommander> { CompanionCommanderImpl(get(), get(named(RESOURCES_PATH_DEPENDENCY))) }
-
-    factory<Clipboard> { Toolkit.getDefaultToolkit().systemClipboard }
-}

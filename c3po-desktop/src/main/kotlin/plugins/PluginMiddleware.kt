@@ -9,11 +9,10 @@ import dev.amaro.sonic.AsyncMiddlewareBase
 abstract class PluginMiddleware(
     protected val pluginName: String,
 ) : AsyncMiddlewareBase<AppState>() {
-
     protected suspend fun <T> execute(
         command: AdbCommand<T>,
         state: AppState,
-        executor: CommandExecutor
+        executor: CommandExecutor,
     ): Result<T> {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
         return state.currentDevice?.run {

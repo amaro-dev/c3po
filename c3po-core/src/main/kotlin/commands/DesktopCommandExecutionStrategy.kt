@@ -7,7 +7,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import models.AdbDevice
-import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -15,24 +14,27 @@ import java.util.concurrent.TimeoutException
  * Command execution strategy for desktop applications using ProcessBuilder and external ADB binary.
  */
 class DesktopCommandExecutionStrategy(
-    private val adbPath: String
+    private val adbPath: String,
 ) : CommandExecutionStrategy {
-
     private fun debug(message: String) {
         println("[DesktopCommandExecutionStrategy] $message")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun executeCommand(device: AdbDevice, commandSpec: CommandSpec): Result<String> {
+    override suspend fun executeCommand(
+        device: AdbDevice,
+        commandSpec: CommandSpec,
+    ): Result<String> {
         val fullCommand = buildCommand(device, commandSpec)
         debug("Desktop Command: '${fullCommand.joinToString(" ")}'")
 
         return withContext(Dispatchers.IO) {
             try {
                 debug("Will start command")
-                val process = ProcessBuilder()
-                    .command(*fullCommand)
-                    .start()
+                val process =
+                    ProcessBuilder()
+                        .command(*fullCommand)
+                        .start()
                 debug("Command started")
 
                 val response = async { process.inputReader().readText().trim() }
@@ -68,7 +70,10 @@ class DesktopCommandExecutionStrategy(
         }
     }
 
-    private fun buildCommand(device: AdbDevice, commandSpec: CommandSpec): Array<String> {
+    private fun buildCommand(
+        device: AdbDevice,
+        commandSpec: CommandSpec,
+    ): Array<String> {
         val deviceDirective = "-s ${device.id}"
 
         return when (commandSpec.executionType) {
@@ -79,7 +84,8 @@ class DesktopCommandExecutionStrategy(
             CommandExecutionType.SHELL_COMMAND,
             CommandExecutionType.PACKAGE_MANAGER,
             CommandExecutionType.ACTIVITY_MANAGER,
-            CommandExecutionType.SYSTEM_DUMP -> {
+            CommandExecutionType.SYSTEM_DUMP,
+                -> {
                 // Shell commands: adb -s device_id shell command
                 arrayOf(adbPath, deviceDirective, "shell", *commandSpec.baseCommand.split(" ").toTypedArray())
             }

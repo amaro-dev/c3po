@@ -5,21 +5,22 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import kotlinx.coroutines.*
-import models.AdbDevice
 import models.ActivityInfo
+import models.AdbDevice
 import services.PluginCommandExecutor
-import javax.swing.*
-import javax.swing.table.AbstractTableModel
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.*
+import javax.swing.table.AbstractTableModel
 
 /**
  * Panel displaying activities from all connected devices.
  * Simplified to work with Android Studio's device management.
  */
-class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
-
+class ActivitiesPanel(
+    private val commandExecutor: PluginCommandExecutor,
+) {
     companion object {
         private val LOG = Logger.getInstance(ActivitiesPanel::class.java)
     }
@@ -51,13 +52,15 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
         activitiesTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 
         // Double-click to launch activity
-        activitiesTable.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
-                if (e.clickCount == 2) {
-                    launchSelectedActivity()
+        activitiesTable.addMouseListener(
+            object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent) {
+                    if (e.clickCount == 2) {
+                        launchSelectedActivity()
+                    }
                 }
-            }
-        })
+            },
+        )
 
         // Set column widths
         val columnModel = activitiesTable.columnModel
@@ -149,11 +152,12 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
                     val success = commandExecutor.startActivity(device, activity.packageName, activity.activityPath)
 
                     SwingUtilities.invokeLater {
-                        statusLabel.text = if (success) {
-                            "Activity launched successfully on ${device.name}"
-                        } else {
-                            "Failed to launch activity on ${device.name}"
-                        }
+                        statusLabel.text =
+                            if (success) {
+                                "Activity launched successfully on ${device.name}"
+                            } else {
+                                "Failed to launch activity on ${device.name}"
+                            }
                     }
                 } catch (e: Exception) {
                     LOG.error("Failed to launch activity", e)
@@ -170,7 +174,7 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
      */
     private data class ActivityWithDevice(
         val device: AdbDevice,
-        val activity: ActivityInfo
+        val activity: ActivityInfo,
     )
 
     /**
@@ -181,10 +185,15 @@ class ActivitiesPanel(private val commandExecutor: PluginCommandExecutor) {
         private val columnNames = arrayOf("Package", "Activity")
 
         override fun getRowCount(): Int = activities.size
+
         override fun getColumnCount(): Int = columnNames.size
+
         override fun getColumnName(column: Int): String = columnNames[column]
 
-        override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
+        override fun getValueAt(
+            rowIndex: Int,
+            columnIndex: Int,
+        ): Any {
             val activityWithDevice = activities[rowIndex]
             return when (columnIndex) {
                 0 -> activityWithDevice.activity.packageName
