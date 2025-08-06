@@ -63,7 +63,7 @@ val AppModule =
 
         single { ScriptStorage() }
 
-        single { AutomationMiddleware("AUTOMATION", get()) }
+        single { AutomationMiddleware("AUTOMATION", get(), get()) }
 
         single {
             AppStateManager(

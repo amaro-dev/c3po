@@ -106,7 +106,6 @@ class AppReducer : IReducer<AppState> {
 
                 else -> currentState
             }
-//        println("New State: $state")
         return state
     }
 }
