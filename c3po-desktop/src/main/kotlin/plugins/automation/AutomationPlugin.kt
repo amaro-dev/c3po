@@ -587,47 +587,116 @@ private fun ApkPickerDialog(
 ) {
     var filePath by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select APK File") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = filePath,
-                    onValueChange = { filePath = it },
-                    label = { Text("APK file path") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("/path/to/your/app.apk") },
-                )
+    // File picker launcher
+    LaunchedEffect(Unit) {
+        try {
+            val fileDialog = java.awt.FileDialog(null as java.awt.Frame?, "Select APK File", java.awt.FileDialog.LOAD)
+            fileDialog.setFilenameFilter { _, name ->
+                name.lowercase().endsWith(".apk")
+            }
+            fileDialog.isVisible = true
 
-                Spacer(modifier = Modifier.height(8.dp))
+            val selectedFile = fileDialog.file
+            val selectedDir = fileDialog.directory
 
-                Text(
-                    text = "Enter the full path to your APK file. The file will be copied to the script folder.",
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
-                )
+            if (selectedFile != null && selectedDir != null) {
+                filePath = "$selectedDir$selectedFile"
+            } else {
+                // User cancelled the dialog
+                onDismiss()
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (filePath.isNotBlank()) {
-                        onApkSelected(filePath)
-                    }
-                },
-                enabled = filePath.isNotBlank()
-            ) {
-                Text("Select")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+        } catch (e: Exception) {
+            // Fallback to manual input if file dialog fails
+            filePath = ""
         }
-    )
+    }
+
+    if (filePath.isNotEmpty()) {
+        // Show confirmation dialog with selected file
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Confirm APK Selection") },
+            text = {
+                Column {
+                    Text(
+                        text = "Selected APK file:",
+                        style = MaterialTheme.typography.subtitle2,
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = filePath,
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.primary,
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "The file will be copied to the script folder.",
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onApkSelected(filePath) }
+                ) {
+                    Text("Use This File")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    } else {
+        // Fallback manual input dialog
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Select APK File") },
+            text = {
+                Column {
+                    Text(
+                        text = "File picker unavailable. Please enter the path manually:",
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = filePath,
+                        onValueChange = { filePath = it },
+                        label = { Text("APK file path") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("/path/to/your/app.apk") },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (filePath.isNotBlank()) {
+                            onApkSelected(filePath)
+                        }
+                    },
+                    enabled = filePath.isNotBlank()
+                ) {
+                    Text("Select")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 private fun getStepDisplayName(step: ScriptStep): String =
