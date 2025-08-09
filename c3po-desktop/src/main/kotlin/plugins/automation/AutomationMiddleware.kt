@@ -6,10 +6,15 @@ import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
-import models.Script
-import models.ScriptStep
-import models.ScriptStepType
 import plugins.PluginMiddleware
+import plugins.automation.data.AutomationState
+import plugins.automation.data.Script
+import plugins.automation.data.ScriptStep
+import plugins.automation.data.ScriptStepType
+import plugins.automation.data.ScriptStorage
+import plugins.automation.middleware.closeAllDialogs
+import plugins.automation.middleware.deliver
+import plugins.automation.middleware.updateScriptStep
 
 class AutomationMiddleware(
     pluginName: String,
@@ -32,7 +37,7 @@ class AutomationMiddleware(
                 if (currentState.availablePackages.isEmpty() && currentState.availableActivities.isEmpty()) {
                     // Load initial state
                     val initialState = AutomationState()
-                    processor.reduce(Action.DeliverPluginResult(pluginName, listOf(initialState)))
+                    processor.deliver(pluginName, initialState)
 
                     // Preload packages and activities together to avoid state conflicts
                     var packagesLoaded: List<models.AppPackage>? = null
@@ -80,14 +85,14 @@ class AutomationMiddleware(
                         isCreatingScript = true,
                         currentScript = Script(name = "", version = "1.0", formatVersion = "1.0"),
                     )
-                processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.SetScriptName -> {
                 val currentState = getCurrentState(state)
                 val updatedScript = currentState.currentScript?.copy(name = action.name)
                 val newState = currentState.copy(currentScript = updatedScript)
-                processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.AddStep -> {
@@ -99,7 +104,7 @@ class AutomationMiddleware(
                 val updatedScript = currentScript.copy(steps = updatedSteps)
                 val newState = currentState.copy(currentScript = updatedScript)
 
-                processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.RemoveStep -> {
@@ -110,7 +115,7 @@ class AutomationMiddleware(
                 val updatedScript = currentScript.copy(steps = updatedSteps)
                 val newState = currentState.copy(currentScript = updatedScript)
 
-                processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.SaveScript -> {
@@ -194,13 +199,8 @@ class AutomationMiddleware(
 
             is AutomationPlugin.Actions.CancelStepEdit -> {
                 val currentState = getCurrentState(state)
-                val newState = currentState.copy(
-                    editingStepIndex = null,
-                    showPackageSelector = false,
-                    showActivitySelector = false,
-                    showApkPicker = false
-                )
-                processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                val newState = closeAllDialogs(currentState)
+                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.ConfigureInstallApk -> {
@@ -212,10 +212,7 @@ class AutomationMiddleware(
                 val relativePath = scriptStorage.copyApkToScriptFolder(action.apkPath, currentScript.name)
 
                 val updatedStep = ScriptStep.InstallApk(apkPath = relativePath)
-                val updatedSteps = currentScript.steps.toMutableList().apply {
-                    set(stepIndex, updatedStep)
-                }
-                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val updatedScript = updateScriptStep(currentScript, stepIndex, updatedStep)
 
                 val newState = currentState.copy(
                     currentScript = updatedScript,
@@ -232,10 +229,7 @@ class AutomationMiddleware(
                 val stepIndex = action.index
 
                 val updatedStep = ScriptStep.RemovePackage(packageName = action.packageName)
-                val updatedSteps = currentScript.steps.toMutableList().apply {
-                    set(stepIndex, updatedStep)
-                }
-                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val updatedScript = updateScriptStep(currentScript, stepIndex, updatedStep)
 
                 val newState = currentState.copy(
                     currentScript = updatedScript,
@@ -255,10 +249,7 @@ class AutomationMiddleware(
                     packageName = action.packageName,
                     activityName = action.activityName
                 )
-                val updatedSteps = currentScript.steps.toMutableList().apply {
-                    set(stepIndex, updatedStep)
-                }
-                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val updatedScript = updateScriptStep(currentScript, stepIndex, updatedStep)
 
                 val newState = currentState.copy(
                     currentScript = updatedScript,
@@ -275,10 +266,7 @@ class AutomationMiddleware(
                 val stepIndex = action.index
 
                 val updatedStep = ScriptStep.ClearData(packageName = action.packageName)
-                val updatedSteps = currentScript.steps.toMutableList().apply {
-                    set(stepIndex, updatedStep)
-                }
-                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val updatedScript = updateScriptStep(currentScript, stepIndex, updatedStep)
 
                 val newState = currentState.copy(
                     currentScript = updatedScript,

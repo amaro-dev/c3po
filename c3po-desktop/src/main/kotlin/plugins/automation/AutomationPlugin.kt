@@ -40,11 +40,12 @@ import androidx.compose.ui.unit.dp
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
-import models.Script
-import models.ScriptStep
-import models.ScriptStepType
 import models.WindowResult
 import plugins.Plugin
+import plugins.automation.data.AutomationState
+import plugins.automation.data.Script
+import plugins.automation.data.ScriptStep
+import plugins.automation.data.ScriptStepType
 import ui.OnAction
 
 class AutomationPlugin(
@@ -311,7 +312,10 @@ private fun ScriptCreationUI(
                 OutlinedButton(
                     onClick = { onAction(AutomationPlugin.Actions.CancelScript) },
                 ) {
-                    Text("Cancel")
+                    Text(
+                        "Cancel",
+                        color = MaterialTheme.colors.onSurface
+                    )
                 }
 
                 Button(
@@ -381,16 +385,13 @@ private fun StepItem(
                     modifier =
                         Modifier
                             .size(32.dp)
-                            .background(
-                                MaterialTheme.colors.primary.copy(alpha = 0.1f),
-                                CircleShape,
-                            ),
+                            .background(MaterialTheme.colors.primary.copy(alpha = 0.2f), CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = "${index + 1}",
                         style = MaterialTheme.typography.subtitle2,
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colors.onPrimary,
                     )
                 }
 

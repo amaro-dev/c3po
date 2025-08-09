@@ -1,8 +1,6 @@
-package plugins.automation
+package plugins.automation.data
 
 import Settings
-import plugins.automation.data.Script
-import plugins.automation.data.ScriptStep
 import java.io.File
 
 /**

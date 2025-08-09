@@ -21,12 +21,12 @@ import plugins.activities.ActivitiesPlugin
 import plugins.attrs.DeviceAttrsPlugin
 import plugins.automation.AutomationMiddleware
 import plugins.automation.AutomationPlugin
-import plugins.automation.ScriptStorage
 import plugins.intents.pending.PendingIntentsPlugin
 import plugins.packages.PackagesPlugin
 import plugins.permissions.PermissionsPlugin
 import plugins.services.ServicesPlugin
 import plugins.signature.SignaturePlugin
+import plugins.automation.data.ScriptStorage as AutomationDataScriptStorage
 
 val AppModule =
     module {
@@ -61,7 +61,7 @@ val AppModule =
             )
         }
 
-        single { ScriptStorage() }
+        single { AutomationDataScriptStorage() }
 
         single { AutomationMiddleware("AUTOMATION", get(), get()) }
 
