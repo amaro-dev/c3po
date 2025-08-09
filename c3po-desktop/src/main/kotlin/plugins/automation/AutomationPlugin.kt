@@ -1,5 +1,6 @@
 package plugins.automation
 
+import Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
@@ -57,6 +59,9 @@ class AutomationPlugin(
 
     sealed interface Actions : IAction {
         object CreateNewScript : Actions
+        object OpenScript : Actions
+        data class ScriptFolderChosen(val folderPath: String) : Actions
+        object DismissOpenScriptError : Actions
 
         data class SetScriptName(
             val name: String,
@@ -139,7 +144,7 @@ class AutomationPlugin(
                 }
 
                 Button(
-                    onClick = { onAction(Actions.LoadScripts) },
+                    onClick = { onAction(Actions.OpenScript) },
                     enabled = !state.isCreatingScript,
                 ) {
                     Text("Open Script")
@@ -208,6 +213,37 @@ class AutomationPlugin(
                     onAction(Actions.ConfigureInstallApk(stepIndex, apkPath))
                 },
                 onDismiss = { onAction(Actions.CancelStepEdit) }
+            )
+        }
+
+        // Native folder picker for opening a script (MVP)
+        if (state.showOpenScriptPicker) {
+            val initialDir = try {
+                val base =
+                    if (Settings.isDebug()) java.io.File(".") else java.io.File(Settings.productionSettingsFolder())
+                java.io.File(base, "scripts").absolutePath
+            } catch (_: Exception) {
+                java.io.File("./scripts").absolutePath
+            }
+            NativeFolderPicker(
+                initialDirectory = initialDir,
+                onFolderChosen = { folder -> onAction(Actions.ScriptFolderChosen(folder)) },
+                onDismiss = { onAction(Actions.CancelStepEdit) }
+            )
+        }
+
+        // Error dialog for malformed script
+        state.openScriptError?.let { message ->
+            AlertDialog(
+                onDismissRequest = { onAction(Actions.DismissOpenScriptError) },
+                title = { Text("Open Script Error") },
+                text = { Text(message) },
+                confirmButton = {
+                    TextButton(
+                        onClick = { onAction(Actions.DismissOpenScriptError) },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                    ) { Text("OK") }
+                },
             )
         }
     }
@@ -629,7 +665,7 @@ private fun ApkPickerDialog(
                     Text(
                         text = filePath,
                         style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colors.onSurface,
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -643,13 +679,17 @@ private fun ApkPickerDialog(
             },
             confirmButton = {
                 TextButton(
-                    onClick = { onApkSelected(filePath) }
+                    onClick = { onApkSelected(filePath) },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
                 ) {
                     Text("Use This File")
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                ) {
                     Text("Cancel")
                 }
             }
@@ -686,17 +726,67 @@ private fun ApkPickerDialog(
                             onApkSelected(filePath)
                         }
                     },
-                    enabled = filePath.isNotBlank()
+                    enabled = filePath.isNotBlank(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
                 ) {
                     Text("Select")
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                ) {
                     Text("Cancel")
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun NativeFolderPicker(
+    initialDirectory: String,
+    onFolderChosen: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    LaunchedEffect(Unit) {
+        try {
+            // Temporarily enable directory selection on macOS
+            val key = "apple.awt.fileDialogForDirectories"
+            val previous = try {
+                System.getProperty(key)
+            } catch (_: Exception) {
+                null
+            }
+            try {
+                try {
+                    System.setProperty(key, "true")
+                } catch (_: Exception) {
+                }
+
+                val chooser =
+                    java.awt.FileDialog(null as java.awt.Frame?, "Select Script Folder", java.awt.FileDialog.LOAD)
+                chooser.isMultipleMode = false
+                chooser.directory = initialDirectory
+                chooser.isVisible = true
+
+                val selectedPath = if (chooser.file != null) {
+                    java.io.File(chooser.directory, chooser.file).absolutePath
+                } else {
+                    null
+                }
+
+                if (selectedPath != null) onFolderChosen(selectedPath) else onDismiss()
+            } finally {
+                try {
+                    if (previous == null) System.clearProperty(key) else System.setProperty(key, previous)
+                } catch (_: Exception) {
+                }
+            }
+        } catch (e: Exception) {
+            onDismiss()
+        }
     }
 }
 

@@ -10,4 +10,7 @@ data class AutomationState(
     val showPackageSelector: Boolean = false,
     val showActivitySelector: Boolean = false,
     val showApkPicker: Boolean = false,
+    val showOpenScriptPicker: Boolean = false,
+    val openScriptError: String? = null,
+    val malformedScriptFolderPath: String? = null,
 )

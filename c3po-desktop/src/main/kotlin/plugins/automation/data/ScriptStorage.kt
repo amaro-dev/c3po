@@ -35,6 +35,70 @@ class ScriptStorage {
         scriptFile.writeText(yamlContent)
     }
 
+    fun loadScriptFromFolder(folderPath: String): Script {
+        val folder = File(folderPath)
+        val file = File(folder, "script.c3po")
+        if (!file.exists()) throw IllegalArgumentException("script.c3po not found in $folderPath")
+        val yaml = file.readText()
+        return parseYamlToScript(yaml)
+    }
+
+    private fun parseYamlToScript(yaml: String): Script {
+        // Minimal parser for MVP. Replace with SnakeYAML later
+        val name = Regex("^name:\\s*\"(.*)\"", RegexOption.MULTILINE).find(yaml)?.groupValues?.get(1)
+            ?: throw IllegalArgumentException("Missing name")
+        val version = Regex("^version:\\s*\"(.*)\"", RegexOption.MULTILINE).find(yaml)?.groupValues?.get(1) ?: "1.0"
+        val format =
+            Regex("^format_version:\\s*\"(.*)\"", RegexOption.MULTILINE).find(yaml)?.groupValues?.get(1) ?: "1.0"
+
+        val steps = mutableListOf<ScriptStep>()
+        val lines = yaml.lines()
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i].trim()
+            if (line.startsWith("- type:")) {
+                val type = line.substringAfter(":").trim().trim('"')
+                when (type) {
+                    "install_apk" -> {
+                        val apk = collectValue(lines, i + 1, "apk_path")
+                        steps.add(ScriptStep.InstallApk(apkPath = apk ?: ""))
+                    }
+
+                    "remove_package" -> {
+                        val pkg = collectValue(lines, i + 1, "package_name")
+                        steps.add(ScriptStep.RemovePackage(packageName = pkg ?: ""))
+                    }
+
+                    "start_activity" -> {
+                        val pkg = collectValue(lines, i + 1, "package_name")
+                        val act = collectValue(lines, i + 1, "activity_name")
+                        steps.add(ScriptStep.StartActivity(packageName = pkg ?: "", activityName = act ?: ""))
+                    }
+
+                    "clear_data" -> {
+                        val pkg = collectValue(lines, i + 1, "package_name")
+                        steps.add(ScriptStep.ClearData(packageName = pkg ?: ""))
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("Unknown step type: $type")
+                    }
+                }
+            }
+            i++
+        }
+        return Script(name = name, version = version, formatVersion = format, steps = steps)
+    }
+
+    private fun collectValue(lines: List<String>, startIndex: Int, key: String): String? {
+        for (j in startIndex until minOf(lines.size, startIndex + 5)) {
+            val l = lines[j].trim()
+            if (l.startsWith("$key:")) return l.substringAfter(":").trim().trim('"')
+            if (l.startsWith("- ")) break
+        }
+        return null
+    }
+
     private fun generateYaml(script: Script): String {
         val sb = StringBuilder()
         sb.appendLine("name: \"${script.name}\"")

@@ -31,6 +31,44 @@ class AutomationMiddleware(
         processor: IProcessor<AppState>,
     ) {
         when (action) {
+            is AutomationPlugin.Actions.DismissOpenScriptError -> {
+                val current = getCurrentState(state)
+                processor.deliver(
+                    pluginName,
+                    current.copy(openScriptError = null, malformedScriptFolderPath = null)
+                )
+            }
+
+            is AutomationPlugin.Actions.OpenScript -> {
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.copy(showOpenScriptPicker = true))
+            }
+
+            is AutomationPlugin.Actions.ScriptFolderChosen -> {
+                val current = getCurrentState(state)
+                try {
+                    val script = scriptStorage.loadScriptFromFolder(action.folderPath)
+                    processor.deliver(
+                        pluginName,
+                        current.copy(
+                            isCreatingScript = true,
+                            currentScript = script,
+                            showOpenScriptPicker = false,
+                            openScriptError = null,
+                            malformedScriptFolderPath = null,
+                        )
+                    )
+                } catch (e: Exception) {
+                    processor.deliver(
+                        pluginName,
+                        current.copy(
+                            showOpenScriptPicker = false,
+                            openScriptError = "Cannot open script: ${e.message}",
+                            malformedScriptFolderPath = action.folderPath,
+                        )
+                    )
+                }
+            }
             is Action.StartPlugin -> {
                 // Only initialize if we don't have state already
                 val currentState = getCurrentState(state)
