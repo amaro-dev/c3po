@@ -1,0 +1,28 @@
+package commands
+
+import models.ActivityInfo
+
+class ListActivitiesCommand : AdbCommand<List<ActivityInfo>> {
+    override val command: String = "shell dumpsys package"
+
+    override fun parse(result: String): List<ActivityInfo> {
+        val lineSplitRule = Regex("\\r?\\n")
+        var content = result.trim()
+        content = content.substring(content.indexOf("Activity Resolver Table"))
+        content = content.substring(content.indexOf("Non-Data Actions:"))
+        content = content.substring(content.indexOf("android.intent.action.MAIN:"))
+        val removePrefix = Regex("\\s+\\w{3,}\\s")
+        return lineSplitRule
+            .split(content)
+            .drop(1)
+            .takeWhile { it.startsWith("      ") }
+            .filter { it.startsWith("        ") }
+            .map { removePrefix.replace(it, "") }
+            .distinct()
+            .sorted()
+            .map {
+                val (pkg, activity) = it.split('/')
+                ActivityInfo(pkg, activity)
+            }
+    }
+}

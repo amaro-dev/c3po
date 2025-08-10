@@ -1,0 +1,56 @@
+<idea-plugin>
+    <id>dev.amaro.c3po.plugin</id>
+    <name>C3PO Android Explorer</name>
+    <version>2.0.1</version>
+    <vendor email="support@amaro.dev" url="https://amaro.dev">Amaro Dev</vendor>
+
+    <description><![CDATA[
+        Android device exploration and debugging tool integrated into Android Studio.
+        Provides comprehensive package management, activity launching, service control,
+        and permission analysis directly within your development environment.
+
+        Features:
+        - Package management and lifecycle control
+        - Activity and service exploration
+        - Permission analysis and security assessment
+        - Device attribute inspection
+        - Real-time device monitoring
+        - Integration with Android development workflow
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <h3>Version 2.0.1</h3>
+        <ul>
+            <li>Initial Android Studio plugin release</li>
+            <li>Multi-module architecture with shared core</li>
+            <li>Tool window integration</li>
+            <li>Project context awareness</li>
+        </ul>
+    ]]></change-notes>
+
+    <!-- IntelliJ Platform compatibility -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.android</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Tool Window -->
+        <toolWindow id="C3PO" secondary="false" anchor="right"
+                   factoryClass="ui.toolwindows.C3POToolWindowFactory"/>
+
+        <!-- Application Service -->
+        <applicationService serviceImplementation="services.C3POApplicationService"/>
+    </extensions>
+
+    <actions>
+        <group id="C3PO.ToolbarActions" text="C3PO Actions" popup="true">
+            <action id="C3PO.RefreshDevices"
+                   class="actions.RefreshDevicesAction"
+                   text="Refresh Devices"
+                   description="Refresh connected Android devices"/>
+            <action id="C3PO.ConnectDevice"
+                   class="actions.ConnectDeviceAction"
+                   text="Connect Device"
+                   description="Connect to selected device"/>
+        </group>
+    </actions>
+</idea-plugin>
