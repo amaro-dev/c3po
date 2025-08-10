@@ -35,6 +35,8 @@ class ScriptStorage {
         scriptFile.writeText(yamlContent)
     }
 
+    fun getScriptFolder(name: String): File = File(scriptsFolder, name)
+
     fun loadScriptFromFolder(folderPath: String): Script {
         val folder = File(folderPath)
         val file = File(folder, "script.c3po")

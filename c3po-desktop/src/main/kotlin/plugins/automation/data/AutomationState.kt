@@ -13,4 +13,9 @@ data class AutomationState(
     val showOpenScriptPicker: Boolean = false,
     val openScriptError: String? = null,
     val malformedScriptFolderPath: String? = null,
+    // UC3 - running
+    val isRunning: Boolean = false,
+    val runningStepIndex: Int = -1,
+    val runLogs: List<String> = emptyList(),
+    val currentScriptFolder: String? = null,
 )

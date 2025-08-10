@@ -113,6 +113,7 @@ class AutomationPlugin(
         ) : Actions
 
         object SaveScript : Actions
+        object RunScript : Actions
 
         object CancelScript : Actions
 
@@ -216,6 +217,18 @@ class AutomationPlugin(
             )
         }
 
+        // Minimal run logs (if running)
+        if (state.isRunning && state.runLogs.isNotEmpty()) {
+            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text("Run logs:", style = MaterialTheme.typography.subtitle2)
+                    state.runLogs.takeLast(50).forEach { line ->
+                        Text(line, style = MaterialTheme.typography.caption, color = MaterialTheme.colors.onSurface)
+                    }
+                }
+            }
+        }
+
         // Native folder picker for opening a script (MVP)
         if (state.showOpenScriptPicker) {
             val initialDir = try {
@@ -301,8 +314,12 @@ private fun ScriptCreationUI(
                     style = MaterialTheme.typography.subtitle1,
                 )
 
-                // Add step dropdown
-                AddStepDropdown(onAction)
+                // Add step dropdown (disabled while running)
+                if (!state.isRunning) {
+                    AddStepDropdown(onAction)
+                } else {
+                    Text("Running...", style = MaterialTheme.typography.caption)
+                }
             }
 
             // Steps list
@@ -317,8 +334,8 @@ private fun ScriptCreationUI(
                             index = index,
                             onRemove = { onAction(AutomationPlugin.Actions.RemoveStep(index)) },
                             onEdit = {
-                                // Only allow editing if no dialogs are currently open
-                                if (!state.showPackageSelector && !state.showActivitySelector && !state.showApkPicker) {
+                                // Only allow editing if not running and no dialogs are open
+                                if (!state.isRunning && !state.showPackageSelector && !state.showActivitySelector && !state.showApkPicker) {
                                     onAction(AutomationPlugin.Actions.EditStep(index))
                                 }
                             },
@@ -345,6 +362,10 @@ private fun ScriptCreationUI(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
+                Button(
+                    onClick = { onAction(AutomationPlugin.Actions.RunScript) },
+                    enabled = state.currentScript != null && !state.isRunning,
+                ) { Text("Run") }
                 OutlinedButton(
                     onClick = { onAction(AutomationPlugin.Actions.CancelScript) },
                 ) {
@@ -356,7 +377,7 @@ private fun ScriptCreationUI(
 
                 Button(
                     onClick = { onAction(AutomationPlugin.Actions.SaveScript) },
-                    enabled = state.currentScript?.name?.isNotBlank() == true,
+                    enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning,
                 ) {
                     Text("Save Script")
                 }

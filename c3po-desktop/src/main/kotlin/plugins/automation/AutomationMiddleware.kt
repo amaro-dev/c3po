@@ -12,6 +12,7 @@ import plugins.automation.data.Script
 import plugins.automation.data.ScriptStep
 import plugins.automation.data.ScriptStepType
 import plugins.automation.data.ScriptStorage
+import plugins.automation.middleware.ScriptRunner
 import plugins.automation.middleware.closeAllDialogs
 import plugins.automation.middleware.deliver
 import plugins.automation.middleware.updateScriptStep
@@ -21,6 +22,7 @@ class AutomationMiddleware(
     private val scriptStorage: ScriptStorage,
     private val executor: CommandExecutor,
 ) : PluginMiddleware(pluginName) {
+    private val runner = ScriptRunner(pluginName)
 
     // Debounce mechanism for EditStep actions
     private var lastEditStepTime = 0L
@@ -56,6 +58,7 @@ class AutomationMiddleware(
                             showOpenScriptPicker = false,
                             openScriptError = null,
                             malformedScriptFolderPath = null,
+                            currentScriptFolder = action.folderPath,
                         )
                     )
                 } catch (e: Exception) {
@@ -68,6 +71,31 @@ class AutomationMiddleware(
                         )
                     )
                 }
+            }
+
+            is AutomationPlugin.Actions.SaveScript -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                if (currentScript.name.isBlank()) return
+                try {
+                    scriptStorage.saveScript(currentScript)
+                    val scriptFolder = scriptStorage.getScriptFolder(currentScript.name).absolutePath
+                    val newState = currentState.copy(
+                        isCreatingScript = false,
+                        currentScript = null,
+                        currentScriptFolder = scriptFolder,
+                    )
+                    processor.deliver(pluginName, newState)
+                } catch (_: Exception) {
+                }
+            }
+
+            is AutomationPlugin.Actions.RunScript -> {
+                val current = getCurrentState(state)
+                val script = current.currentScript ?: return
+                val folder = current.currentScriptFolder ?: return
+                if (!state.hasDeviceSet) return
+                runner.run(script, folder, state, processor, executor)
             }
             is Action.StartPlugin -> {
                 // Only initialize if we don't have state already
@@ -167,14 +195,13 @@ class AutomationMiddleware(
 
                 try {
                     scriptStorage.saveScript(currentScript)
-
-                    // Reset state after successful save
-                    val newState =
-                        currentState.copy(
-                            isCreatingScript = false,
-                            currentScript = null,
-                        )
-                    processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
+                    val scriptFolder = scriptStorage.getScriptFolder(currentScript.name).absolutePath
+                    val newState = currentState.copy(
+                        isCreatingScript = false,
+                        currentScript = null,
+                        currentScriptFolder = scriptFolder,
+                    )
+                    processor.deliver(pluginName, newState)
 
                     // TODO: Show success message
                 } catch (e: Exception) {
