@@ -12,7 +12,7 @@ data class CompanionState(
         const val ONLINE = 32
     }
 
-    private fun has(int: Int) = state and int == int
+    fun has(int: Int) = state and int == int
 
     fun isOnline() = has(ONLINE)
 

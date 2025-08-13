@@ -19,13 +19,13 @@ repositories {
     google()
 }
 
-sentry {
-    includeSourceContext = true
-    org = "amaro-dev"
-    projectName = "C3PO"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
-        ?: "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"
-}
+//sentry {
+//    includeSourceContext = true
+//    org = "amaro-dev"
+//    projectName = "C3PO"
+//    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+//        ?: "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"
+//}
 
 dependencies {
     // Core module dependency
@@ -40,6 +40,10 @@ dependencies {
     implementation(project.dependencies.platform("io.insert-koin:koin-bom:4.0.2"))
     implementation("io.insert-koin:koin-core")
     implementation("com.composables.ui:menu:1.4.0")
+    // Replace with JetBrains Compose Material 3 for desktop
+    implementation("org.jetbrains.compose.material3:material3-desktop:1.5.0")
+    // Jetpack Compose Material Icons for Desktop
+    implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.5.0")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))

@@ -29,9 +29,9 @@ import org.koin.core.context.stopKoin
 import ui.AppTheme
 import ui.CompanionStatus
 import ui.DeviceSelector
-import ui.MainScreen
 import ui.PluginSelector
 import ui.RunningAndroid
+import ui.NewLayout
 import ui.definitions.Dimens
 import ui.definitions.Texts
 import ui.horizontalPadding
@@ -58,49 +58,7 @@ fun main() =
                 ),
         ) {
             AppTheme {
-                MainScreen(
-                    myApp,
-                ) { state, onClick ->
-                    Row(Modifier.fillMaxWidth()) {
-                        DeviceSelector(
-                            state.devices,
-                            state.currentDevice,
-                            Modifier.weight(1f),
-                        ) { onClick(Action.SelectDevice(it)) }
-                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
-                        IconButton(onClick = { onClick(Action.RefreshDevices) }) {
-                            Icon(Icons.Filled.Refresh, Texts.EMPTY)
-                        }
-                    }
-                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp - 1.dp))
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(MaterialTheme.colors.onSurface),
-                    )
-                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
-                    Row(Modifier.horizontalPadding()) {
-                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp), contentAlignment = Alignment.CenterEnd) {
-                            CompanionStatus(state.companionState)
-                        }
-                        Spacer(Modifier.width(Dimens.HORIZONTAL_SPACER.dp))
-                        Box(Modifier.size(Dimens.ICON_SIZE_SMALL.dp)) {
-                            RunningStatus(state)
-                        }
-                    }
-                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(MaterialTheme.colors.onSurface),
-                    )
-                    Spacer(Modifier.height(Dimens.VERTICAL_SPACER.dp))
-                    if (state.currentDevice != null) {
-                        PluginSelector(myApp.plugins, state.currentPlugin, onClick)
-                    }
-                }
+                NewLayout()
             }
         }
     }

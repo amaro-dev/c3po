@@ -16,7 +16,8 @@
   - **Actions:** Selecting a device triggers device change.
 - **Refresh Devices Button:** Icon button to refresh the device list.
   - **Actions:** Clicking refreshes the list of connected devices.
-- **Companion Status Indicator/Button:** Shows current status (e.g., installed, missing) and opens the companion installation dialog.
+- **Companion Status Indicator/Button:** Shows current status and opens the companion installation dialog.
+  - **Status:** Not available, Installing, Connecting, Connected, Disconnected
   - **Actions:** Clicking opens the companion dialog.
 - **Global Feedback Area:** Displays running status (spinner) or error overlays.
 
