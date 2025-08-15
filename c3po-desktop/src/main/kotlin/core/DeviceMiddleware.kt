@@ -7,6 +7,7 @@ import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
+import plugins.device.DevicePlugin
 
 class DeviceMiddleware(
     private val executor: CommandExecutor,
@@ -20,6 +21,9 @@ class DeviceMiddleware(
 
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
+            is Action.SelectDevice -> {
+                processor.perform(Action.StartPlugin(DevicePlugin().id))
+            }
             is Action.RefreshDevices -> {
                 processor.reduce(Action.ClearDevice)
                 executor.go(ListDevicesCommand(), adbPath).handle(processor) { devices ->

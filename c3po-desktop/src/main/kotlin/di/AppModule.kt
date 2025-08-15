@@ -21,7 +21,7 @@ import plugins.activities.ActivitiesPlugin
 import plugins.attrs.DeviceAttrsPlugin
 import plugins.automation.AutomationMiddleware
 import plugins.automation.AutomationPlugin
-import plugins.intents.pending.PendingIntentsPlugin
+import plugins.device.DevicePlugin
 import plugins.packages.PackagesPlugin
 import plugins.permissions.PermissionsPlugin
 import plugins.services.ServicesPlugin
@@ -30,7 +30,7 @@ import plugins.automation.data.ScriptStorage as AutomationDataScriptStorage
 
 val AppModule =
     module {
-        factory(named(Names.MIDDLEWARE_LIST_DEPENDENCY)) {
+        factory(named(MIDDLEWARE_LIST_DEPENDENCY)) {
             arrayOf(
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))),
@@ -50,12 +50,12 @@ val AppModule =
 
         factory(named(PLUGIN_LIST_DEPENDENCY)) {
             listOf(
+                DevicePlugin(),
                 ActivitiesPlugin(get()),
                 PackagesPlugin(get()),
                 DeviceAttrsPlugin(get()),
                 ServicesPlugin(get()),
                 PermissionsPlugin(get()),
-                PendingIntentsPlugin(get()),
                 SignaturePlugin(get()),
                 AutomationPlugin(get()),
             )

@@ -1,7 +1,10 @@
 package plugins.intents.pending
 
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import commands.CommandExecutor
 import core.AppState
 import dev.amaro.sonic.IAction
@@ -21,6 +24,7 @@ class PendingIntentsPlugin(
 
     override val id: String = "PENDING_INTENT"
     override val name: String = "Pending intents"
+    override val icon: ImageVector = Icons.Filled.Send
 
     override val middleware: IMiddleware<AppState> = PendingIntentsMiddleware(id, executor)
 

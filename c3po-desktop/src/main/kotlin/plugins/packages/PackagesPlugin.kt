@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import commands.CommandExecutor
 import core.Action
@@ -26,6 +28,7 @@ import ui.definitions.Icons
 import ui.definitions.Texts
 import ui.rows.ActionableRow
 import ui.rows.RowAction
+import androidx.compose.material.icons.Icons as MaterialIcons
 
 class PackagesPlugin(
     executor: CommandExecutor,
@@ -63,7 +66,9 @@ class PackagesPlugin(
         ) : Actions
     }
 
-    override val name: String = "Installed packages"
+    override val icon: ImageVector = MaterialIcons.Filled.Inventory2
+
+    override val name: String = "Packages"
 
     override val id: String = "PACKAGES"
 

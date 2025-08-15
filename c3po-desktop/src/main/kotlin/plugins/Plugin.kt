@@ -1,6 +1,7 @@
 package plugins
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import core.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
@@ -13,6 +14,8 @@ interface Plugin<in T> {
     val id: String
 
     val name: String
+
+    val icon: ImageVector
 
     val middleware: IMiddleware<AppState>
 

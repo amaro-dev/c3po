@@ -1,50 +1,101 @@
 package ui
 
+import Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.FormatListBulleted
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material.icons.filled.Close
+import core.Action
+import core.App
+import core.CompanionState
+import dev.amaro.sonic.IAction
+import models.CommandStatus
+import plugins.Plugin
 
 @Composable
-fun NewLayout() {
-    // State for UI-related elements
-    val (selectedPlugin, setSelectedPlugin) = remember { mutableStateOf("Attributes") }
-    val (selectedDevice, setSelectedDevice) = remember { mutableStateOf<String?>("Device 1") }
-    val (isCompanionConnected, setCompanionConnected) = remember { mutableStateOf(false) }
-    val (showLoading, setShowLoading) = remember { mutableStateOf(true) } // Set to true for demo
-    val (errorMessage, setErrorMessage) = remember { mutableStateOf<String?>("Something went wrong!") } // Set for demo
-    val (showSettingsDialog, setShowSettingsDialog) = remember { mutableStateOf(true) } // Set to true for demo
-    val (showCompanionDialog, setShowCompanionDialog) = remember { mutableStateOf(true) } // Set to true for demo
+fun NewLayout(
+    app: App,
+) {
+    val state = app.listen().collectAsState(initial = core.AppState()).value
+    val onAction: OnAction = { action: IAction -> app.perform(action) }
+    val selectedDevice = state.currentDevice?.id
+    val selectedPlugin = state.currentPlugin ?: "DEVICE_ATTRS"
+    val showLoading = state.commandStatus == CommandStatus.Running
+    val errorMessage = state.errorMessage
+    val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
+    val settingsState = state.settingsState
+    var showSettingsDialog by remember { mutableStateOf(settingsState.name == "NotInitialized" || settingsState.name == "NotFound" || adbPath.isBlank()) }
 
+    // Automatically close dialog when settings are initialized
+    LaunchedEffect(settingsState) {
+        if (settingsState == models.SettingsState.Initialized) {
+            showSettingsDialog = false
+        }
+    }
     Box(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxSize()) {
-            Sidebar(selectedPlugin, setSelectedPlugin)
+            Sidebar(
+                plugins = app.plugins,
+                selectedPluginId = selectedPlugin,
+                onPluginSelected = { onAction(Action.StartPlugin(it)) }
+            )
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 TopBar(
+                    devices = state.devices,
                     selectedDevice = selectedDevice,
-                    onDeviceSelected = setSelectedDevice,
-                    isCompanionConnected = isCompanionConnected,
-                    onRefreshDevices = { /* TODO: Implement refresh logic */ },
-                    onCompanionClick = { /* TODO: Open companion dialog */ }
+                    onDeviceSelected = { id ->
+                        val device = state.devices.find { it.id == id }
+                        if (device != null && settingsState == models.SettingsState.Initialized) {
+                            onAction(Action.SelectDevice(device))
+                        }
+                    },
+                    companionState = state.companionState,
+                    onRefreshDevices = {
+                        if (settingsState == models.SettingsState.Initialized) onAction(Action.RefreshDevices)
+                    }
                 )
                 Box(
                     Modifier
@@ -52,45 +103,98 @@ fun NewLayout() {
                         .background(Color(0xFFF5F5F5)),
                     contentAlignment = Alignment.Center
                 ) {
-                    ContentArea(selectedPlugin, selectedDevice)
+                    ContentArea(
+                        plugins = app.plugins,
+                        selectedPluginId = selectedPlugin,
+                        results = state.windows,
+                        onAction = onAction
+                    )
 
                     if (showLoading) LoadingPill()
 
                     errorMessage?.let {
-                        ErrorMessage(it) { setErrorMessage(null) }
+                        ErrorMessage(it) { onAction(Action.ClearError) }
                     }
                 }
             }
         }
 
-        // Show dialogs for demonstration
         if (showSettingsDialog) {
             SettingsDialog(
-                onSave = { setShowSettingsDialog(false) },
-                onCancel = { setShowSettingsDialog(false) }
-            )
-        }
-
-        if (showCompanionDialog) {
-            CompanionDialog(
-                onInstall = { setShowCompanionDialog(false) },
-                onSkip = { setShowCompanionDialog(false) },
-                onCancel = { setShowCompanionDialog(false) }
+                initialAdbPath = adbPath,
+                onSave = { newPath ->
+                    onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newPath))
+                },
+                onCancel = { showSettingsDialog = false }
             )
         }
     }
 }
 
+
 @Composable
-fun TopBar(
-    selectedDevice: String?,
-    onDeviceSelected: (String?) -> Unit,
-    isCompanionConnected: Boolean,
-    onRefreshDevices: () -> Unit,
-    onCompanionClick: () -> Unit
+private fun Sidebar(
+    plugins: List<Plugin<*>>,
+    selectedPluginId: String,
+    onPluginSelected: (String) -> Unit
 ) {
-    // Example device list for demonstration
-    val devices = listOf("Device 1", "Device 2", "Device 3")
+    Column(
+        Modifier.width(120.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(20.dp))
+        plugins.forEach { plugin ->
+            val isSelected = plugin.id == selectedPluginId
+            val background = if (isSelected) Color(0xFF4A4E69).copy(alpha = 0.5f) else Color.Transparent
+            val shape = MaterialTheme.shapes.large.copy(all = androidx.compose.foundation.shape.CornerSize(20.dp))
+            val horizontalPadding = 12.dp // Increased margin
+            val verticalPadding = 8.dp
+            val internalPadding = if (isSelected) PaddingValues(horizontal = 0.dp, vertical = 4.dp) else PaddingValues(
+                horizontal = 12.dp,
+                vertical = 8.dp
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+                    .height(72.dp)
+                    .background(background, shape = shape)
+                    .clickable { onPluginSelected(plugin.id) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(internalPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = plugin.icon,
+                        contentDescription = plugin.name,
+                        modifier = Modifier.size(32.dp),
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        plugin.name,
+                        color = Color.White,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                    )
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+        }
+    }
+}
+
+@Composable
+private fun TopBar(
+    devices: List<models.AdbDevice>,
+    selectedDevice: String?,
+    onDeviceSelected: (String) -> Unit,
+    companionState: CompanionState,
+    onRefreshDevices: () -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Surface(color = Color(0xFFEEEEEE), shadowElevation = 4.dp) {
@@ -107,7 +211,8 @@ fun TopBar(
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.height(40.dp)
                 ) {
-                    Text(selectedDevice ?: "No device", color = Color(0xFF22223B))
+                    val selectedName = devices.find { it.id == selectedDevice }?.name ?: "No device"
+                    Text(selectedName, color = Color(0xFF22223B))
                     Spacer(Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.Filled.ArrowDropDown,
@@ -122,9 +227,9 @@ fun TopBar(
                 ) {
                     devices.forEach { device ->
                         DropdownMenuItem(
-                            text = { Text(device) },
+                            text = { Text(device.name) },
                             onClick = {
-                                onDeviceSelected(device)
+                                onDeviceSelected(device.id)
                                 expanded = false
                             }
                         )
@@ -136,12 +241,32 @@ fun TopBar(
                 Icon(imageVector = Icons.Filled.Refresh, contentDescription = "Refresh")
             }
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = { onCompanionClick() }) {
-                Icon(
-                    imageVector = if (isCompanionConnected) Icons.Filled.VerifiedUser else Icons.Filled.Error,
-                    contentDescription = if (isCompanionConnected) "Companion Connected" else "Companion Disconnected",
-                    tint = if (isCompanionConnected) Color(0xFF4CAF50) else Color(0xFFE07A5F)
+            // Companion status indicator
+            val (icon, color, statusText) = when {
+                !companionState.has(CompanionState.INSTALLED) -> Triple(
+                    Icons.Filled.Error,
+                    Color(0xFFE07A5F),
+                    "Unavailable"
                 )
+
+                companionState.has(CompanionState.INSTALLED) && !companionState.has(CompanionState.ONLINE) -> Triple(
+                    Icons.Filled.Devices,
+                    Color(0xFF2196F3),
+                    "Connecting"
+                )
+
+                companionState.has(CompanionState.ONLINE) -> Triple(
+                    Icons.Filled.VerifiedUser,
+                    Color(0xFF4CAF50),
+                    "Connected"
+                )
+
+                else -> Triple(Icons.Filled.Error, Color(0xFFE07A5F), "Unavailable")
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = statusText, tint = color, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(statusText, color = color, style = MaterialTheme.typography.bodyMedium)
             }
             Spacer(Modifier.width(8.dp))
         }
@@ -149,75 +274,25 @@ fun TopBar(
 }
 
 @Composable
-fun Sidebar(selectedPlugin: String, onPluginSelected: (String) -> Unit) {
-    data class Plugin(val name: String, val icon: ImageVector, val label: String)
-    val plugins = listOf(
-        Plugin("Attributes", Icons.Filled.FormatListBulleted, "Attributes"),
-        Plugin("Activities", Icons.Filled.Android, "Activities"),
-        Plugin("Packages", Icons.Filled.Inventory2, "Packages"),
-        Plugin("Services", Icons.Filled.Dns, "Services"),
-        Plugin("Permissions", Icons.Filled.VerifiedUser, "Permissions"),
-        Plugin("Signature", Icons.Filled.Key, "Signature"),
-        Plugin("Automation", Icons.Filled.Settings, "Automation")
-    )
-    Column(
-        Modifier.width(120.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(32.dp))
-        plugins.forEach { plugin ->
-            val isSelected = plugin.name == selectedPlugin
-            val background = if (isSelected) Color(0xFF4A4E69).copy(alpha = 0.5f) else Color.Transparent
-            val shape = MaterialTheme.shapes.large.copy(all = androidx.compose.foundation.shape.CornerSize(24.dp))
-            val horizontalPadding = 16.dp // Increased margin
-            val verticalPadding = 8.dp
-            val internalPadding = if (isSelected) PaddingValues(horizontal = 0.dp, vertical = 4.dp) else PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = verticalPadding)
-                    .height(72.dp)
-                    .background(background, shape = shape)
-                    .clickable { onPluginSelected(plugin.name) },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(internalPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = plugin.icon,
-                        contentDescription = plugin.label,
-                        modifier = Modifier.size(32.dp),
-                        tint = Color.White
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        plugin.label,
-                        color = Color.White,
-                        fontSize = MaterialTheme.typography.labelSmall.fontSize
-                    )
-                }
-            }
-            Spacer(Modifier.height(8.dp))
+private fun ContentArea(
+    plugins: List<Plugin<*>>,
+    selectedPluginId: String,
+    results: Map<String, models.WindowResult<*>>,
+    onAction: OnAction
+) {
+    val selectedPlugin: Plugin<*>? = plugins.find { it.id == selectedPluginId }
+
+    if (selectedPlugin != null) {
+        (selectedPlugin as Plugin<*>?)?.render(results, onAction)
+    } else {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("No plugin selected", style = MaterialTheme.typography.headlineMedium)
         }
     }
 }
 
 @Composable
-fun ContentArea(selectedPlugin: String, selectedDevice: String?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Content Area", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(16.dp))
-        Text("Selected Plugin: $selectedPlugin")
-        Text("Selected Device: ${selectedDevice ?: "None"}")
-    }
-}
-
-@Composable
-fun LoadingPill() {
+private fun LoadingPill() {
     Box(
         Modifier
             .fillMaxSize(),
@@ -252,7 +327,7 @@ fun LoadingPill() {
 }
 
 @Composable
-fun ErrorMessage(message: String, onDismiss: () -> Unit) {
+private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize(),
@@ -299,8 +374,8 @@ fun ErrorMessage(message: String, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun SettingsDialog(onSave: (String) -> Unit, onCancel: () -> Unit) {
-    var adbPath by remember { mutableStateOf("") }
+private fun SettingsDialog(initialAdbPath: String, onSave: (String) -> Unit, onCancel: () -> Unit) {
+    var adbPath by remember { mutableStateOf(initialAdbPath) }
     Box(
         Modifier
             .fillMaxSize()
@@ -319,46 +394,16 @@ fun SettingsDialog(onSave: (String) -> Unit, onCancel: () -> Unit) {
                 OutlinedTextField(
                     value = adbPath,
                     onValueChange = { adbPath = it },
-                    label = { Text("ADB Path") },
+                    label = { Text("ADB Path", color = Color(0xFF22223B)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = Color(0xFF22223B))
                 )
                 Spacer(Modifier.height(24.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onCancel) { Text("Cancel") }
                     Spacer(Modifier.width(8.dp))
                     Button(onClick = { onSave(adbPath) }) { Text("Save") }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CompanionDialog(onInstall: () -> Unit, onSkip: () -> Unit, onCancel: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color(0xAA22223B)),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            shadowElevation = 16.dp,
-            color = Color.White,
-            modifier = Modifier.width(400.dp)
-        ) {
-            Column(Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Install Companion App", style = MaterialTheme.typography.titleLarge, color = Color(0xFF22223B))
-                Spacer(Modifier.height(24.dp))
-                Text("The companion app is required for full functionality. Would you like to install it now?", color = Color(0xFF22223B))
-                Spacer(Modifier.height(24.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onSkip) { Text("Skip") }
-                    Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = onCancel) { Text("Cancel") }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = onInstall) { Text("Install") }
                 }
             }
         }

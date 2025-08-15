@@ -30,6 +30,8 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import core.AppState
 import dev.amaro.sonic.IAction
@@ -55,6 +58,7 @@ class AutomationPlugin(
 ) : Plugin<AutomationState> {
     override val id: String = "AUTOMATION"
     override val name: String = "Automation"
+    override val icon: ImageVector = Icons.Filled.PlayCircle
     override val middleware: IMiddleware<AppState> = automationMiddleware
 
     sealed interface Actions : IAction {

@@ -6,8 +6,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import commands.CommandExecutor
 import core.Action
@@ -25,6 +27,7 @@ import ui.rows.ActionableRow
 import ui.rows.HeaderRow
 import ui.rows.RowAction
 import ui.rows.RowType
+import androidx.compose.material.icons.Icons as MaterialIcons
 
 class ActivitiesPlugin(
     executor: CommandExecutor,
@@ -45,6 +48,7 @@ class ActivitiesPlugin(
 
     override val name: String = "Activities"
     override val id: String = "ACTIVITIES"
+    override val icon: ImageVector = MaterialIcons.Filled.Android
     override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =

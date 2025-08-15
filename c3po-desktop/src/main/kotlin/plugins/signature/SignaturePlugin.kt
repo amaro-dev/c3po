@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import core.AppState
 import dev.amaro.sonic.IAction
@@ -22,7 +25,9 @@ class SignaturePlugin(
 ) : plugins.Plugin<AndroidPackageReport> {
     override val id: String = "SIGNATURE"
 
-    override val name: String = "APK Signature"
+    override val name: String = "Signature"
+
+    override val icon: ImageVector = Icons.Filled.Verified
 
     override val middleware: IMiddleware<AppState> = SignatureMiddleware(id, signatureExtractor)
 
@@ -32,7 +37,7 @@ class SignaturePlugin(
         ) : Actions
     }
 
-    override fun isResponsibleFor(action: IAction): Boolean = action is SignaturePlugin.Actions
+    override fun isResponsibleFor(action: IAction): Boolean = action is Actions
 
     @Composable
     override fun present(

@@ -6,8 +6,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import commands.CommandExecutor
 import core.Action
@@ -25,6 +27,7 @@ import ui.rows.ActionableRow
 import ui.rows.HeaderRow
 import ui.rows.RowAction
 import ui.rows.RowType
+import androidx.compose.material.icons.Icons as MaterialIcons
 
 class ServicesPlugin(
     executor: CommandExecutor,
@@ -42,8 +45,9 @@ class ServicesPlugin(
         const val LIST_SERVICE_SOCKET_COMMAND = "list-services"
     }
 
-    override val name: String = "Services / Action"
+    override val name: String = "Services"
     override val id: String = "SERVICES"
+    override val icon: ImageVector = MaterialIcons.Filled.Build
     override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =

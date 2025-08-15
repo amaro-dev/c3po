@@ -1,7 +1,10 @@
 package plugins.permissions
 
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import commands.CommandExecutor
 import core.Action
 import core.AppState
@@ -20,7 +23,8 @@ class PermissionsPlugin(
     }
 
     override val id: String = "PERMISSIONS"
-    override val name: String = "Declared permissions"
+    override val name: String = "Permissions"
+    override val icon: ImageVector = Icons.Filled.Security
 
     override val middleware: IMiddleware<AppState> = PermissionsPluginMiddleware(id, executor)
 
