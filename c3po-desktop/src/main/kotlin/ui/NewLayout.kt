@@ -75,7 +75,7 @@ fun NewLayout(
             showSettingsDialog = false
         }
     }
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Row(Modifier.fillMaxSize()) {
             Sidebar(
                 plugins = app.plugins,
@@ -197,7 +197,7 @@ private fun TopBar(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Surface(color = Color(0xFFEEEEEE), shadowElevation = 4.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 4.dp) {
         Row(
             Modifier
                 .fillMaxWidth()
