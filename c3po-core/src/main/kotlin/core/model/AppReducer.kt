@@ -97,6 +97,14 @@ class AppReducer : IReducer<AppState> {
                             },
                     )
 
+                is Action.UpdatePluginFilters ->
+                    currentState.copy(
+                        windows =
+                            currentState.windows.update(action.pluginName) {
+                                it.copy(filterState = action.filters)
+                            },
+                    )
+
                 is Action.Companion.UpdateState -> {
                     currentState.copy(companionState = action.state)
                 }

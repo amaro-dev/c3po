@@ -1,14 +1,17 @@
 package plugins.packages.definition
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -17,20 +20,16 @@ import core.model.Action
 import core.model.Action.CommandAction
 import core.model.AppPackage
 import core.model.AppState
-import core.model.SleepState
 import core.model.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
-import plugins.packages.SignatureCard
 import plugins.packages.structure.PackagesPluginMiddleware
-import ui.ContentBox
+import plugins.packages.ui.component.EnhancedPackageRow
 import ui.OnAction
-import ui.definitions.Dimens
-import ui.definitions.Icons
-import ui.definitions.Texts
-import ui.rows.ActionableRow
-import ui.rows.RowAction
-import androidx.compose.material.icons.Icons as MaterialIcons
+import ui.component.CompactFilterCheckbox
+import ui.component.CompactSelector
+import ui.parts.EnhancedScrollableList
+import ui.parts.EnhancedSearchBar
 
 class PackagesPlugin(
     executor: CommandExecutor,
@@ -68,7 +67,7 @@ class PackagesPlugin(
         ) : Actions
     }
 
-    override val icon: ImageVector = MaterialIcons.Filled.Inventory2
+    override val icon: ImageVector = Icons.Filled.Inventory2
 
     override val name: String = "Packages"
 
@@ -90,47 +89,75 @@ class PackagesPlugin(
     ) {
         val items: List<AppPackage> = result.result
         val filter = result.searchTerm
-        ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
-            items(
-                items.filter {
-                    filter.length < 3 || it.packageName.contains((filter))
-                },
-            ) { pkg ->
-                ActionableRow(
-                    listOf(
-                        if (pkg.sleepState == SleepState.Unknown) {
-                            RowAction(Icons.SLEEPING, Texts.EMPTY, Actions.CheckAsleep(pkg))
-                        } else if (pkg.sleepState == SleepState.Awake) {
-                            RowAction(Icons.AWAKE, Texts.EMPTY, Action.DoNothing)
-                        } else {
-                            RowAction(Icons.ASLEEP, Texts.EMPTY, Action.DoNothing)
-                        },
-                        RowAction(Icons.KEY, Texts.EMPTY, Actions.ExtractKey(pkg)),
-                        RowAction(Icons.DELETE, Texts.EMPTY, Actions.Uninstall(pkg)),
-                        RowAction(Icons.CLOSE, Texts.EMPTY, Actions.Stop(pkg)),
-                        RowAction(Icons.WIPE, Texts.EMPTY, Actions.ClearData(pkg)),
-                    ),
-                    onAction,
-                ) {
-                    Column {
-                        Text(
-                            text = pkg.packageName,
-                            style = MaterialTheme.typography.body2,
-                        )
-                        Text(
-                            text = "${pkg.versionName} (${pkg.versionCode})",
-                            style = MaterialTheme.typography.overline,
-                        )
-                    }
+
+        // Local filter state with persistence to global state
+        var filters by remember(result.filterState) {
+            mutableStateOf(PackagesFilterState.fromMap(result.filterState))
+        }
+
+        // Persist filter changes to global state
+        LaunchedEffect(filters) {
+            onAction(Action.UpdatePluginFilters(id, filters.toMap()))
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            EnhancedSearchBar(
+                searchTerm = filter,
+                onSearchChange = { onAction(Action.ChangeFilter(id, it)) },
+                filterState = filters,
+                onFilterChange = { filters = it },
+                searchPlaceholder = "Search packages..."
+            ) { currentFilters, updateFilters ->
+                // Package-specific filter controls
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // App type selector
+                    CompactSelector(
+                        label = "Type",
+                        options = listOf(AppTypeFilter.ALL, AppTypeFilter.SYSTEM_ONLY, AppTypeFilter.USER_ONLY),
+                        selectedOption = currentFilters.appType,
+                        onSelectionChange = { updateFilters(currentFilters.copy(appType = it)) },
+                        optionText = { appType ->
+                            when (appType) {
+                                AppTypeFilter.ALL -> "All"
+                                AppTypeFilter.SYSTEM_ONLY -> "System"
+                                AppTypeFilter.USER_ONLY -> "User"
+                            }
+                        }
+                    )
+
+                    // Filter checkboxes: when checked, show only matching items
+                    CompactFilterCheckbox(
+                        label = "Only Enabled",
+                        checked = currentFilters.showOnlyEnabled,
+                        onCheckedChange = { updateFilters(currentFilters.copy(showOnlyEnabled = it)) }
+                    )
+                    CompactFilterCheckbox(
+                        label = "Only Debuggable",
+                        checked = currentFilters.showOnlyDebuggable,
+                        onCheckedChange = { updateFilters(currentFilters.copy(showOnlyDebuggable = it)) }
+                    )
+                    CompactFilterCheckbox(
+                        label = "Only With Signature",
+                        checked = currentFilters.showOnlyWithSignature,
+                        onCheckedChange = { updateFilters(currentFilters.copy(showOnlyWithSignature = it)) }
+                    )
                 }
-                pkg.signerInfo?.let {
-                    SignatureCard(it, onAction)
-                }
-                Divider(
-                    color = MaterialTheme.colors.onBackground,
-                    modifier = Modifier.height(Dimens.BORDER_REGULAR.dp).fillMaxWidth(),
-                )
             }
+
+            // Filter packages based on search term and filter state, then sort alphabetically
+            val filteredPackages = filterPackages(items, filter, filters)
+                .sortedBy { it.packageName }
+
+            EnhancedScrollableList(
+                items = filteredPackages,
+                itemContent = { packageInfo, showBottomBorder ->
+                    EnhancedPackageRow(
+                        packageInfo = packageInfo,
+                        onAction = onAction,
+                        showBottomBorder = showBottomBorder
+                    )
+                }
+            )
         }
     }
 }

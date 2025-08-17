@@ -86,6 +86,11 @@ sealed interface Action : IAction {
         val searchTerm: String,
     ) : Action
 
+    data class UpdatePluginFilters(
+        val pluginName: String,
+        val filters: Map<String, Any>,
+    ) : Action
+
     sealed interface Companion : Action {
         data object CheckInstalled : Action
 

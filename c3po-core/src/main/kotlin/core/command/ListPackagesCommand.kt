@@ -40,13 +40,17 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
                 if (packageNameMatch != null) {
                     val packageName = packageNameMatch.groupValues[1]
 
-                    // Look ahead for version info in the next few lines
+                    // Look ahead for package info in the next few lines
                     var versionCode = -1
                     var targetSdk = -1
                     var versionName = ""
+                    var isSystemApp = false
+                    var isDebuggable = false
+                    var isEnabled = true
+                    var installPath: String? = null
 
-                    // Search the next 20 lines for version info
-                    for (j in (i + 1) until minOf(i + 21, lines.size)) {
+                    // Search the next 40 lines for package info
+                    for (j in (i + 1) until minOf(i + 41, lines.size)) {
                         val nextLine = lines[j]
 
                         // Stop if we hit another package
@@ -70,6 +74,26 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
                         if (versionNameMatch != null) {
                             versionName = versionNameMatch.groupValues[1].trim()
                         }
+
+                        // Look for install path (system apps typically in /system/)
+                        val pathMatch = Regex("codePath=(.*)").find(nextLine)
+                        if (pathMatch != null) {
+                            installPath = pathMatch.groupValues[1].trim()
+                            // System apps are typically installed in /system/ or /vendor/
+                            isSystemApp = installPath?.startsWith("/system/") == true ||
+                                    installPath?.startsWith("/vendor/") == true ||
+                                    installPath?.startsWith("/product/") == true
+                        }
+
+                        // Look for debuggable flag in applicationInfo
+                        if (nextLine.contains("applicationInfo") && nextLine.contains("debuggable")) {
+                            isDebuggable = true
+                        }
+
+                        // Look for enabled/disabled state
+                        if (nextLine.contains("enabled=") && nextLine.contains("false")) {
+                            isEnabled = false
+                        }
                     }
 
                     packages.add(
@@ -78,6 +102,10 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
                             versionName = versionName,
                             versionCode = versionCode,
                             targetSdk = targetSdk,
+                            isSystemApp = isSystemApp,
+                            isDebuggable = isDebuggable,
+                            isEnabled = isEnabled,
+                            installPath = installPath,
                         ),
                     )
                 }

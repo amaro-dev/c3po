@@ -7,6 +7,11 @@ data class AppPackage(
     val targetSdk: Int = -1,
     val signerInfo: SignatureInfo? = null,
     val sleepState: SleepState = SleepState.Unknown,
+    // New fields for filtering
+    val isSystemApp: Boolean = false,
+    val isDebuggable: Boolean = false,
+    val isEnabled: Boolean = true,
+    val installPath: String? = null,
 )
 
 sealed interface SleepState {
