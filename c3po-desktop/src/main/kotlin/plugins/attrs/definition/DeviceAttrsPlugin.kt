@@ -1,17 +1,12 @@
 package plugins.attrs.definition
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import core.command.CommandExecutor
 import core.model.Action
 import core.model.Action.CommandAction
@@ -20,10 +15,10 @@ import core.model.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.attrs.structure.DeviceAttrsMiddleware
-import plugins.attrs.ui.DeviceAttrRow
-import ui.ContentBox
+import plugins.attrs.ui.EnhancedDeviceAttrRow
 import ui.OnAction
-import ui.definitions.Dimens
+import ui.parts.EnhancedScrollableList
+import ui.parts.EnhancedSearchBar
 
 class DeviceAttrsPlugin(
     executor: CommandExecutor,
@@ -46,20 +41,32 @@ class DeviceAttrsPlugin(
     ) {
         val items: List<Pair<String, String>> = result.result
         val filter = result.searchTerm
-        ContentBox(filter, { onAction(Action.ChangeFilter(id, it)) }) {
-            items(
-                items.filter {
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Search bar with simple text field only
+            EnhancedSearchBar(
+                searchTerm = filter,
+                onSearchChange = { onAction(Action.ChangeFilter(id, it)) },
+                filterState = Unit, // No filter state needed for simple search
+                onFilterChange = { }, // No filter state to change
+                searchPlaceholder = "Search device attributes..."
+            ) { _, _ ->
+                // No additional filter controls needed for Attributes
+            }
+
+            // Attributes list
+            EnhancedScrollableList(
+                items = items.filter {
                     filter.length < 2 ||
                             it.first.contains(filter, ignoreCase = true) ||
                             it.second.contains(filter, ignoreCase = true)
-                },
-            ) {
-                DeviceAttrRow("${it.first}:", it.second, onAction)
-                Spacer(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(Dimens.BORDER_REGULAR.dp)
-                        .background(MaterialTheme.colors.onBackground),
+                }
+            ) { attr, showBottomBorder ->
+                EnhancedDeviceAttrRow(
+                    label = attr.first,
+                    value = attr.second,
+                    onAction = onAction,
+                    showBottomBorder = showBottomBorder
                 )
             }
         }
