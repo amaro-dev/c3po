@@ -132,6 +132,49 @@ Plugins are registered in `di/AppModule.kt` in the `PLUGIN_LIST_DEPENDENCY` fact
 - Actions dispatched via `onAction: OnAction` parameter
 - Local state with `remember { mutableStateOf() }` for UI-only state
 
+## File Organization Structure
+
+Each module follows a well-defined structure to help with code organization and location:
+
+### Core Structure
+
+- **core/**: Base application structure for business logic and MVI flow standard (not tied to any specific plugin)
+- **core/middleware/**: Base application middleware classes
+- **core/model/**: Models, typealias, Actions, states and other data types that flow through MVI
+- **core/facade/**: Helper classes for specific functions (text copying, data storage, command execution, socket
+  communication, etc.)
+- **core/command/**: ADB command definitions or base socket instructions not tied to any specific plugin
+
+### UI Structure
+
+- **ui/**: Generic components, screens, Design System definitions used throughout the system
+- **ui/component/**: Primary custom components like buttons, text fields, labels
+- **ui/parts/**: Complex custom components like rows, dialogs, menus, selectors and other elements composed of multiple
+  primary elements
+- **ui/screen/**: Base application screens
+
+### Plugin Structure
+
+- **plugins/**: Plugin-specific code
+- **plugins/\<plugin-name\>/ui/component/**: Plugin-specific screen components
+- **plugins/\<plugin-name\>/ui/**: Plugin screen(s)
+- **plugins/\<plugin-name\>/structure/**: Plugin middleware, facades and reducers
+- **plugins/\<plugin-name\>/definition/**: Plugin implementation, actions and plugin-specific models
+- **plugins/\<plugin-name\>/di/**: Plugin-specific injection modules
+
+### Dependency Injection
+
+- **di/**: Base application injection modules
+
+### File Organization Rules
+
+- **One class per file**: Each class, interface, model and Compose function (component) must have its own file
+- **Descriptive naming**: File names should match the class/component name exactly
+- **Package structure**: Follow the directory structure exactly in package declarations
+- **No mixed responsibilities**: Each file should contain only one primary entity
+
+Other base application files are placed in the code directory root.
+
 ## Testing Patterns
 
 **Test Structure**: Tests in `src/test/kotlin/`
