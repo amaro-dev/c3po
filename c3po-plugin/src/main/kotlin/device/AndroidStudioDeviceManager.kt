@@ -4,10 +4,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import core.model.AdbDevice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import models.AdbDevice
 import java.util.concurrent.TimeUnit
 
 /**

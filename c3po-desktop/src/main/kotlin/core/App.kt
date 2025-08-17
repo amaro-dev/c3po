@@ -1,12 +1,14 @@
 package core
 
+import core.facade.SocketClient
+import core.model.Action
+import core.model.AppStateManager
 import dev.amaro.sonic.IAction
 import di.Names
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.qualifier.named
 import plugins.Plugin
-import socket.SocketClient
 
 class App : KoinComponent {
     private val socketClient: SocketClient = get()

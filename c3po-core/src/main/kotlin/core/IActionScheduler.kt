@@ -1,7 +1,0 @@
-package core
-
-import dev.amaro.sonic.IAction
-
-interface IActionScheduler {
-    fun schedule(action: IAction)
-}

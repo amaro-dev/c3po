@@ -1,7 +1,7 @@
-import core.Action
-import core.AppState
-import core.IProcessor
-import core.StatusMiddleware
+import core.model.Action
+import core.model.AppState
+import core.model.IProcessor
+import core.model.StatusMiddleware
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.advanceTimeBy

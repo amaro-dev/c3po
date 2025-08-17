@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.unit.IntOffset
-import core.AppState
+import core.model.AppState
 import dev.amaro.sonic.IAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay

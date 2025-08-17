@@ -2,13 +2,17 @@ package services
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import commands.*
+import commands.AndroidStudioCommandExecutionStrategy
+import core.command.ListActivitiesCommand
+import core.command.ListPackagesCommand
+import core.command.StartActivityCommand
+import core.command.UnifiedCommandExecutor
+import core.model.ActivityInfo
+import core.model.AdbDevice
+import core.model.AppPackage
 import device.AndroidStudioDeviceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import models.ActivityInfo
-import models.AdbDevice
-import models.AppPackage
 
 /**
  * Enhanced command executor that uses the new unified command execution architecture.

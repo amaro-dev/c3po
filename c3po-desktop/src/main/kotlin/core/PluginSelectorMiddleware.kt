@@ -1,5 +1,7 @@
 package core
 
+import core.model.Action
+import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor

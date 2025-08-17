@@ -4,10 +4,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import core.App
-import core.AppState
+import core.model.AppState
+import core.model.CommandStatus
 import di.AppModule
 import di.FacadeModule
-import models.CommandStatus
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import ui.AndroidGreenTheme

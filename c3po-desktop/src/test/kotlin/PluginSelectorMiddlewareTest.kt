@@ -1,8 +1,8 @@
-import core.Action
-import core.AppState
-import core.IMiddleware
-import core.IProcessor
-import core.PluginSelectorMiddleware
+import core.model.Action
+import core.model.AppState
+import core.model.IMiddleware
+import core.model.IProcessor
+import core.model.PluginSelectorMiddleware
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

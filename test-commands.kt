@@ -1,4 +1,4 @@
-import commands.*
+import core.command.*
 import kotlinx.coroutines.runBlocking
 
 fun main() {

@@ -1,7 +1,7 @@
 import Settings.ACCEPT_COMPANION
 import androidx.compose.ui.graphics.Color
-import core.Action
-import core.AppState
+import core.model.Action
+import core.model.AppState
 import dev.amaro.sonic.IProcessor
 import java.util.Properties
 

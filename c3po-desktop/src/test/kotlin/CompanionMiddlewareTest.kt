@@ -1,9 +1,9 @@
-import core.Action
-import core.AppState
-import core.CompanionMiddleware
-import core.CompanionState
-import core.IActionScheduler
-import core.IProcessor
+import core.model.Action
+import core.model.AppState
+import core.model.CompanionMiddleware
+import core.model.CompanionState
+import core.model.IActionScheduler
+import core.model.IProcessor
 import facade.CompanionCommander
 import io.mockk.coEvery
 import io.mockk.coVerify

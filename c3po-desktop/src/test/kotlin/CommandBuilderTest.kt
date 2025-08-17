@@ -1,7 +1,7 @@
 import assertk.assertThat
 import assertk.assertions.containsExactly
-import commands.CommandBuilder
-import models.AdbDevice
+import core.command.CommandBuilder
+import core.model.AdbDevice
 import org.junit.jupiter.api.Test
 
 class CommandBuilderTest {

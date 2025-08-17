@@ -1,10 +1,10 @@
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import core.Action
-import core.App
-import core.AppState
-import core.AppStateManager
-import core.IAction
+import core.model.Action
+import core.model.App
+import core.model.AppState
+import core.model.AppStateManager
+import core.model.IAction
 import di.Names
 import io.mockk.clearMocks
 import io.mockk.every

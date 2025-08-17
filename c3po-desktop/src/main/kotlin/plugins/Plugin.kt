@@ -2,10 +2,10 @@ package plugins
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import core.AppState
+import core.model.AppState
+import core.model.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
-import models.WindowResult
 import ui.OnAction
 
 interface Plugin<in T> {

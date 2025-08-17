@@ -1,7 +1,7 @@
-import core.Action
-import core.AppState
-import core.IProcessor
-import core.SocketMiddleware
+import core.model.Action
+import core.model.AppState
+import core.model.IProcessor
+import core.model.SocketMiddleware
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

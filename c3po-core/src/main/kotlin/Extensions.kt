@@ -1,6 +1,6 @@
 import Settings.ACCEPT_COMPANION
-import core.Action
-import core.AppState
+import core.model.Action
+import core.model.AppState
 import dev.amaro.sonic.IProcessor
 import java.util.Properties
 
@@ -33,7 +33,7 @@ inline fun <R> R.transformIf(
 ): R = if (condition) block(this) else this
 
 fun debug(message: String) {
-    // println("[DEBUG] $message")
+    println("[DEBUG] $message")
 }
 
 inline fun <reified T> Collection<T>.update(

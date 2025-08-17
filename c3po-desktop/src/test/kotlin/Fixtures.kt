@@ -1,5 +1,5 @@
-import commands.AdbCommand
-import commands.PlaceholderAdb
+import core.command.AdbCommand
+import core.command.PlaceholderAdb
 
 class FakeCommand(
     override val command: String,

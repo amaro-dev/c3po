@@ -1,9 +1,9 @@
 package plugins
 
 import Settings
-import commands.AdbCommand
-import commands.CommandExecutor
-import core.AppState
+import core.command.AdbCommand
+import core.command.CommandExecutor
+import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
 
 abstract class PluginMiddleware(

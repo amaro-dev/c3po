@@ -5,15 +5,15 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.prop
-import core.Action
-import core.AppReducer
-import core.AppState
-import core.CompanionState
+import core.model.Action
+import core.model.AdbDevice
+import core.model.AppReducer
+import core.model.AppState
+import core.model.CommandStatus
+import core.model.CompanionState
+import core.model.SettingsState
+import core.model.WindowResult
 import io.mockk.mockk
-import models.AdbDevice
-import models.CommandStatus
-import models.SettingsState
-import models.WindowResult
 import org.junit.jupiter.api.Test
 import java.util.Properties
 

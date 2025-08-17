@@ -1,9 +1,9 @@
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import commands.AdbCommand
-import commands.CommandBuilder
-import commands.CommandExecutor
-import commands.CommandRunner
+import core.command.AdbCommand
+import core.command.CommandBuilder
+import core.command.CommandExecutor
+import core.command.CommandRunner
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify

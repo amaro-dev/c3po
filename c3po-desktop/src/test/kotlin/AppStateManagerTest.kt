@@ -1,8 +1,8 @@
-import core.Action
-import core.AppState
-import core.AppStateManager
-import core.IAction
-import core.IReducer
+import core.model.Action
+import core.model.AppState
+import core.model.AppStateManager
+import core.model.IAction
+import core.model.IReducer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk

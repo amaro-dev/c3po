@@ -3,10 +3,13 @@ package commands
 import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import core.command.CommandExecutionStrategy
+import core.command.CommandExecutionType
+import core.command.CommandSpec
+import core.model.AdbDevice
 import device.CollectingOutputReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import models.AdbDevice
 import java.util.concurrent.TimeUnit
 
 /**

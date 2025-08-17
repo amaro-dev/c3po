@@ -1,9 +1,9 @@
-import commands.CommandExecutor
-import core.Action
-import core.AppState
-import core.DeviceMiddleware
-import core.IActionScheduler
-import core.IProcessor
+import core.command.CommandExecutor
+import core.model.Action
+import core.model.AppState
+import core.model.DeviceMiddleware
+import core.model.IActionScheduler
+import core.model.IProcessor
 import io.mockk.Matcher
 import io.mockk.MockKMatcherScope
 import io.mockk.coEvery
