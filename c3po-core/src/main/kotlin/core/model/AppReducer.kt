@@ -38,13 +38,15 @@ class AppReducer : IReducer<AppState> {
                     )
 
                 is Action.DeliverPluginResult -> {
-                    val searchTerm = action.searchTerm ?: currentState.windows[action.plugin]?.searchTerm ?: ""
+                    val existingWindow = currentState.windows[action.plugin]
+                    val searchTerm = action.searchTerm ?: existingWindow?.searchTerm ?: ""
+                    val filterState = existingWindow?.filterState ?: emptyMap()
                     currentState.copy(
                         windows =
                             currentState.windows.plus(
                                 Pair(
                                     action.plugin,
-                                    WindowResult(searchTerm, action.items),
+                                    WindowResult(searchTerm, action.items, filterState),
                                 ),
                             ),
                         currentPlugin = action.plugin,

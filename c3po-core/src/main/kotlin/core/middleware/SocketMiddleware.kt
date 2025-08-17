@@ -48,6 +48,11 @@ class SocketMiddleware(
                                 is SocketEvent.Message -> {
                                     processor.perform(Action.DeliverSocketResponse(it.command, it.content))
                                 }
+
+                                is SocketEvent.Timeout -> {
+                                    debug("Socket command timed out: ${it.commandId}")
+                                    processor.reduce(Action.SetCommandError("Command timed out: ${it.commandId}"))
+                                }
                             }
                         }
                 }

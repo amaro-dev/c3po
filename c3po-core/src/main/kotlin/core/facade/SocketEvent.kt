@@ -9,4 +9,8 @@ sealed interface SocketEvent {
         val command: CommandEntry,
         val content: List<String>,
     ) : SocketEvent
+
+    data class Timeout(
+        val commandId: String,
+    ) : SocketEvent
 }

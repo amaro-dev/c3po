@@ -10,6 +10,7 @@ import core.model.Action
 import core.model.AppPackage
 import core.model.AppState
 import core.model.SleepState
+import debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
@@ -74,14 +75,23 @@ class PackagesPluginMiddleware(
 
             is Action.DeliverSocketResponse -> {
                 if (action.reference.command == PackagesPlugin.EXTRACT_KEY_INSTRUCTION) {
-                    val signature = SignatureResponseParser().parse(action.content)
-                    val response =
-                        updateByPackageName(state, action.reference.arg!!) {
-                            (it).copy(signerInfo = signature)
-                        }
-                    processor.reduce(
-                        Action.DeliverPluginResult(pluginName, response),
-                    )
+                    debug("Received signature response for package: ${action.reference.arg}")
+                    debug("Response content: ${action.content}")
+                    try {
+                        val signature = SignatureResponseParser().parse(action.content)
+                        debug("Parsed signature: $signature")
+                        val response =
+                            updateByPackageName(state, action.reference.arg!!) {
+                                (it).copy(signerInfo = signature)
+                            }
+                        debug("Updated packages count: ${response.size}")
+                        processor.reduce(
+                            Action.DeliverPluginResult(pluginName, response),
+                        )
+                    } catch (e: Exception) {
+                        debug("Error parsing signature response: ${e.message}")
+                        e.printStackTrace()
+                    }
                 } else if (action.reference.command == PackagesPlugin.CHECK_ASLEEP_INSTRUCTION) {
                     val result = if (action.content.first().toBool()) SleepState.Asleep else SleepState.Awake
                     val response =

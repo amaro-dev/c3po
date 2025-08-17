@@ -44,11 +44,32 @@ class SocketClient {
                 kotlinx.coroutines.delay(500)
                 send("wakeup/1")
 
+                // Add timeout to prevent infinite hanging
+                val startTime = System.currentTimeMillis()
+                val timeoutMs = 30000 // 30 seconds timeout
+                
                 while (isLive) {
-                    val message = input.readLine()
-                    if (message != null) {
-                        emit(message)
-                    } else {
+                    try {
+                        // Check for timeout
+                        if (System.currentTimeMillis() - startTime > timeoutMs) {
+                            debug("Socket connection timeout after ${timeoutMs}ms")
+                            break
+                        }
+
+                        // Use non-blocking read with timeout
+                        if (input.ready()) {
+                            val message = input.readLine()
+                            if (message != null) {
+                                emit(message)
+                            } else {
+                                break
+                            }
+                        } else {
+                            // Small delay to prevent busy waiting
+                            kotlinx.coroutines.delay(100)
+                        }
+                    } catch (e: IOException) {
+                        debug("Socket read error: ${e.message}")
                         break
                     }
                 }
