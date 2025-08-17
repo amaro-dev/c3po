@@ -29,56 +29,6 @@ import ui.slideInHorizontallyFromRight
 import ui.slideOutHorizontallyToRight
 
 @Composable
-fun DeviceAttrRow(
-    label: String,
-    value: String?,
-    onAction: OnAction,
-) {
-    var isHoveringAttr: Boolean by remember { mutableStateOf(false) }
-    var isHoveringValue: Boolean by remember { mutableStateOf(false) }
-    Box(Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(5f)
-                    .onHover { isHoveringAttr = it },
-                textAlign = TextAlign.End,
-            )
-            Text(
-                text = value ?: Texts.NO_VALUE,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .onHover { isHoveringValue = it }
-                    .weight(7f)
-                    .padding(start = 16.dp),
-            )
-        }
-        CopyButton(
-            isHoveringValue,
-            { isHoveringValue = it },
-            { onAction(Action.CopyText(value ?: Texts.EMPTY)) },
-            Modifier.align(Alignment.CenterEnd),
-            slideInHorizontallyFromRight(),
-            slideOutHorizontallyToRight(),
-        )
-        CopyButton(
-            isHoveringAttr,
-            { isHoveringAttr = it },
-            { onAction(Action.CopyText(label.removeSuffix(Texts.PROP_SUFFIX))) },
-            Modifier.align(Alignment.CenterStart),
-        )
-    }
-}
-
-@Composable
 fun EnhancedDeviceAttrRow(
     label: String,
     value: String?,
