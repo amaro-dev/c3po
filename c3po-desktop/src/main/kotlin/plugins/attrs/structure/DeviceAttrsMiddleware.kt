@@ -2,11 +2,11 @@ package plugins.attrs.structure
 
 import core.command.CommandExecutor
 import core.command.DeviceInfoCommand
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 import plugins.attrs.definition.DeviceAttrsPlugin
 

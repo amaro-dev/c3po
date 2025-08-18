@@ -1,11 +1,11 @@
 package plugins.automation.structure
 
 import core.command.CommandExecutor
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 import plugins.automation.definition.AutomationPlugin
 
@@ -188,7 +188,6 @@ class AutomationMiddleware(
             }
 
             is AutomationPlugin.Actions.LoadScripts -> {
-                // TODO: Implement script loading (Use Case 2)
                 val currentState = getCurrentState(state)
                 processor.reduce(Action.DeliverPluginResult(pluginName, listOf(currentState)))
             }

@@ -15,8 +15,5 @@ class RefreshDevicesAction : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         LOG.info("Refresh devices action triggered")
-
-        // TODO: Implement device refresh logic
-        // This could notify the tool window to refresh its device list
     }
 }

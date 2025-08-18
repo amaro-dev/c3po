@@ -1,6 +1,6 @@
 package core.command
 
-// Using println for logging in core module
+import core.debug
 import core.model.AdbDevice
 import core.model.DeviceNotFoundException
 import kotlinx.coroutines.Dispatchers
@@ -16,9 +16,6 @@ import java.util.concurrent.TimeoutException
 class DesktopCommandExecutionStrategy(
     private val adbPath: String,
 ) : CommandExecutionStrategy {
-    private fun debug(message: String) {
-        println("[DesktopCommandExecutionStrategy] $message")
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun executeCommand(

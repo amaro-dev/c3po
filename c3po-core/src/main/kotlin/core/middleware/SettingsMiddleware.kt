@@ -2,12 +2,12 @@ package core.middleware
 
 import Settings
 import core.facade.SettingsRepository
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
-import handle
 import java.util.Properties
 
 class SettingsMiddleware(

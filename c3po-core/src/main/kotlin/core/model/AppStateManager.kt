@@ -1,6 +1,6 @@
 package core.model
 
-import debug
+import core.debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IReducer

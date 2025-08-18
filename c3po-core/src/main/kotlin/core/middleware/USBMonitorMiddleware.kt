@@ -2,10 +2,10 @@ package core.middleware
 
 import Settings
 import core.command.CommandExecutor
+import core.debug
 import core.facade.USBDeviceMonitor
 import core.model.Action
 import core.model.AppState
-import debug
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor

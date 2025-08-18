@@ -15,8 +15,5 @@ class ConnectDeviceAction : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         LOG.info("Connect device action triggered")
-
-        // TODO: Implement device connection logic
-        // This could show device selection dialog or connect to current selection
     }
 }

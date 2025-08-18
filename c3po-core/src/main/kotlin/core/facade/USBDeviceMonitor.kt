@@ -2,8 +2,8 @@ package core.facade
 
 import core.command.CommandExecutor
 import core.command.ListDevicesCommand
+import core.debug
 import core.model.AdbDevice
-import debug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

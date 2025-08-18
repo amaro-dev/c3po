@@ -1,7 +1,7 @@
 package core.command
 
+import core.ifTrue
 import core.model.ActivityInfo
-import ifTrue
 
 class StartActivityCommand(
     activityInfo: ActivityInfo,

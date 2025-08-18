@@ -49,11 +49,7 @@ class SignatureExtractor {
 
     suspend fun getCertificateFingerprint(filePath: String): Result<AndroidPackageReport> {
         return try {
-            println("DEBUG: Finding apksigner tool...")
             val apkSignerPath = findApkSigner()
-            println("DEBUG: Using apksigner at: $apkSignerPath")
-            println("DEBUG: Analyzing APK file: $filePath")
-            println("DEBUG: APK file exists: ${File(filePath).exists()}")
 
             val command = arrayOf(
                 apkSignerPath,
@@ -62,14 +58,12 @@ class SignatureExtractor {
                 "--print-certs",
                 filePath,
             )
-            println("DEBUG: Executing command: ${command.joinToString(" ")}")
 
             val output = CommandRunner
                 .run(
                     File(""),
                     command,
                 ).onFailure {
-                    println("DEBUG: Command failed with error: ${it.message}")
                     return Result.failure(it)
                 }.getOrNull()!!
 

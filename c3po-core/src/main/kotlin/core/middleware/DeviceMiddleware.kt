@@ -3,12 +3,12 @@ package core.middleware
 import Settings
 import core.command.CommandExecutor
 import core.command.ListDevicesCommand
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 
 class DeviceMiddleware(
     private val executor: CommandExecutor,

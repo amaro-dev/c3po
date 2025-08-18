@@ -3,11 +3,11 @@ package plugins.activities.structure
 import core.command.CommandExecutor
 import core.command.ListActivitiesCommand
 import core.command.StartActivityCommand
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 
 class ActivitiesPluginMiddleware(

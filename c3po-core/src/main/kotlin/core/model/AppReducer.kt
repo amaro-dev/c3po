@@ -1,6 +1,7 @@
 package core.model
 
 import core.model.Action.ILoadSettingsIntoState
+import core.update
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
 
@@ -118,7 +119,6 @@ class AppReducer : IReducer<AppState> {
 
                 else -> currentState
             }
-//        println("New State: $state")
         return state
     }
 }

@@ -1,7 +1,7 @@
 package core.command
 
+import core.debug
 import core.model.DeviceNotFoundException
-import debug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async

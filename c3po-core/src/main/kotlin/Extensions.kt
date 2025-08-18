@@ -1,3 +1,5 @@
+package core
+
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IProcessor
@@ -25,4 +27,17 @@ fun <T> Result<T>.handle(
 fun debug(message: String) {
     println("[DEBUG] $message")
 }
+
+inline fun <reified T> Collection<T>.update(
+    condition: (T) -> Boolean,
+    change: (T) -> T,
+): List<T> =
+    map {
+        if (condition(it)) change(it) else it
+    }
+
+inline fun <reified T, reified R> Map<T, R>.update(
+    key: T,
+    transform: (R) -> R,
+): Map<T, R> = if (containsKey(key)) plus(Pair(key, transform(this[key]!!))) else this
 

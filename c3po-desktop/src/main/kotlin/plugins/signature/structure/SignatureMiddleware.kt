@@ -1,12 +1,12 @@
 package plugins.signature.structure
 
 import core.facade.SignatureExtractor
+import core.handle
 import core.model.Action
 import core.model.AndroidPackageReport
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 import plugins.signature.definition.SignaturePlugin
 

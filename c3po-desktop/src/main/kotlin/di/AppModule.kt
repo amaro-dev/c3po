@@ -1,6 +1,5 @@
 package di
 
-// import core.middleware.PluginSelectorMiddleware // Does not exist
 import core.PluginSelectorMiddleware
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware

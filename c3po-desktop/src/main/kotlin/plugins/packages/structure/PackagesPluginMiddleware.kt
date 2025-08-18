@@ -7,12 +7,13 @@ import core.command.GetPackageSleepStateCommand
 import core.command.ListPackagesCommand
 import core.command.StopAppCommand
 import core.command.UninstallAppCommand
+import core.handle
 import core.model.Action
 import core.model.AppPackage
 import core.model.AppState
+import core.update
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 import plugins.packages.definition.PackagesPlugin
 

@@ -2,11 +2,11 @@ package plugins.intents.pending.structure
 
 import core.command.CommandExecutor
 import core.command.ListPendingActivityIntentsCommand
+import core.handle
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
-import handle
 import plugins.PluginMiddleware
 import plugins.intents.pending.definition.PendingIntentsPlugin
 
