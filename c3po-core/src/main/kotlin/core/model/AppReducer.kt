@@ -3,8 +3,6 @@ package core.model
 import core.model.Action.ILoadSettingsIntoState
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
-import transformIf
-import update
 
 class AppReducer : IReducer<AppState> {
     override fun reduce(
@@ -16,20 +14,12 @@ class AppReducer : IReducer<AppState> {
                 is Action.SelectDevice -> {
                     currentState
                         .copy(currentDevice = action.device)
-                        // If we change the device, only reset companion state but preserve plugin data
-                        // Plugin data clearing should only happen on explicit device change by user
-                        .transformIf(currentState.currentDevice != action.device) {
-                            it.copy(companionState = CompanionState())
-                            // Only clear plugin data if this is a genuine device switch (not a reconnection)
-                            // For now, we'll preserve plugin data to avoid unwanted resets
-                        }
                 }
 
                 is Action.ClearDevice -> {
                     currentState.copy(
                         currentDevice = null,
                         currentPlugin = null,
-                        companionState = CompanionState(),
                         windows = emptyMap(),
                     )
                 }
@@ -124,10 +114,6 @@ class AppReducer : IReducer<AppState> {
                             window.copy(result = updatedPackages)
                         }
                     )
-                }
-
-                is Action.Companion.UpdateState -> {
-                    currentState.copy(companionState = action.state)
                 }
 
                 else -> currentState

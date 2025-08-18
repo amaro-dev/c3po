@@ -2,8 +2,6 @@ package ui
 
 import Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
-import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,10 +21,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -50,13 +46,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import core.App
 import core.model.Action
 import core.model.AppState
 import core.model.CommandStatus
-import core.model.CompanionState
 import dev.amaro.sonic.IAction
 import plugins.Plugin
 
@@ -98,7 +92,6 @@ fun NewLayout(
                             onAction(Action.SelectDevice(device))
                         }
                     },
-                    companionState = state.companionState,
                     onRefreshDevices = {
                         if (settingsState == core.model.SettingsState.Initialized) onAction(Action.RefreshDevices)
                     }
@@ -199,7 +192,6 @@ private fun TopBar(
     devices: List<core.model.AdbDevice>,
     selectedDevice: String?,
     onDeviceSelected: (String) -> Unit,
-    companionState: CompanionState,
     onRefreshDevices: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -248,58 +240,6 @@ private fun TopBar(
                 Icon(imageVector = Icons.Filled.Refresh, contentDescription = "Refresh")
             }
             Spacer(Modifier.weight(1f))
-            // Companion status indicator
-            val (icon, color, statusText) = when {
-                !companionState.has(CompanionState.INSTALLED) -> Triple(
-                    Icons.Filled.Error,
-                    Color(0xFFE07A5F),
-                    "Unavailable"
-                )
-
-                companionState.has(CompanionState.INSTALLED) && !companionState.has(CompanionState.ONLINE) -> Triple(
-                    Icons.Filled.Devices,
-                    Color(0xFF2196F3),
-                    "Connecting"
-                )
-
-                companionState.has(CompanionState.ONLINE) -> Triple(
-                    Icons.Filled.VerifiedUser,
-                    Color(0xFF4CAF50),
-                    "Connected"
-                )
-
-                else -> Triple(Icons.Filled.Error, Color(0xFFE07A5F), "Unavailable")
-            }
-            TooltipArea(
-                tooltip = {
-                    Surface(
-                        color = Color.Black.copy(alpha = 0.9f),
-                        shape = MaterialTheme.shapes.small,
-                        shadowElevation = 4.dp
-                    ) {
-                        Text(
-                            text = when {
-                                companionState.isOnline() && companionState.version != null ->
-                                    "Connected - Version: ${companionState.version}"
-
-                                companionState.isOnline() -> "Connected"
-                                else -> statusText
-                            },
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
-                },
-                delayMillis = 500,
-                tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp))
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, contentDescription = statusText, tint = color, modifier = Modifier.size(28.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(statusText, color = color, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
             Spacer(Modifier.width(8.dp))
         }
     }

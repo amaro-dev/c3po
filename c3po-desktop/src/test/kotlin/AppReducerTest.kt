@@ -10,7 +10,6 @@ import core.model.AdbDevice
 import core.model.AppReducer
 import core.model.AppState
 import core.model.CommandStatus
-import core.model.CompanionState
 import core.model.SettingsState
 import core.model.WindowResult
 import io.mockk.mockk
@@ -238,16 +237,6 @@ class AppReducerTest {
         }
     }
 
-    @Test
-    fun `Reduce UpdateState Companion`() {
-        val initialState = AppState()
-        val newCompState = CompanionState(4)
-        val action = Action.Companion.UpdateState(newCompState)
-        val newState = AppReducer().reduce(action, initialState)
-        assertThat(newState).all {
-            prop(AppState::companionState).isEqualTo(newCompState)
-        }
-    }
 
     @Test
     fun `Reduce ClearDevice erases any device related state`() {
@@ -257,7 +246,6 @@ class AppReducerTest {
                 currentDevice = mockk(),
                 currentPlugin = "plugin",
                 windows = mapOf("plugin" to WindowResult<String>("", emptyList())),
-                companionState = CompanionState().setIsOnline(),
                 devices = listOf(mockedDevice),
             )
 

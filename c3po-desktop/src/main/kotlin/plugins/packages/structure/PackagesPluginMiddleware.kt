@@ -1,26 +1,25 @@
 package plugins.packages.structure
 
+import Settings
 import core.command.ClearDataCommand
 import core.command.CommandExecutor
 import core.command.GetPackageSleepStateCommand
 import core.command.ListPackagesCommand
 import core.command.StopAppCommand
 import core.command.UninstallAppCommand
-import core.facade.SignatureResponseParser
 import core.model.Action
 import core.model.AppPackage
 import core.model.AppState
-import debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
 import plugins.PluginMiddleware
 import plugins.packages.definition.PackagesPlugin
-import update
 
 class PackagesPluginMiddleware(
     pluginName: String,
     private val executor: CommandExecutor,
+    private val apkSignatureExtractor: core.facade.ApkSignatureExtractor,
 ) : PluginMiddleware(pluginName) {
     override suspend fun asyncProcess(
         action: IAction,
@@ -55,12 +54,34 @@ class PackagesPluginMiddleware(
             }
 
             is PackagesPlugin.Actions.ExtractKey -> {
-                processor.perform(
-                    Action.SendSocketRequest(
-                        PackagesPlugin.EXTRACT_KEY_INSTRUCTION,
-                        action.packageInfo.packageName,
-                    ),
-                )
+                // Use the new APK-based signature extraction
+                try {
+                    val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+                    val result = apkSignatureExtractor.extractAndAnalyzeSignature(
+                        action.packageInfo,
+                        adbPath,
+                        state.currentDevice
+                    )
+                    result.fold(
+                        onSuccess = { androidPackageReport ->
+                            // Update the package with signature information
+                            val packages = (state.windows[pluginName]?.result as? List<AppPackage>) ?: emptyList()
+                            val updatedPackages = packages.map { pkg ->
+                                if (pkg.packageName == action.packageInfo.packageName) {
+                                    pkg.copy(signerInfo = androidPackageReport.signature)
+                                } else {
+                                    pkg
+                                }
+                            }
+                            processor.reduce(Action.DeliverPluginResult(pluginName, updatedPackages))
+                        },
+                        onFailure = { exception ->
+                            processor.reduce(Action.SetCommandError("Failed to extract signature: ${exception.message}"))
+                        }
+                    )
+                } catch (e: Exception) {
+                    processor.reduce(Action.SetCommandError("Failed to extract APK signature: ${e.message}"))
+                }
             }
 
             is PackagesPlugin.Actions.CheckAsleep -> {
@@ -84,27 +105,6 @@ class PackagesPluginMiddleware(
                 execute(ClearDataCommand(action.packageInfo), state, executor).handle(processor)
             }
 
-            is Action.DeliverSocketResponse -> {
-                if (action.reference.command == PackagesPlugin.EXTRACT_KEY_INSTRUCTION) {
-                    debug("Received signature response for package: ${action.reference.arg}")
-                    debug("Response content: ${action.content}")
-                    try {
-                        val signature = SignatureResponseParser().parse(action.content)
-                        debug("Parsed signature: $signature")
-                        val response =
-                            updateByPackageName(state, action.reference.arg!!) {
-                                (it).copy(signerInfo = signature)
-                            }
-                        debug("Updated packages count: ${response.size}")
-                        processor.reduce(
-                            Action.DeliverPluginResult(pluginName, response),
-                        )
-                    } catch (e: Exception) {
-                        debug("Error parsing signature response: ${e.message}")
-                        e.printStackTrace()
-                    }
-                }
-            }
         }
     }
 

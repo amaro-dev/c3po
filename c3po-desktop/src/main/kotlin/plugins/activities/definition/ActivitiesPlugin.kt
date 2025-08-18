@@ -82,7 +82,7 @@ class ActivitiesPlugin(
     override val middleware: IMiddleware<AppState> = ActivitiesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =
-        action is Actions || (action is Action.DeliverSocketResponse && action.reference.command == LIST_ACTIVITY_SOCKET_COMMAND)
+        action is Actions
 
     @Composable
     override fun present(

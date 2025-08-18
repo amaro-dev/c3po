@@ -11,7 +11,6 @@ data class AppState(
     val settingsState: SettingsState = SettingsState.NotInitialized,
     val commandStatus: CommandStatus = CommandStatus.Idle,
     val errorMessage: String? = null,
-    val companionState: CompanionState = CompanionState(0),
 ) {
     val hasDeviceSet: Boolean
         get() = currentDevice != null

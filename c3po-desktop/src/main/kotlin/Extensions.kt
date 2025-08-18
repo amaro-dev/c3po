@@ -1,15 +1,12 @@
-import Settings.ACCEPT_COMPANION
 import androidx.compose.ui.graphics.Color
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IProcessor
-import java.util.Properties
 
 fun Boolean.ifTrue(value: String): String = if (this) value else ""
 
 fun Any?.toBool(): Boolean = this?.let { it == "true" } ?: false
 
-fun Properties.hasSelectedCompanionOption() = this[ACCEPT_COMPANION] != null
 
 fun <T> Result<T>.exceptionOrUnknownError(): Throwable = exceptionOrNull() ?: UnknownError()
 

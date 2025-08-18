@@ -1,6 +1,5 @@
 package core
 
-import core.facade.SocketClient
 import core.model.Action
 import core.model.AppStateManager
 import dev.amaro.sonic.IAction
@@ -11,7 +10,6 @@ import org.koin.core.qualifier.named
 import plugins.Plugin
 
 class App : KoinComponent {
-    private val socketClient: SocketClient = get()
 
     val plugins: List<Plugin<*>> = get(named(Names.PLUGIN_LIST_DEPENDENCY))
 
@@ -26,6 +24,6 @@ class App : KoinComponent {
     fun listen() = stateManager.listen()
 
     fun exit() {
-        socketClient.close()
+        // Application cleanup if needed
     }
 }

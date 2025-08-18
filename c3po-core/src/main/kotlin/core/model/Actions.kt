@@ -1,6 +1,5 @@
 package core.model
 
-import core.facade.CommandEntry
 import dev.amaro.sonic.IAction
 import java.util.Properties
 
@@ -101,36 +100,5 @@ sealed interface Action : IAction {
 
     data object StopUSBMonitoring : Action
 
-    sealed interface Companion : Action {
-        data object CheckInstalled : Action
 
-        //        data object CheckRunning : Action
-//        data object CheckPorts : Action
-        data object Prepare : Action
-
-        //        data object StartService : Action
-        data object Connect : Action
-
-        data object Install : Action
-
-        data object GetVersion : Action
-
-        data object SkipForDevice : Action
-
-        data object DoNotUse : Action
-
-        data class UpdateState(
-            val state: CompanionState,
-        ) : Action
-    }
-
-    data class DeliverSocketResponse(
-        val reference: CommandEntry,
-        val content: List<String>,
-    ) : Action
-
-    data class SendSocketRequest(
-        val command: String,
-        val arg: String?,
-    ) : Action
 }

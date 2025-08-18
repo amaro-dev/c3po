@@ -33,6 +33,7 @@ import ui.parts.EnhancedSearchBar
 
 class PackagesPlugin(
     executor: CommandExecutor,
+    apkSignatureExtractor: core.facade.ApkSignatureExtractor,
 ) : plugins.Plugin<AppPackage> {
     companion object {
         const val EXTRACT_KEY_INSTRUCTION = "keystore-info"
@@ -75,14 +76,10 @@ class PackagesPlugin(
 
     override val id: String = "PACKAGES"
 
-    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id, executor)
+    override val middleware: IMiddleware<AppState> = PackagesPluginMiddleware(id, executor, apkSignatureExtractor)
 
     override fun isResponsibleFor(action: IAction): Boolean =
-        action is Actions ||
-                (
-                        action is Action.DeliverSocketResponse &&
-                                (action.reference.command in arrayOf(EXTRACT_KEY_INSTRUCTION, CHECK_ASLEEP_INSTRUCTION))
-                        )
+        action is Actions
 
     @Composable
     override fun present(

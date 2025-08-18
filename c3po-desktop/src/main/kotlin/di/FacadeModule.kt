@@ -2,14 +2,10 @@ package di
 
 import Settings
 import core.command.CommandExecutor
-import core.facade.CompanionCommander
-import core.facade.CompanionCommanderImpl
+import core.facade.ApkSignatureExtractor
 import core.facade.SettingsRepository
 import core.facade.SettingsRepositoryImpl
 import core.facade.SignatureExtractor
-import core.facade.SocketClient
-import core.facade.SocketDriver
-import core.facade.SocketResponseAggregator
 import di.Names.RESOURCES_PATH_DEPENDENCY
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,21 +35,17 @@ val FacadeModule =
             }
         }
 
-        single { SocketResponseAggregator() }
-
-        single { SocketDriver(get(), get()) }
-
-        single { SocketClient() }
 
         single { CommandExecutor() }
 
         factory { SignatureExtractor() }
 
+        factory { ApkSignatureExtractor(get(), get()) }
+
         factory<SettingsRepository> {
             SettingsRepositoryImpl(get(named(RESOURCES_PATH_DEPENDENCY)), Settings.FILE_NAME)
         }
 
-        factory<CompanionCommander> { CompanionCommanderImpl(get(), get(named(RESOURCES_PATH_DEPENDENCY))) }
 
         factory<Clipboard> { Toolkit.getDefaultToolkit().systemClipboard }
     }

@@ -34,7 +34,7 @@ C3PO is a desktop Android debugging and exploration tool built with Kotlin and J
 - `AppState`: Single source of truth containing device list, current device, plugin state, etc.
 - `Action`: Sealed classes defining all possible state changes
 - `AppStateManager`: Handles action dispatching and state updates
-- `Middleware`: Intercepts actions for side effects (ADB commands, socket communication, etc.)
+- `Middleware`: Intercepts actions for side effects (ADB commands, etc.)
 
 **Plugin System**: Extensible architecture where each feature is a plugin:
 - `Plugin<T>` interface: Defines plugin contract with `id`, `name`, `icon`, `middleware`, and Compose UI
@@ -50,13 +50,16 @@ C3PO is a desktop Android debugging and exploration tool built with Kotlin and J
 
 **Command Pattern**: ADB operations are encapsulated in command classes:
 - Base: `AdbCommand` and `EnhancedAdbCommand`
-- Examples: `ListPackagesCommand`, `StartActivityCommand`, `ListActivitiesCommand`
+- Examples: `ListPackagesCommand`, `StartActivityCommand`, `ListActivitiesCommand`, `ExtractApkCommand`
 - Execution: `CommandExecutor` with strategy pattern for different environments
 
-**Socket Communication**: Custom socket client for companion service communication:
-- `SocketClient`: Main interface for socket operations
-- `SocketDriver`: Low-level socket handling
-- `SocketResponseAggregator`: Handles multi-part responses
+**APK Signature Extraction**: Integrated system for analyzing Android app signatures:
+
+- `ExtractApkCommand`: Downloads APK files from device to temporary folders
+- `ApkSignatureExtractor`: Coordinates APK extraction and signature analysis with cleanup
+- `SignatureExtractor`: Uses Android SDK apksigner tool for certificate fingerprint analysis
+- Auto-detects Android SDK paths and handles both file and directory-based APK locations
+- Automatic temporary file cleanup after analysis
 
 **Dependency Injection**: Uses Koin for DI:
 - `di/AppModule.kt`: Main DI configuration
@@ -118,7 +121,7 @@ Plugins are registered in `di/AppModule.kt` in the `PLUGIN_LIST_DEPENDENCY` fact
 
 **Layout Structure**: New layout (`ui/NewLayout.kt`) with sidebar + main content:
 - Sidebar: Plugin selection with Android green theme
-- TopBar: Device selector and companion status
+- TopBar: Device selector
 - ContentArea: Plugin-specific content rendering
 
 **Component Patterns**:
@@ -141,9 +144,8 @@ Each module follows a well-defined structure to help with code organization and 
 - **core/**: Base application structure for business logic and MVI flow standard (not tied to any specific plugin)
 - **core/middleware/**: Base application middleware classes
 - **core/model/**: Models, typealias, Actions, states and other data types that flow through MVI
-- **core/facade/**: Helper classes for specific functions (text copying, data storage, command execution, socket
-  communication, etc.)
-- **core/command/**: ADB command definitions or base socket instructions not tied to any specific plugin
+- **core/facade/**: Helper classes for specific functions (text copying, data storage, command execution, etc.)
+- **core/command/**: ADB command definitions not tied to any specific plugin
 
 ### UI Structure
 
@@ -190,7 +192,7 @@ Other base application files are placed in the code directory root.
 **Action Dispatch**: Actions flow through the system as:
 1. UI dispatches action via `onAction(Action.YourAction(...))`
 2. `AppStateManager` receives action and routes to middleware pipeline
-3. Middleware intercepts actions for side effects (ADB commands, socket operations)
+3. Middleware intercepts actions for side effects (ADB commands)
 4. `AppReducer.reduce()` transforms state based on action
 5. UI recomposes via `app.listen().collectAsState()`
 
@@ -202,8 +204,9 @@ Other base application files are placed in the code directory root.
 ## Key Development Notes
 
 - **ADB Path Configuration**: App requires ADB path setting, shows dialog if not configured
-- **Companion Service**: Optional Android service for enhanced features, handles installation/connection
-- **Socket Communication**: Port forwarding on 9999 for companion service  
+- **APK Signature Extraction**: Pure ADB-based signature extraction using local Android SDK tools
+- **Android SDK Integration**: Auto-detects Android SDK build-tools for apksigner functionality
+- **Temporary File Management**: APK extraction to temp folders with automatic cleanup
 - **Error Handling**: Centralized error state in `AppState.errorMessage`
 - **Device Management**: Auto-refresh device list, connection status monitoring
 - **Command Execution**: All ADB commands extend `AdbCommand<T>` and are executed via `CommandExecutor`

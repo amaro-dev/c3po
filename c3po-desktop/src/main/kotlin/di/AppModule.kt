@@ -3,11 +3,8 @@ package di
 // import core.middleware.PluginSelectorMiddleware // Does not exist
 import core.PluginSelectorMiddleware
 import core.middleware.ClipboardMiddleware
-import core.middleware.CompanionHealthMiddleware
-import core.middleware.CompanionMiddleware
 import core.middleware.DeviceMiddleware
 import core.middleware.SettingsMiddleware
-import core.middleware.SocketMiddleware
 import core.middleware.StatusMiddleware
 import core.middleware.USBMonitorMiddleware
 import core.model.Action
@@ -38,11 +35,8 @@ val AppModule =
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),
-                CompanionHealthMiddleware(),
-                CompanionMiddleware(get()),
                 SettingsMiddleware(get()),
                 StatusMiddleware(get()),
-                SocketMiddleware(get(), get()),
                 USBMonitorMiddleware(get()),
                 ConditionedDirectMiddleware(
                     Action.SelectPlugin::class,
@@ -57,7 +51,7 @@ val AppModule =
             listOf(
                 DevicePlugin(),
                 ActivitiesPlugin(get()),
-                PackagesPlugin(get()),
+                PackagesPlugin(get(), get()),
                 DeviceAttrsPlugin(get()),
                 ServicesPlugin(get()),
                 PermissionsPlugin(get()),

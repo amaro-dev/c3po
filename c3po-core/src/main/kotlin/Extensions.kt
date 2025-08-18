@@ -1,14 +1,9 @@
-import Settings.ACCEPT_COMPANION
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.IProcessor
-import java.util.Properties
 
 fun Boolean.ifTrue(value: String): String = if (this) value else ""
 
-fun Any?.toBool(): Boolean = this?.let { it == "true" } ?: false
-
-fun Properties.hasSelectedCompanionOption() = this[ACCEPT_COMPANION] != null
 
 fun <T> Result<T>.exceptionOrUnknownError(): Throwable = exceptionOrNull() ?: UnknownError()
 
@@ -27,24 +22,7 @@ fun <T> Result<T>.handle(
         null
     }
 
-inline fun <R> R.transformIf(
-    condition: Boolean,
-    block: (R) -> R,
-): R = if (condition) block(this) else this
-
 fun debug(message: String) {
     println("[DEBUG] $message")
 }
 
-inline fun <reified T> Collection<T>.update(
-    condition: (T) -> Boolean,
-    change: (T) -> T,
-): List<T> =
-    map {
-        if (condition(it)) change(it) else it
-    }
-
-inline fun <reified T, reified R> Map<T, R>.update(
-    key: T,
-    transform: (R) -> R,
-): Map<T, R> = if (containsKey(key)) plus(Pair(key, transform(this[key]!!))) else this

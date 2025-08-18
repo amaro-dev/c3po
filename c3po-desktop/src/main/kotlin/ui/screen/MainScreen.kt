@@ -73,10 +73,6 @@ fun MainScreen(
                 if (state.settingsState == SettingsState.NotFound) {
                     SettingsBox { app.perform(it) }
                 } else {
-                    // Forcing the use of companion app for now
-//                    if (state.shouldShowCompanionDialog) {
-//                        CompanionDialog(!state.settings.hasSelectedCompanionOption()) { app.perform(it) }
-//                    }
                 }
             }
         }
