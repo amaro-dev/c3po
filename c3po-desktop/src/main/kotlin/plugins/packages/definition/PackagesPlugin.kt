@@ -65,6 +65,8 @@ class PackagesPlugin(
         data class CheckAsleep(
             val packageInfo: AppPackage,
         ) : Actions
+
+        data object LoadAllSleepStates : Actions
     }
 
     override val icon: ImageVector = Icons.Filled.Inventory2
@@ -121,6 +123,27 @@ class PackagesPlugin(
                                 AppTypeFilter.ALL -> "All"
                                 AppTypeFilter.SYSTEM_ONLY -> "System"
                                 AppTypeFilter.USER_ONLY -> "User"
+                            }
+                        }
+                    )
+
+                    // Sleep state selector
+                    CompactSelector(
+                        label = "Sleep State",
+                        options = listOf(
+                            SleepStateFilter.ALL,
+                            SleepStateFilter.AWAKE_ONLY,
+                            SleepStateFilter.ASLEEP_ONLY,
+                            SleepStateFilter.UNKNOWN_ONLY
+                        ),
+                        selectedOption = currentFilters.sleepStateFilter,
+                        onSelectionChange = { updateFilters(currentFilters.copy(sleepStateFilter = it)) },
+                        optionText = { sleepState ->
+                            when (sleepState) {
+                                SleepStateFilter.ALL -> "All"
+                                SleepStateFilter.AWAKE_ONLY -> "Awake"
+                                SleepStateFilter.ASLEEP_ONLY -> "Asleep"
+                                SleepStateFilter.UNKNOWN_ONLY -> "Unknown"
                             }
                         }
                     )

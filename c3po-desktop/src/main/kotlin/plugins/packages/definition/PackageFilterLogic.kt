@@ -1,6 +1,7 @@
 package plugins.packages.definition
 
 import core.model.AppPackage
+import core.model.SleepState
 
 /**
  * Filter logic for packages based on search term and filter state
@@ -27,11 +28,20 @@ fun filterPackages(
         val matchesDebuggableFilter = if (filterState.showOnlyDebuggable) pkg.isDebuggable else true
         val matchesSignatureFilter = if (filterState.showOnlyWithSignature) pkg.signerInfo != null else true
 
+        // Sleep state filtering
+        val matchesSleepStateFilter = when (filterState.sleepStateFilter) {
+            SleepStateFilter.ALL -> true
+            SleepStateFilter.AWAKE_ONLY -> pkg.sleepState == SleepState.Awake
+            SleepStateFilter.ASLEEP_ONLY -> pkg.sleepState == SleepState.Asleep
+            SleepStateFilter.UNKNOWN_ONLY -> pkg.sleepState == SleepState.Unknown
+        }
+
         // Combine all filters
         matchesSearch &&
                 matchesAppType &&
                 matchesEnabledFilter &&
                 matchesDebuggableFilter &&
-                matchesSignatureFilter
+                matchesSignatureFilter &&
+                matchesSleepStateFilter
     }
 }

@@ -16,9 +16,12 @@ class AppReducer : IReducer<AppState> {
                 is Action.SelectDevice -> {
                     currentState
                         .copy(currentDevice = action.device)
-                        // If we change the device, clear plugin status
+                        // If we change the device, only reset companion state but preserve plugin data
+                        // Plugin data clearing should only happen on explicit device change by user
                         .transformIf(currentState.currentDevice != action.device) {
-                            it.copy(windows = emptyMap(), currentPlugin = null, companionState = CompanionState())
+                            it.copy(companionState = CompanionState())
+                            // Only clear plugin data if this is a genuine device switch (not a reconnection)
+                            // For now, we'll preserve plugin data to avoid unwanted resets
                         }
                 }
 
@@ -106,6 +109,22 @@ class AppReducer : IReducer<AppState> {
                                 it.copy(filterState = action.filters)
                             },
                     )
+
+                is Action.UpdatePackageSleepState -> {
+                    currentState.copy(
+                        windows = currentState.windows.update(action.pluginName) { window ->
+                            val packages = window.result as? List<AppPackage> ?: return@update window
+                            val updatedPackages = packages.map { pkg ->
+                                if (pkg.packageName == action.packageName) {
+                                    pkg.copy(sleepState = action.sleepState)
+                                } else {
+                                    pkg
+                                }
+                            }
+                            window.copy(result = updatedPackages)
+                        }
+                    )
+                }
 
                 is Action.Companion.UpdateState -> {
                     currentState.copy(companionState = action.state)

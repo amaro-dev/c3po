@@ -2,6 +2,7 @@ package plugins.packages.structure
 
 import core.command.ClearDataCommand
 import core.command.CommandExecutor
+import core.command.GetPackageSleepStateCommand
 import core.command.ListPackagesCommand
 import core.command.StopAppCommand
 import core.command.UninstallAppCommand
@@ -9,14 +10,12 @@ import core.facade.SignatureResponseParser
 import core.model.Action
 import core.model.AppPackage
 import core.model.AppState
-import core.model.SleepState
 import debug
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import handle
 import plugins.PluginMiddleware
 import plugins.packages.definition.PackagesPlugin
-import toBool
 import update
 
 class PackagesPluginMiddleware(
@@ -33,10 +32,14 @@ class PackagesPluginMiddleware(
             PackagesPlugin.Actions.List,
                 -> {
                 execute(ListPackagesCommand(), state, executor)
-                    .handle(processor) {
+                    .handle(processor) { packages ->
                         processor.reduce(
-                            Action.DeliverPluginResult(pluginName, it),
+                            Action.DeliverPluginResult(pluginName, packages),
                         )
+                        // Auto-load sleep states for all packages
+                        packages.forEach { pkg ->
+                            processor.perform(PackagesPlugin.Actions.CheckAsleep(pkg))
+                        }
                     }
             }
 
@@ -61,12 +64,20 @@ class PackagesPluginMiddleware(
             }
 
             is PackagesPlugin.Actions.CheckAsleep -> {
-                processor.perform(
-                    Action.SendSocketRequest(
-                        PackagesPlugin.CHECK_ASLEEP_INSTRUCTION,
-                        action.packageInfo.packageName,
-                    ),
-                )
+                execute(GetPackageSleepStateCommand(action.packageInfo.packageName), state, executor)
+                    .handle(processor) { sleepState ->
+                        // Update individual package sleep state without race conditions
+                        processor.reduce(
+                            Action.UpdatePackageSleepState(pluginName, action.packageInfo.packageName, sleepState)
+                        )
+                    }
+            }
+
+            is PackagesPlugin.Actions.LoadAllSleepStates -> {
+                val packages = (state.windows[pluginName]?.result as? List<AppPackage>) ?: emptyList()
+                packages.forEach { pkg ->
+                    processor.perform(PackagesPlugin.Actions.CheckAsleep(pkg))
+                }
             }
 
             is PackagesPlugin.Actions.ClearData -> {
@@ -92,15 +103,6 @@ class PackagesPluginMiddleware(
                         debug("Error parsing signature response: ${e.message}")
                         e.printStackTrace()
                     }
-                } else if (action.reference.command == PackagesPlugin.CHECK_ASLEEP_INSTRUCTION) {
-                    val result = if (action.content.first().toBool()) SleepState.Asleep else SleepState.Awake
-                    val response =
-                        updateByPackageName(state, action.reference.arg!!) {
-                            it.copy(sleepState = result)
-                        }
-                    processor.reduce(
-                        Action.DeliverPluginResult(pluginName, response),
-                    )
                 }
             }
         }

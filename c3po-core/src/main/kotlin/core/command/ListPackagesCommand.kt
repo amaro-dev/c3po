@@ -1,6 +1,7 @@
 package core.command
 
 import core.model.AppPackage
+import core.model.SleepState
 
 class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
     override val commandSpec: CommandSpec =
@@ -12,21 +13,21 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
         )
 
     override fun parse(result: String): List<AppPackage> {
-        val packagesIndex = result.indexOf("Packages:")
+        // Parse packages from dumpsys package
+        val packages = parsePackages(result)
+
+        // Get sleep states separately via individual commands for each package
+        // This is more reliable than trying to parse combined output
+        return packages
+    }
+
+    private fun parsePackages(packagesDump: String): List<AppPackage> {
+        val packagesIndex = packagesDump.indexOf("Packages:")
         if (packagesIndex == -1) {
             return emptyList()
         }
 
-        val packagesSection = result.substring(packagesIndex)
-
-        // Simple line-by-line parsing based on the exact format we observed:
-        // "  Package [package.name] (hash):"
-        // "    userId=..."
-        // "    pkg=..."
-        // "    ...other lines..."
-        // "    versionCode=5 targetSdk=34"
-        // "    versionName=1.0.2"
-
+        val packagesSection = packagesDump.substring(packagesIndex)
         val packages = mutableListOf<AppPackage>()
         val lines = packagesSection.lines()
 
@@ -106,6 +107,7 @@ class ListPackagesCommand : EnhancedAdbCommand<List<AppPackage>> {
                             isDebuggable = isDebuggable,
                             isEnabled = isEnabled,
                             installPath = installPath,
+                            sleepState = SleepState.Unknown // Will be updated by separate commands
                         ),
                     )
                 }

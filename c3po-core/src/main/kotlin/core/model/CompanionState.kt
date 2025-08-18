@@ -2,6 +2,7 @@ package core.model
 
 data class CompanionState(
     private val state: Int = 0,
+    val version: String? = null
 ) {
     companion object {
         const val ASKED_FOR_PERMISSION = 1
@@ -18,19 +19,21 @@ data class CompanionState(
 
     fun shouldOffer() = !has(INSTALLED) && has(CHECKED_FOR_PRESENCE) && !has(ASKED_FOR_PERMISSION)
 
-    fun setHasAccepted() = CompanionState(state + ACCEPTED)
+    fun setHasAccepted() = CompanionState(state + ACCEPTED, version)
 
-    fun setIsInstalled() = CompanionState(state + INSTALLED)
+    fun setIsInstalled() = CompanionState(state + INSTALLED, version)
 
-    fun setIsOnline() = CompanionState(state + ONLINE)
+    fun setIsOnline() = CompanionState(state + ONLINE, version)
 
-    fun setIsOffline() = CompanionState(state - ONLINE)
+    fun setIsOffline() = CompanionState(state - ONLINE, version)
 
-    fun setSkipped() = CompanionState(state + SKIPPED)
+    fun setSkipped() = CompanionState(state + SKIPPED, version)
 
-    fun setAsked() = CompanionState(state + ASKED_FOR_PERMISSION)
+    fun setAsked() = CompanionState(state + ASKED_FOR_PERMISSION, version)
 
-    fun setCheckedForPresence() = CompanionState(state + CHECKED_FOR_PRESENCE)
+    fun setCheckedForPresence() = CompanionState(state + CHECKED_FOR_PRESENCE, version)
+
+    fun withVersion(newVersion: String?) = CompanionState(state, newVersion)
 }
 
 sealed interface CompanionS {

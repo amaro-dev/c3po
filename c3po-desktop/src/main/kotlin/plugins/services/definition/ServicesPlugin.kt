@@ -42,9 +42,6 @@ class ServicesPlugin(
             CommandAction
     }
 
-    companion object {
-        const val LIST_SERVICE_SOCKET_COMMAND = "list-services"
-    }
 
     override val name: String = "Services"
     override val id: String = "SERVICES"
@@ -52,7 +49,7 @@ class ServicesPlugin(
     override val middleware: IMiddleware<AppState> = ServicesPluginMiddleware(id, executor)
 
     override fun isResponsibleFor(action: IAction): Boolean =
-        action is Actions || (action is Action.DeliverSocketResponse && action.reference.command == LIST_SERVICE_SOCKET_COMMAND)
+        action is Actions
 
     @Composable
     override fun present(

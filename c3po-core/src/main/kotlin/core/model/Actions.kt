@@ -91,6 +91,16 @@ sealed interface Action : IAction {
         val filters: Map<String, Any>,
     ) : Action
 
+    data class UpdatePackageSleepState(
+        val pluginName: String,
+        val packageName: String,
+        val sleepState: SleepState,
+    ) : Action
+
+    data object StartUSBMonitoring : Action
+
+    data object StopUSBMonitoring : Action
+
     sealed interface Companion : Action {
         data object CheckInstalled : Action
 
@@ -102,6 +112,8 @@ sealed interface Action : IAction {
         data object Connect : Action
 
         data object Install : Action
+
+        data object GetVersion : Action
 
         data object SkipForDevice : Action
 
