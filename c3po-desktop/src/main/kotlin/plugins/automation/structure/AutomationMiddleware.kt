@@ -84,10 +84,20 @@ class AutomationMiddleware(
 
             is AutomationPlugin.Actions.RunScript -> {
                 val current = getCurrentState(state)
-                val script = current.currentScript ?: return
                 val folder = current.currentScriptFolder ?: return
                 if (!state.hasDeviceSet) return
-                runner.run(script, folder, state, processor, executor)
+
+                try {
+                    // Load script from folder if not currently loaded
+                    val script = current.currentScript ?: scriptStorage.loadScriptFromFolder(folder)
+                    runner.run(script, folder, state, processor, executor)
+                } catch (e: Exception) {
+                    // Handle script loading error
+                    val newState = current.copy(
+                        openScriptError = "Cannot run script: ${e.message}"
+                    )
+                    processor.deliver(pluginName, newState)
+                }
             }
 
             is Action.StartPlugin -> {
@@ -174,6 +184,133 @@ class AutomationMiddleware(
                 val updatedScript = currentScript.copy(steps = updatedSteps)
                 val newState = currentState.copy(currentScript = updatedScript)
 
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.EditStep -> {
+                // Debounce mechanism to prevent multiple rapid clicks
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastEditStepTime < 500 && lastEditStepIndex == action.index) {
+                    return
+                }
+                lastEditStepTime = currentTime
+                lastEditStepIndex = action.index
+
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val step = currentScript.steps.getOrNull(action.index) ?: return
+
+                // Determine which dialog to show based on step type
+                val newState = when (step) {
+                    is ScriptStep.InstallApk -> {
+                        currentState.copy(
+                            editingStepIndex = action.index,
+                            showApkPicker = true
+                        )
+                    }
+
+                    is ScriptStep.RemovePackage, is ScriptStep.ClearData -> {
+                        currentState.copy(
+                            editingStepIndex = action.index,
+                            showPackageSelector = true
+                        )
+                    }
+
+                    is ScriptStep.StartActivity -> {
+                        currentState.copy(
+                            editingStepIndex = action.index,
+                            showActivitySelector = true
+                        )
+                    }
+                }
+
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.CancelStepEdit -> {
+                val currentState = getCurrentState(state)
+                val newState = currentState.copy(
+                    editingStepIndex = null,
+                    showPackageSelector = false,
+                    showActivitySelector = false,
+                    showApkPicker = false
+                )
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.ConfigureInstallApk -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                    if (index == action.index) {
+                        ScriptStep.InstallApk(apkPath = action.apkPath)
+                    } else {
+                        step
+                    }
+                }
+                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val newState = currentState.copy(
+                    currentScript = updatedScript,
+                    editingStepIndex = null,
+                    showApkPicker = false
+                )
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.ConfigureRemovePackage -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                    if (index == action.index) {
+                        ScriptStep.RemovePackage(packageName = action.packageName)
+                    } else {
+                        step
+                    }
+                }
+                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val newState = currentState.copy(
+                    currentScript = updatedScript,
+                    editingStepIndex = null,
+                    showPackageSelector = false
+                )
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.ConfigureStartActivity -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                    if (index == action.index) {
+                        ScriptStep.StartActivity(packageName = action.packageName, activityName = action.activityName)
+                    } else {
+                        step
+                    }
+                }
+                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val newState = currentState.copy(
+                    currentScript = updatedScript,
+                    editingStepIndex = null,
+                    showActivitySelector = false
+                )
+                processor.deliver(pluginName, newState)
+            }
+
+            is AutomationPlugin.Actions.ConfigureClearData -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                    if (index == action.index) {
+                        ScriptStep.ClearData(packageName = action.packageName)
+                    } else {
+                        step
+                    }
+                }
+                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val newState = currentState.copy(
+                    currentScript = updatedScript,
+                    editingStepIndex = null,
+                    showPackageSelector = false
+                )
                 processor.deliver(pluginName, newState)
             }
 

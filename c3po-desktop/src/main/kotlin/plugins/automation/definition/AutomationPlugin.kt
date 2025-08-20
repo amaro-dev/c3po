@@ -1,6 +1,7 @@
 package plugins.automation.definition
 
 import Settings
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,22 +18,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +58,9 @@ import plugins.automation.structure.Script
 import plugins.automation.structure.ScriptStep
 import plugins.automation.structure.ScriptStepType
 import ui.OnAction
+import ui.component.CustomActionButton
+import ui.component.CustomTextField
+import ui.component.EnhancedHeaderRow
 
 class AutomationPlugin(
     automationMiddleware: AutomationMiddleware,
@@ -134,39 +142,86 @@ class AutomationPlugin(
     ) {
         val state = result.result.firstOrNull() ?: AutomationState()
 
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // Header with main actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header card with main actions
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Button(
-                    onClick = { onAction(Actions.CreateNewScript) },
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Create New Script")
-                }
+                    EnhancedHeaderRow("Automation Scripts")
 
-                Button(
-                    onClick = { onAction(Actions.OpenScript) },
-                    enabled = !state.isCreatingScript,
-                ) {
-                    Text("Open Script")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Button(
+                            onClick = { onAction(Actions.CreateNewScript) },
+                        ) {
+                            Text("Create New Script")
+                        }
+
+                        Button(
+                            onClick = { onAction(Actions.OpenScript) },
+                            enabled = !state.isCreatingScript,
+                        ) {
+                            Text("Open Script")
+                        }
+
+                        // Save button - only show when creating script
+                        if (state.isCreatingScript) {
+                            Button(
+                                onClick = { onAction(Actions.SaveScript) },
+                                enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning,
+                            ) {
+                                Text("Save Script")
+                            }
+                        }
+                    }
                 }
             }
 
-            // Script creation UI
+            // Script creation UI or empty state
             if (state.isCreatingScript) {
                 ScriptCreationUI(state, onAction)
             } else {
-                // Script list UI (placeholder for now)
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
+                // Empty state card
+                Card(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Text("Select 'Create New Script' to start or 'Open Script' to load existing scripts")
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "No script in progress",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Select 'Create New Script' to start or 'Open Script' to load existing scripts",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -224,11 +279,23 @@ class AutomationPlugin(
 
         // Minimal run logs (if running)
         if (state.isRunning && state.runLogs.isNotEmpty()) {
-            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text("Run logs:", style = MaterialTheme.typography.subtitle2)
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    EnhancedHeaderRow("Run Logs")
+                    Spacer(modifier = Modifier.height(8.dp))
                     state.runLogs.takeLast(50).forEach { line ->
-                        Text(line, style = MaterialTheme.typography.caption, color = MaterialTheme.colors.onSurface)
+                        Text(
+                            text = line,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -258,10 +325,9 @@ class AutomationPlugin(
                 text = { Text(message) },
                 confirmButton = {
                     TextButton(
-                        onClick = { onAction(Actions.DismissOpenScriptError) },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                        onClick = { onAction(Actions.DismissOpenScriptError) }
                     ) { Text("OK") }
-                },
+                }
             )
         }
     }
@@ -273,66 +339,95 @@ private fun ScriptCreationUI(
     onAction: OnAction,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(bottom = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "Create New Script",
-                style = MaterialTheme.typography.h6,
-            )
+        Box(Modifier.fillMaxSize()) {
+            val listState = rememberLazyListState()
 
-            // Script name input
-            var scriptName by remember { mutableStateOf(state.currentScript?.name ?: "") }
-
-            // Update local state when external state changes
-            LaunchedEffect(state.currentScript?.name) {
-                if (state.currentScript?.name != scriptName) {
-                    scriptName = state.currentScript?.name ?: ""
-                }
-            }
-
-            OutlinedTextField(
-                value = scriptName,
-                onValueChange = { newValue ->
-                    scriptName = newValue
-                    onAction(AutomationPlugin.Actions.SetScriptName(newValue))
-                },
-                label = { Text("Script Name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-
-            Divider()
-
-            // Steps section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Steps (${state.currentScript?.steps?.size ?: 0})",
-                    style = MaterialTheme.typography.subtitle1,
-                )
-
-                // Add step dropdown (disabled while running)
-                if (!state.isRunning) {
-                    AddStepDropdown(onAction)
-                } else {
-                    Text("Running...", style = MaterialTheme.typography.caption)
+                item {
+                    EnhancedHeaderRow("Create New Script")
                 }
-            }
 
-            // Steps list
-            if (state.currentScript?.steps?.isNotEmpty() == true) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                item {
+                    // Script name input
+                    var scriptName by remember { mutableStateOf(state.currentScript?.name ?: "") }
+
+                    // Update local state when external state changes
+                    LaunchedEffect(state.currentScript?.name) {
+                        if (state.currentScript?.name != scriptName) {
+                            scriptName = state.currentScript?.name ?: ""
+                        }
+                    }
+
+                    CustomTextField(
+                        value = scriptName,
+                        onValueChange = { newValue ->
+                            scriptName = newValue
+                            onAction(AutomationPlugin.Actions.SetScriptName(newValue))
+                        },
+                        placeholder = "Enter script name...",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    Divider(
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    // Steps section header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Steps (${state.currentScript?.steps?.size ?: 0})",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Add step dropdown (disabled while running)
+                            if (!state.isRunning) {
+                                AddStepDropdown(onAction)
+                            } else {
+                                Text(
+                                    text = "Running...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+
+                            // Run button next to Add Step
+                            Button(
+                                onClick = { onAction(AutomationPlugin.Actions.RunScript) },
+                                enabled = state.currentScriptFolder != null && !state.isRunning,
+                            ) {
+                                Text("Run")
+                            }
+                        }
+                    }
+                }
+
+                // Steps list
+                if (state.currentScript?.steps?.isNotEmpty() == true) {
                     itemsIndexed(state.currentScript.steps) { index, step ->
                         StepItem(
                             step = step,
@@ -346,47 +441,47 @@ private fun ScriptCreationUI(
                             },
                         )
                     }
+                } else {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "No steps added yet. Use 'Add Step' to get started.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            )
+                        }
+                    }
                 }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(100.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "No steps added yet. Use 'Add Step' to get started.",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-            }
 
-            Divider()
-
-            // Action buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            ) {
-                Button(
-                    onClick = { onAction(AutomationPlugin.Actions.RunScript) },
-                    enabled = state.currentScript != null && !state.isRunning,
-                ) { Text("Run") }
-                OutlinedButton(
-                    onClick = { onAction(AutomationPlugin.Actions.CancelScript) },
-                ) {
-                    Text(
-                        "Cancel",
-                        color = MaterialTheme.colors.onSurface
+                item {
+                    Divider(
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                Button(
-                    onClick = { onAction(AutomationPlugin.Actions.SaveScript) },
-                    enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning,
-                ) {
-                    Text("Save Script")
+                item {
+                    // Action buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        OutlinedButton(
+                            onClick = { onAction(AutomationPlugin.Actions.CancelScript) },
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
                 }
             }
+
+            VerticalScrollbar(
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState)
+            )
         }
     }
 }
@@ -397,24 +492,23 @@ private fun AddStepDropdown(onAction: OnAction) {
 
     Box {
         Button(
-            onClick = { expanded = true },
+            onClick = { expanded = true }
         ) {
             Text("Add Step")
         }
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false }
         ) {
             ScriptStepType.values().forEach { stepType ->
                 DropdownMenuItem(
+                    text = { Text(stepType.displayName) },
                     onClick = {
                         expanded = false
                         onAction(AutomationPlugin.Actions.AddStep(stepType))
-                    },
-                ) {
-                    Text(stepType.displayName)
-                }
+                    }
+                )
             }
         }
     }
@@ -427,10 +521,10 @@ private fun StepItem(
     onRemove: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth().clickable { onEdit() },
-        elevation = 2.dp,
-        backgroundColor = MaterialTheme.colors.surface,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -444,53 +538,47 @@ private fun StepItem(
             ) {
                 // Step number badge
                 Box(
-                    modifier =
-                        Modifier
-                            .size(32.dp)
-                            .background(MaterialTheme.colors.primary.copy(alpha = 0.2f), CircleShape),
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = "${index + 1}",
-                        style = MaterialTheme.typography.subtitle2,
-                        color = MaterialTheme.colors.onPrimary,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = getStepDisplayName(step),
-                        style = MaterialTheme.typography.subtitle1,
-                        color = MaterialTheme.colors.onSurface,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     val description = getStepDescription(step)
                     if (description.isNotBlank()) {
                         Text(
                             text = description,
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         )
                     } else {
                         Text(
                             text = "⚠️ Configuration needed",
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.error.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                         )
                     }
                 }
             }
 
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(24.dp),
-            ) {
-                Text(
-                    text = "×",
-                    style = MaterialTheme.typography.h6,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                )
-            }
+            CustomActionButton(
+                icon = Icons.Filled.Close,
+                contentDescription = "Remove step",
+                onClick = onRemove
+            )
         }
     }
 }
@@ -515,12 +603,11 @@ private fun PackageSelectorDialog(
         title = { Text("Select Package") },
         text = {
             Column {
-                OutlinedTextField(
+                CustomTextField(
                     value = searchText,
                     onValueChange = { searchText = it },
-                    label = { Text("Search packages...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    placeholder = "Search packages...",
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -531,22 +618,24 @@ private fun PackageSelectorDialog(
                 ) {
                     items(filteredPackages.size) { index ->
                         val packageInfo = filteredPackages[index]
-                        Card(
+                        Surface(
                             modifier = Modifier.fillMaxWidth().clickable {
                                 onPackageSelected(packageInfo.packageName)
                             },
-                            elevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
                                     text = packageInfo.packageName,
-                                    style = MaterialTheme.typography.subtitle2,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 if (packageInfo.versionName.isNotBlank()) {
                                     Text(
                                         text = "Version: ${packageInfo.versionName}",
-                                        style = MaterialTheme.typography.body2,
-                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     )
                                 }
                             }
@@ -588,20 +677,19 @@ private fun ActivitySelectorDialog(
                 if (selectedPackage.isNotBlank()) {
                     Text(
                         text = "Package: $selectedPackage",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
         },
         text = {
             Column {
-                OutlinedTextField(
+                CustomTextField(
                     value = searchText,
                     onValueChange = { searchText = it },
-                    label = { Text("Search activities...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    placeholder = "Search activities...",
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -612,21 +700,23 @@ private fun ActivitySelectorDialog(
                 ) {
                     items(filteredActivities.size) { index ->
                         val activity = filteredActivities[index]
-                        Card(
+                        Surface(
                             modifier = Modifier.fillMaxWidth().clickable {
                                 onActivitySelected(activity.activityPath)
                             },
-                            elevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
                                     text = activity.activityPath,
-                                    style = MaterialTheme.typography.subtitle2,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Package: ${activity.packageName}",
-                                    style = MaterialTheme.typography.body2,
-                                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 )
                             }
                         }
@@ -683,38 +773,37 @@ private fun ApkPickerDialog(
                 Column {
                     Text(
                         text = "Selected APK file:",
-                        style = MaterialTheme.typography.subtitle2,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = filePath,
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = "The file will be copied to the script folder.",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
             },
             confirmButton = {
                 TextButton(
-                    onClick = { onApkSelected(filePath) },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                    onClick = { onApkSelected(filePath) }
                 ) {
                     Text("Use This File")
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                    onClick = onDismiss
                 ) {
                     Text("Cancel")
                 }
@@ -729,19 +818,17 @@ private fun ApkPickerDialog(
                 Column {
                     Text(
                         text = "File picker unavailable. Please enter the path manually:",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedTextField(
+                    CustomTextField(
                         value = filePath,
                         onValueChange = { filePath = it },
-                        label = { Text("APK file path") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = { Text("/path/to/your/app.apk") },
+                        placeholder = "/path/to/your/app.apk",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
@@ -752,16 +839,14 @@ private fun ApkPickerDialog(
                             onApkSelected(filePath)
                         }
                     },
-                    enabled = filePath.isNotBlank(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                    enabled = filePath.isNotBlank()
                 ) {
                     Text("Select")
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onSurface)
+                    onClick = onDismiss
                 ) {
                     Text("Cancel")
                 }
