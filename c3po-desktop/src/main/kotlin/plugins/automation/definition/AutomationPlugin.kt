@@ -156,7 +156,6 @@ class AutomationPlugin(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    EnhancedHeaderRow("Automation Scripts")
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
