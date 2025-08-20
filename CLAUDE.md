@@ -26,6 +26,24 @@ C3PO is a desktop Android debugging and exploration tool built with Kotlin and J
 - **Run tests in package**: `./gradlew test --tests "package.*"`
 - **Run module tests**: `./gradlew :c3po-desktop:test`
 
+### Changing a GitHub Project task status
+
+- Locate the GitHub Project that the issue is part of (via MCP or GitHub API).
+- Find the **project field or column** related to issue status (e.g., `Status`, `Workflow`, or similar).
+- Move the associated card to the `In Progress` column (or set the `Status` field value to `In Progress`), using the
+  proper mutation via GitHub GraphQL API or MCP.
+- Do **not** update the issue body or leave a comment to indicate the status — you must update the field or column in
+  the project itself.
+- These are the valid statuses: `Todo`, `In Progress`, `Waiting Approval`, `Done`
+- Validate that the issue was correctly moved to the `In Progress` status in the GitHub Project. If the change did not
+  occur, stop and show an error message explaining the failure.
+
+You should use this sample mutation to perform the status change:
+
+```
+gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: { projectId: "P123", itemId: "I456", fieldId: "F789", value: { singleSelectOptionId: "S000" } }) { projectV2Item { id } } }'
+```
+
 ## Architecture Overview
 
 ### Core Components

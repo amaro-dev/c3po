@@ -1,32 +1,103 @@
-# Command: Work on Github Issue
+# Command: Work on GitHub Issue
 
-Gets the informed issue from Github issue list and perform its implementation
+Executes the full development workflow for a GitHub issue by creating a feature branch, planning, implementing, and
+submitting a pull request — while also interacting with GitHub Projects to track task status.
+
+---
 
 # Preparation
 
-Before you perform this command you need to guarantee that there are no unstaged or uncommited files.
-If this condition is not met, you should stop and present an error message informing this reason.
+This command receives **exactly one argument**: the issue number of the task to work on.
 
-This command receives an argument which is the issue number of the task you will work on.
-If no argument or more than one was passed you should stop and present an error message as well.
+Before executing any steps:
 
-- Check the main branch
-- Update it to get changes from the server
-- Execute the `/primer` command to get context about the project
+1. **Validate that the working directory is clean**:
+    - No unstaged or uncommitted changes.
+    - If this check fails, stop and return an error message.
 
-If any of these fail, stop and present the error message
+2. **Ensure Git setup is ready**:
+    - Confirm that the current branch is `main`.
+    - Pull the latest changes from the remote using `git pull`.
+    - If any of these steps fail, stop and return an appropriate error message.
 
-# Performing your task
+3. **Initialize project context**:
+    - Run the `/primer` command to gain project context before continuing.
+    - If this step fails, stop and return an error.
 
-- Create a branch with the format `feature/$ARGUMENTS`
-- Read the issue description from GitHub using its MCP and passing the $ARGUMENTS issue number
-- Update the issue status to working
-- Plan your work to fulfill what's asked in the issue description
-- Start coding in the created branch
-- Gather proofs that you did what was expected
-- Commit your work passing a description on why it solves the problem
-- Submit the branch and create a Pull Request.
-    - In the description provide any proofs you have that the work was done correctly
-    - Add the tag [closes #$ARGUMENT] to guarantee that it closes the issue when approved
-    - Assign the PR to the C3po project
-- Update the issue status to waiting approval
+---
+
+# Validation
+
+- Check that **only one argument** was passed.
+- If **no** argument or **more than one** is provided, return an error and stop.
+
+---
+
+# Execution
+
+1. **Create a feature branch** using the format:
+   `git checkout -b feature/$ARGUMENT`
+2. **Read the issue details** from GitHub using the Model Context Protocol (MCP) or the GitHub API:
+
+- Extract the title and description for context.
+- Summarize it in your internal memory to plan the implementation.
+
+3. **Update GitHub Projects status** to reflect work in progress:
+
+- Locate the GitHub Project where this issue is tracked (via MCP or GitHub GraphQL API).
+- Identify the `Status`, `Workflow`, or equivalent project field.
+- Set its value to `In Progress` using one of the following:
+    - `updateProjectV2ItemFieldValue` mutation (GraphQL), OR
+    - The appropriate MCP instruction.
+- **Do not comment or update the issue body** to indicate status.
+- If the update fails, stop and return a descriptive error.
+
+4. **Plan your work**:
+
+- Break the implementation into subtasks or steps.
+- Present your plan to the user for validation.
+- Only proceed after user approval.
+
+5. **Implement the solution** based on the approved plan:
+
+- Code directly in the `feature/$ARGUMENT` branch.
+- Run tests or validations to ensure correctness.
+
+6. **Gather evidence** that the work satisfies the issue requirements:
+
+- Logs, test results, screenshots (if applicable), or other forms of validation.
+
+7. **Commit your work**:
+
+- Use a descriptive commit message explaining how the change solves the issue.
+- Ensure commits are logically grouped and clean.
+
+---
+
+# Finalization
+
+1. **Push the feature branch** to the remote repository.
+
+2. **Create a Pull Request**:
+
+- **Title**: clear and concise summary of the change.
+- **Description** must include:
+    - A summary of what was done and why.
+    - Evidence of correctness (e.g., test results, screenshots).
+    - The tag: `[closes #$ARGUMENT]` to auto-close the issue upon PR merge.
+    - Link the PR to the appropriate GitHub Project or assign to the `C3po` project.
+
+3. **Update the issue status again**:
+
+- Move the GitHub Project status from `In Progress` to `Waiting Approval`.
+- Use the same method as antes (MCP or GraphQL mutation).
+- Validate that the status was changed. If not, present an error.
+
+---
+
+# Notes
+
+- If the issue contains visual or UI elements, include screenshots in the PR.
+- All interactions with GitHub Projects must use **structured updates to fields**, not comments or edits to the issue
+  body.
+- Keep the interaction transactional — always check for failure and stop cleanly if needed.
