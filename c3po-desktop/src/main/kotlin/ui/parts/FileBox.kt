@@ -23,7 +23,6 @@ fun FileBox(onFileReceived: (String) -> Unit) {
             object : DragAndDropTarget {
                 override fun onDrop(event: DragAndDropEvent): Boolean {
                     val path = event.awtTransferable.getTransferData(DataFlavors.FilePath)
-                    debug("File path: $path")
                     onFileReceived((path as List<File>).first().absolutePath)
                     return true
                 }

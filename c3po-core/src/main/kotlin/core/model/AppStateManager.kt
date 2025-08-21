@@ -16,6 +16,7 @@ class AppStateManager(
     override val reducer: IReducer<AppState> = mainReducer
 
     override fun reduce(action: IAction) {
+        debug("REDUCE: $action")
         val oldState = state.value
         state.value = reducer.reduce(action, state.value)
         perform(Action.UpdatedState(oldState, state.value))
@@ -25,13 +26,14 @@ class AppStateManager(
     }
 
     override fun perform(action: IAction) {
+        debug("PERFORM: $action")
         super.perform(action)
     }
 
     private val scheduledActions = ConcurrentLinkedQueue<IAction>()
 
     override fun schedule(action: IAction) {
-        debug("Scheduled: $action")
+        debug("SCHEDULE: $action")
         scheduledActions.add(action)
     }
 }

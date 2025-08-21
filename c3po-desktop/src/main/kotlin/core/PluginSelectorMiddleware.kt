@@ -53,7 +53,7 @@ class PluginSelectorMiddleware(
                                            (oldStatus != CommandStatus.Idle && newStatus == CommandStatus.Idle && hasDevice && settingsReady)
                 
                 if (initializationComplete && hasDevice && !hasPlugin) {
-                    // Process queued plugin actions first
+                    // Process queued plugin actions when initialization is complete
                     if (queuedPluginActions.isNotEmpty()) {
                         val actionsToProcess = queuedPluginActions.toList()
                         queuedPluginActions.clear()
@@ -62,10 +62,8 @@ class PluginSelectorMiddleware(
                         actionsToProcess.lastOrNull()?.let { queuedAction ->
                             processStartPlugin(queuedAction, action.new, processor)
                         }
-                    } else {
-                        // Auto-select Device plugin if no plugin is selected and device is available
-                        processStartPlugin(Action.StartPlugin("DEVICE"), action.new, processor)
                     }
+                    // Note: Device plugin auto-selection is now handled by DeviceMiddleware
                 }
             }
             
@@ -85,10 +83,7 @@ class PluginSelectorMiddleware(
         state: AppState,
         processor: IProcessor<AppState>
     ) {
-        val plugin = registeredPlugins[action.pluginName]
-        if (plugin == null) {
-            return
-        }
+        val plugin = registeredPlugins[action.pluginName] ?: return
         processor.reduce(Action.SetCommandRunning)
         processor.reduce(Action.SelectPlugin(action.pluginName))
         plugin.middleware.process(action, state, processor)

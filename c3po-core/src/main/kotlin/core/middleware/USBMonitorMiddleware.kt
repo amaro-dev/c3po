@@ -100,17 +100,4 @@ class USBMonitorMiddleware(
         isMonitoring = false
     }
 
-    /**
-     * Check if a specific device is still physically connected
-     */
-    suspend fun isDevicePhysicallyConnected(deviceId: String, adbPath: String): Boolean {
-        return usbMonitor.isDeviceConnected(deviceId, adbPath)
-    }
-
-    /**
-     * Get monitoring statistics for debugging
-     */
-    fun getMonitoringStats(): String {
-        return "USB Monitoring: $isMonitoring, ${usbMonitor.getMonitoringStats()}"
-    }
 }

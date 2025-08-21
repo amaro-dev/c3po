@@ -38,6 +38,8 @@ class DeviceMiddleware(
                     // Auto-select device only if no device is currently selected
                     if (state.currentDevice == null && devices.size == 1) {
                         processor.perform(Action.SelectDevice(devices[0]))
+                        // Auto-select Device plugin immediately when device becomes available
+                        processor.perform(Action.StartPlugin("DEVICE"))
                     }
                 }
             }

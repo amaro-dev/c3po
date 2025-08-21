@@ -2,6 +2,7 @@ package core
 
 import core.model.Action
 import core.model.AppState
+import core.model.AppStateManager
 import dev.amaro.sonic.IProcessor
 
 fun Boolean.ifTrue(value: String): String = if (this) value else ""
@@ -24,9 +25,21 @@ fun <T> Result<T>.handle(
         null
     }
 
-fun debug(message: String) {
-    println("[DEBUG] $message")
+inline fun <reified T> T.debug(message: String) {
+    val tag = T::class.java.simpleName
+    LogManager.log(tag, message)
 }
+
+object LogManager {
+    private val enabledLogs = listOf<String>(
+        AppStateManager::class.java.simpleName
+    )
+    fun log(tag: String, message: String) {
+        if (tag !in enabledLogs || !Settings.isDebug()) return
+        println("(${System.nanoTime()})[$tag][DEBUG] $message")
+    }
+}
+
 
 inline fun <reified T> Collection<T>.update(
     condition: (T) -> Boolean,
