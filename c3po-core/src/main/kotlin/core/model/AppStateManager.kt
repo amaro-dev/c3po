@@ -16,7 +16,6 @@ class AppStateManager(
     override val reducer: IReducer<AppState> = mainReducer
 
     override fun reduce(action: IAction) {
-        debug("$action called by: ${Thread.currentThread().stackTrace[2].className}")
         val oldState = state.value
         state.value = reducer.reduce(action, state.value)
         perform(Action.UpdatedState(oldState, state.value))
@@ -26,7 +25,6 @@ class AppStateManager(
     }
 
     override fun perform(action: IAction) {
-        debug("Perform: $action")
         super.perform(action)
     }
 

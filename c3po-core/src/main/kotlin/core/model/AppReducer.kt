@@ -60,7 +60,9 @@ class AppReducer : IReducer<AppState> {
                     )
 
                 is Action.ClearPlugins -> currentState.copy(windows = emptyMap(), currentPlugin = null)
-                is Action.SelectPlugin -> currentState.copy(currentPlugin = action.pluginName)
+                is Action.SelectPlugin -> {
+                    currentState.copy(currentPlugin = action.pluginName)
+                }
                 is Action.SetCommandRunning ->
                     currentState.copy(
                         commandStatus = CommandStatus.Running,
