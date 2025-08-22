@@ -43,3 +43,6 @@ bin/
 
 ### Serena cache ###
 .serena/cache/
+
+### Local configuration ###
+local-config.properties

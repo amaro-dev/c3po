@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 C3PO is a desktop Android debugging and exploration tool built with Kotlin and Jetpack Compose Desktop. It connects to Android devices via ADB and provides a plugin-based architecture for exploring apps, activities, services, permissions, and more.
 
+## Setup
+
+### Java SDK Configuration
+
+This project requires Java 17+. To avoid SDK detection issues:
+
+1. **Check for local configuration**: Look in `local-config.properties` for the Java path
+2. **Find available Java versions**: Run `/usr/libexec/java_home -V` on macOS
+3. **Set the Java path**: Create/update `local-config.properties` with:
+   ```
+   java.home=/path/to/java/17+/home
+   ```
+4. **The file is gitignored** to keep machine-specific settings local
+
 ## Common Commands
 
 ### Building and Running
@@ -236,3 +250,4 @@ Other base application files are placed in the code directory root.
 - **State not updating**: Verify action dispatching and middleware implementation
 - **ADB connection problems**: Check device authorization and ADB path configuration
 - **Plugin not showing**: Verify plugin is registered in `di/AppModule.kt` PLUGIN_LIST_DEPENDENCY
+- Remove the test files. These should never be commited. When you generate them, you must always sanitize after using

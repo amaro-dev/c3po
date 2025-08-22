@@ -1,7 +1,6 @@
 package core.command
 
 import core.model.DeclaredPermissions
-import java.io.File
 
 class ListDeclaredPermissions : AdbCommand<List<DeclaredPermissions>> {
     override val command: String = "shell dumpsys package"
@@ -56,42 +55,6 @@ class ListDeclaredPermissions : AdbCommand<List<DeclaredPermissions>> {
         }
 }
 
-fun main() {
-    with(File("/Users/roarodrigues/dump-dumpsys").readText()) {
-        val exprPermission = " \\[([^\\]]*)\\] "
-        val exprOwner = "sourcePackage\\=([^\\s]*)"
-        val exprProtection = "prot\\=([\\w\\|]+)"
-        val lineSplitRule = Regex("\\r?\\n")
-        val content =
-            substring(indexOf("Permissions:") + 12)
-                .substringBefore("\r\n\r\n")
-                .substringBefore("\n\n")
-                .replace("\r\n    ", " ")
-        println(
-            lineSplitRule
-                .split(content)
-                .mapNotNull {
-                    val foundPermission = Regex(exprPermission).find(it)?.groupValues?.last()
-                    val foundOwner = Regex(exprOwner).find(it)?.groupValues?.last()
-                    val foundProtections =
-                        Regex(exprProtection)
-                            .find(it)
-                            ?.groupValues
-                            ?.last()
-                            ?.split('|')
-                    if (foundOwner != null && foundPermission != null) {
-                        Triple(
-                            foundOwner,
-                            foundPermission,
-                            foundProtections,
-                        )
-                    } else {
-                        null
-                    }
-                }.groupBy({ it.first }, { Pair(it.second, it.third) }),
-        )
-    }
-}
 
 enum class PermissionFlag(
     val isBase: Boolean = false,
