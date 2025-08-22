@@ -23,12 +23,23 @@ class DeviceMiddleware(
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
         when (action) {
             is Action.RefreshDevices -> {
-                processor.reduce(Action.ClearDevice)
                 executor.go(ListDevicesCommand(), adbPath).handle(processor) { devices ->
+                    // Only clear device if current device is no longer available
+                    val currentDevice = state.currentDevice
+                    val deviceStillAvailable = currentDevice != null && 
+                        devices.any { it.id == currentDevice.id }
+                    
+                    if (!deviceStillAvailable) {
+                        processor.reduce(Action.ClearDevice)
+                    }
+                    
                     processor.reduce(Action.DeliverDevices(devices))
-                    // Select the device if it's the only one available
-                    if (devices.size == 1) {
+                    
+                    // Auto-select device only if no device is currently selected
+                    if (state.currentDevice == null && devices.size == 1) {
                         processor.perform(Action.SelectDevice(devices[0]))
+                        // Auto-select Device plugin immediately when device becomes available
+                        processor.perform(Action.StartPlugin("DEVICE"))
                     }
                 }
             }
