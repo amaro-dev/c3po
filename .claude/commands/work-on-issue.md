@@ -21,7 +21,8 @@ Before executing any steps:
     - If any of these steps fail, stop and return an appropriate error message.
 
 3. **Initialize project context**:
-    - Run the `/primer` command to gain project context before continuing.
+    - Run the `primer` command to gain project context before continuing.
+    - It is imperative that you get some project context prior to executing this task
     - If this step fails, stop and return an error.
 
 ---
@@ -41,6 +42,8 @@ Before executing any steps:
 
 - Extract the title and description for context.
 - Summarize it in your internal memory to plan the implementation.
+- If the Issue provides an execution plan or tasks that needs to be accomplished, you can you use them to prepare your
+  plan
 
 3. **Update GitHub Projects status** to reflect work in progress:
 
@@ -56,6 +59,8 @@ Before executing any steps:
 
 - Break the implementation into subtasks or steps.
 - Present your plan to the user for validation.
+- If the work is too big try to set some milestones that can be use as checkpoints to validate and save the work so far
+  upon user validation
 - Only proceed after user approval.
 
 5. **Implement the solution** based on the approved plan:
@@ -66,9 +71,11 @@ Before executing any steps:
 6. **Gather evidence** that the work satisfies the issue requirements:
 
 - Logs, test results, screenshots (if applicable), or other forms of validation.
+- Present the solution and evidences to the user so he can approve
 
 7. **Commit your work**:
 
+- NEVER commit anything without user approval
 - Use a descriptive commit message explaining how the change solves the issue.
 - Ensure commits are logically grouped and clean.
 
