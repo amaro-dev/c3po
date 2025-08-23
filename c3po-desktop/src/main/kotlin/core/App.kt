@@ -17,6 +17,7 @@ class App : KoinComponent {
 
     fun start() {
         perform(Action.LoadSettings)
+        perform(Action.CheckForUpdate) // Check for updates on startup
     }
 
     fun perform(action: IAction) = stateManager.perform(action)

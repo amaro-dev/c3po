@@ -100,5 +100,24 @@ sealed interface Action : IAction {
 
     data object StopUSBMonitoring : Action
 
+    // Update-related actions
+    data object CheckForUpdate : Action
+
+    data class DownloadUpdate(
+        val updateInfo: UpdateInfo,
+    ) : Action
+
+    data class UpdateCheckComplete(
+        val updateInfo: UpdateInfo?,
+    ) : Action
+
+    data class UpdateDownloadProgress(
+        val progress: Int,
+    ) : Action
+
+    data class UpdateError(
+        val message: String,
+    ) : Action
+
 
 }
