@@ -63,6 +63,7 @@ class AppReducer : IReducer<AppState> {
                 is Action.SelectPlugin -> {
                     currentState.copy(currentPlugin = action.pluginName)
                 }
+
                 is Action.SetCommandRunning ->
                     currentState.copy(
                         commandStatus = CommandStatus.Running,
@@ -116,6 +117,40 @@ class AppReducer : IReducer<AppState> {
                             }
                             window.copy(result = updatedPackages)
                         }
+                    )
+                }
+
+                // Update-related actions
+                is Action.CheckForUpdate -> {
+                    currentState.copy(updateState = UpdateState.CheckingForUpdate)
+                }
+
+                is Action.UpdateCheckComplete -> {
+                    val updateStatus =
+                        if (action.updateInfo != null) UpdateState.UpdateAvailable else UpdateState.NoUpdate
+                    currentState.copy(
+                        updateState = updateStatus,
+                        updateInfo = action.updateInfo
+                    )
+                }
+
+                is Action.DownloadUpdate -> {
+                    currentState.copy(
+                        updateState = UpdateState.Downloading,
+                        updateInfo = action.updateInfo
+                    )
+                }
+
+                is Action.UpdateDownloadProgress -> {
+                    // For now, just maintain current state during progress updates
+                    // In future, could track progress percentage
+                    currentState
+                }
+
+                is Action.UpdateError -> {
+                    currentState.copy(
+                        updateState = UpdateState.Error,
+                        errorMessage = action.message
                     )
                 }
 

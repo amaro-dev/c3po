@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization") version "1.9.22"
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     id("io.sentry.jvm.gradle") version "5.2.0"
@@ -44,6 +45,9 @@ dependencies {
     implementation("org.jetbrains.compose.material3:material3-desktop:1.5.0")
     // Jetpack Compose Material Icons for Desktop
     implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.5.0")
+
+    // JSON serialization for GitHub API
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))

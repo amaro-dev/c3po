@@ -127,6 +127,19 @@ fun NewLayout(
                 onCancel = { showSettingsDialog = false }
             )
         }
+
+        // Update notification dialog
+        if (state.updateState == core.model.UpdateState.UpdateAvailable && state.updateInfo != null) {
+            ui.component.UpdateNotificationDialog(
+                updateInfo = state.updateInfo!!,
+                onUpdateNow = {
+                    onAction(Action.DownloadUpdate(state.updateInfo!!))
+                },
+                onUpdateLater = {
+                    onAction(Action.ClearError) // Reset update state for now
+                }
+            )
+        }
     }
 }
 
