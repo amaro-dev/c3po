@@ -119,5 +119,14 @@ sealed interface Action : IAction {
         val message: String,
     ) : Action
 
+    data object DismissUpdate : Action
+
+    data class UpdateDownloadComplete(
+        val filePath: String,
+    ) : Action
+
+    data class UpdateInstallReady(
+        val filePath: String,
+    ) : Action
 
 }

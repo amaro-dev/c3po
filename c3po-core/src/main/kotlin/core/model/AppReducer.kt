@@ -154,6 +154,27 @@ class AppReducer : IReducer<AppState> {
                     )
                 }
 
+                is Action.DismissUpdate -> {
+                    currentState.copy(
+                        updateState = UpdateState.UpdateDismissed,
+                        // Keep updateInfo for potential later use
+                    )
+                }
+
+                is Action.UpdateDownloadComplete -> {
+                    currentState.copy(
+                        updateState = UpdateState.DownloadComplete,
+                        // Could store filePath in state if needed
+                    )
+                }
+
+                is Action.UpdateInstallReady -> {
+                    currentState.copy(
+                        updateState = UpdateState.InstallReady,
+                        // Could store filePath in state if needed
+                    )
+                }
+
                 else -> currentState
             }
         return state

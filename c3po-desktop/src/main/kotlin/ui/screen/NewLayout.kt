@@ -128,7 +128,7 @@ fun NewLayout(
             )
         }
 
-        // Update notification dialog
+        // Update notification dialog - only show if update is available and not dismissed
         if (state.updateState == core.model.UpdateState.UpdateAvailable && state.updateInfo != null) {
             ui.component.UpdateNotificationDialog(
                 updateInfo = state.updateInfo!!,
@@ -136,7 +136,7 @@ fun NewLayout(
                     onAction(Action.DownloadUpdate(state.updateInfo!!))
                 },
                 onUpdateLater = {
-                    onAction(Action.ClearError) // Reset update state for now
+                    onAction(Action.DismissUpdate) // Properly dismiss until next app restart
                 }
             )
         }
