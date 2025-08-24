@@ -176,6 +176,9 @@ fun NewLayout(
                             onAction(Action.CheckForUpdate)
                         }
                     }
+                },
+                onCancelDownload = {
+                    onAction(Action.CancelDownload)
                 }
             )
         }

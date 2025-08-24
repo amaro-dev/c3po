@@ -96,6 +96,15 @@ class UpdateMiddlewareTest {
     }
 
     @Test
+    fun `asyncProcess - CancelDownload calls handleCancelDownload`() = runBlocking {
+        val action = Action.CancelDownload
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Download was cancelled" }) }
+    }
+
+    @Test
     fun `asyncProcess - ignores non-update actions`() = runBlocking {
         val action = Action.ClearError
 

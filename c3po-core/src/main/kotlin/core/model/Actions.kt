@@ -107,6 +107,8 @@ sealed interface Action : IAction {
         val updateInfo: UpdateInfo,
     ) : Action
 
+    data object CancelDownload : Action
+
     data class UpdateCheckComplete(
         val updateInfo: UpdateInfo?,
     ) : Action

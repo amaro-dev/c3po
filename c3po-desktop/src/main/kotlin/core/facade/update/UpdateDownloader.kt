@@ -1,6 +1,8 @@
 package core.facade.update
 
 import core.model.UpdateInfo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.File
@@ -10,6 +12,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import kotlin.coroutines.coroutineContext
 
 class UpdateDownloader(
     private val fileManager: UpdateFileManager,
@@ -50,6 +53,9 @@ class UpdateDownloader(
                             var bytesRead: Int
 
                             while (input.read(buffer).also { bytesRead = it } != -1) {
+                                // Check for cancellation before processing data
+                                coroutineContext.ensureActive()
+                                
                                 output.write(buffer, 0, bytesRead)
                                 totalBytesRead += bytesRead
 
@@ -78,6 +84,9 @@ class UpdateDownloader(
             fileManager.cleanupFile(downloadFile)
             throw e
         } catch (e: InterruptedException) {
+            fileManager.cleanupFile(downloadFile)
+            throw e
+        } catch (e: CancellationException) {
             fileManager.cleanupFile(downloadFile)
             throw e
         } catch (e: Exception) {

@@ -40,6 +40,7 @@ fun UpdateNotificationDialog(
     onUpdateLater: () -> Unit,
     onRetry: () -> Unit = {},
     onDismiss: () -> Unit = onUpdateLater,
+    onCancelDownload: () -> Unit = onUpdateLater,
     onOpenReleaseNotes: ((String) -> Unit)? = null
 ) {
     Dialog(onDismissRequest = { if (updateState != UpdateState.Installing) onDismiss() }) {
@@ -198,7 +199,7 @@ fun UpdateNotificationDialog(
                             // But allow canceling download
                             if (updateState == UpdateState.Downloading) {
                                 TextButton(
-                                    onClick = onDismiss,
+                                    onClick = onCancelDownload,
                                     colors = ButtonDefaults.textButtonColors(
                                         contentColor = MaterialTheme.colorScheme.error
                                     )

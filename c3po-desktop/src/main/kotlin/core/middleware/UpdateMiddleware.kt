@@ -8,6 +8,10 @@ import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 
@@ -16,6 +20,8 @@ class UpdateMiddleware(
     private val updateDownloader: UpdateDownloader,
     private val updateInstaller: UpdateInstaller
 ) : AsyncMiddlewareBase<AppState>() {
+
+    private var downloadJob: Job? = null
 
     override suspend fun asyncProcess(
         action: IAction,
@@ -29,6 +35,10 @@ class UpdateMiddleware(
 
             is Action.DownloadUpdate -> {
                 handleDownloadUpdate(action, processor)
+            }
+
+            is Action.CancelDownload -> {
+                handleCancelDownload(processor)
             }
 
             is Action.DismissUpdate -> {
@@ -102,62 +112,85 @@ class UpdateMiddleware(
     private suspend fun handleDownloadUpdate(
         action: Action.DownloadUpdate,
         processor: IProcessor<AppState>
-    ) {
-        var downloadedFile: File? = null
-        try {
-            // Get current version for validation
-            val currentVersion = "2.0.1" // Same as in handleCheckForUpdate
-            
-            // Enhanced version validation before download
-            if (!updateChecker.validateVersion(action.updateInfo.version, currentVersion)) {
-                processor.reduce(Action.UpdateError("Invalid version: ${action.updateInfo.version} is not newer than current version $currentVersion"))
-                return
-            }
+    ) = coroutineScope {
+        // Cancel any existing download
+        downloadJob?.cancel()
 
-            processor.reduce(action)
+        // Get current version for validation
+        val currentVersion = "2.0.1" // Same as in handleCheckForUpdate
 
-            // Start download with timeout and progress tracking
-            updateDownloader.downloadUpdate(action.updateInfo).collect { progress ->
-                // Update progress
-                processor.reduce(Action.UpdateDownloadProgress(progress.progress))
-                
-                // Handle download completion
-                if (progress.progress >= 100) {
-                    val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
-                    downloadedFile = File(downloadDir, "c3po-${action.updateInfo.version}.dmg")
+        // Enhanced version validation before download
+        if (!updateChecker.validateVersion(action.updateInfo.version, currentVersion)) {
+            processor.reduce(Action.UpdateError("Invalid version: ${action.updateInfo.version} is not newer than current version $currentVersion"))
+            return@coroutineScope
+        }
 
-                    // Validate downloaded file
-                    val validationResult = updateDownloader.validateDownloadedFile(
-                        downloadedFile!!,
-                        action.updateInfo.checksum
-                    )
+        processor.reduce(action)
 
-                    when (validationResult) {
-                        is UpdateDownloader.ValidationResult.Success -> {
-                            processor.reduce(Action.UpdateDownloadComplete(downloadedFile!!.absolutePath))
-                        }
+        // Start download in a tracked job
+        downloadJob = launch {
+            var downloadedFile: File? = null
+            try {
+                // Start download with timeout and progress tracking
+                updateDownloader.downloadUpdate(action.updateInfo).collect { progress ->
+                    // Update progress
+                    processor.reduce(Action.UpdateDownloadProgress(progress.progress))
 
-                        is UpdateDownloader.ValidationResult.Failed -> {
-                            processor.reduce(Action.UpdateError(validationResult.message))
-                            cleanupDownloadedFile(downloadedFile!!)
-                            return@collect
+                    // Handle download completion
+                    if (progress.progress >= 100) {
+                        val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+                        downloadedFile = File(downloadDir, "c3po-${action.updateInfo.version}.dmg")
+
+                        // Validate downloaded file
+                        val validationResult = updateDownloader.validateDownloadedFile(
+                            downloadedFile!!,
+                            action.updateInfo.checksum
+                        )
+
+                        when (validationResult) {
+                            is UpdateDownloader.ValidationResult.Success -> {
+                                processor.reduce(Action.UpdateDownloadComplete(downloadedFile!!.absolutePath))
+                            }
+
+                            is UpdateDownloader.ValidationResult.Failed -> {
+                                processor.reduce(Action.UpdateError(validationResult.message))
+                                cleanupDownloadedFile(downloadedFile!!)
+                                return@collect
+                            }
                         }
                     }
                 }
-            }
 
-        } catch (e: IllegalArgumentException) {
-            processor.reduce(Action.UpdateError("Download configuration error: ${e.message}"))
-            downloadedFile?.let { cleanupDownloadedFile(it) }
-        } catch (e: IOException) {
-            processor.reduce(Action.UpdateError("Network error during download. Please check your internet connection and try again."))
-            downloadedFile?.let { cleanupDownloadedFile(it) }
-        } catch (e: InterruptedException) {
+            } catch (e: IllegalArgumentException) {
+                processor.reduce(Action.UpdateError("Download configuration error: ${e.message}"))
+                downloadedFile?.let { cleanupDownloadedFile(it) }
+            } catch (e: IOException) {
+                processor.reduce(Action.UpdateError("Network error during download. Please check your internet connection and try again."))
+                downloadedFile?.let { cleanupDownloadedFile(it) }
+            } catch (e: CancellationException) {
+                processor.reduce(Action.UpdateError("Download was cancelled"))
+                downloadedFile?.let { cleanupDownloadedFile(it) }
+                throw e // Re-throw to properly handle cancellation
+            } catch (e: InterruptedException) {
+                processor.reduce(Action.UpdateError("Download was cancelled"))
+                downloadedFile?.let { cleanupDownloadedFile(it) }
+            } catch (e: Exception) {
+                processor.reduce(Action.UpdateError("Download failed: ${e.message}"))
+                downloadedFile?.let { cleanupDownloadedFile(it) }
+            } finally {
+                downloadJob = null
+            }
+        }
+    }
+
+    private suspend fun handleCancelDownload(processor: IProcessor<AppState>) {
+        try {
+            downloadJob?.cancel()
+            downloadJob = null
             processor.reduce(Action.UpdateError("Download was cancelled"))
-            downloadedFile?.let { cleanupDownloadedFile(it) }
         } catch (e: Exception) {
-            processor.reduce(Action.UpdateError("Download failed: ${e.message}"))
-            downloadedFile?.let { cleanupDownloadedFile(it) }
+            // Cancellation failed, but still update state
+            processor.reduce(Action.UpdateError("Download was cancelled"))
         }
     }
 
