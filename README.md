@@ -50,12 +50,6 @@ C3PO features a robust plugin-based architecture that enables deep Android syste
 - **🏷️ Attributes Plugin**: Examine application attributes and metadata
 - **🔑 Signature Plugin**: Analyze application signing information and certificates
 
-### 🤖 Companion Service Integration
-- **Automatic Service Management**: Install, start, and manage companion services
-- **Smart Connectivity**: Handles service installation verification and status monitoring
-- **Port Configuration**: Manages ADB port opening and forwarding
-- **Retry Logic**: Intelligent connection retry mechanisms
-
 ## Technical Architecture
 
 ### Core Technologies
@@ -251,7 +245,6 @@ The project includes comprehensive testing:
 **Connection Failures**
 - Verify ADB ports are available
 - Check device authorization dialog
-- Ensure companion service is properly installed
 
 **Performance Issues**
 - Reduce number of simultaneous operations
