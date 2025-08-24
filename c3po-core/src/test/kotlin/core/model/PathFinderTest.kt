@@ -1,4 +1,5 @@
-/* TODO: Fix compilation errors
+package core.model
+
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEqualTo
@@ -61,4 +62,4 @@ class PathFinder {
 
     fun listDirectories(path: String): List<Path> = Path(path).normalize().listDirectoryEntries()
 }
-*/
+

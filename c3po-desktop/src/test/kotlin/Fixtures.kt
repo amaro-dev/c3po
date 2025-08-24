@@ -1,4 +1,3 @@
-/* TODO: Fix compilation errors
 import core.command.AdbCommand
 import core.command.PlaceholderAdb
 
@@ -14,4 +13,3 @@ class FakePlaceholderCommand(
     PlaceholderAdb {
     override fun parse(result: String): String = result
 }
-*/

@@ -1,13 +1,11 @@
-/* TODO: Fix compilation errors
-/*
-// TODO: Fix compilation errors in this test file
+
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import core.App
 import core.model.Action
-import core.model.App
 import core.model.AppState
 import core.model.AppStateManager
-import core.model.IAction
+import dev.amaro.sonic.IAction
 import di.Names
 import io.mockk.clearMocks
 import io.mockk.every
@@ -22,12 +20,10 @@ import org.koin.core.context.stopKoin
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import plugins.Plugin
-import socket.SocketClient
 
 class AppTest {
     private val stateManager: AppStateManager = mockk(relaxed = true)
     private val plugin: List<Plugin<*>> = mockk(relaxed = true)
-    private val socketClient: SocketClient = mockk(relaxed = true)
 
     @BeforeEach
     fun setUp() {
@@ -36,7 +32,6 @@ class AppTest {
                 module {
                     single { stateManager }
                     single(named(Names.PLUGIN_LIST_DEPENDENCY)) { plugin }
-                    single<SocketClient> { socketClient }
                 },
             )
         }
@@ -69,20 +64,11 @@ class AppTest {
             .isEqualTo(state)
     }
 
-    @Test
-    fun `On exit, socket client closes`() {
-        val app = App()
 
-        app.exit()
-
-        verify { socketClient.close() }
-    }
 
     @AfterEach
     fun tearDown() {
-        clearMocks(stateManager, plugin, socketClient)
+        clearMocks(stateManager, plugin)
         stopKoin()
     }
 }
-*/
-*/

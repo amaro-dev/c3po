@@ -1,12 +1,11 @@
-/* TODO: Fix compilation errors
+package core.model
+
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
-import core.model.Action
-import core.model.AppState
-import core.model.ClipboardMiddleware
-import core.model.IProcessor
+import core.middleware.ClipboardMiddleware
+import dev.amaro.sonic.IProcessor
 import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.just
@@ -50,4 +49,3 @@ class ClipboardMiddlewareTest {
         }
     }
 }
-*/

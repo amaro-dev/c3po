@@ -1,4 +1,3 @@
-/* TODO: Fix compilation errors
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import core.command.CommandBuilder
@@ -62,4 +61,3 @@ class CommandBuilderTest {
         )
     }
 }
-*/

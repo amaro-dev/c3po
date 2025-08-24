@@ -1,13 +1,11 @@
-/* TODO: Fix compilation errors
-import core.model.Action
-import core.model.AppState
-import core.model.IProcessor
-import core.model.StatusMiddleware
+package core.model
+
+import core.middleware.StatusMiddleware
+import dev.amaro.sonic.IProcessor
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
-import models.CommandStatus
 import org.junit.jupiter.api.Test
 
 class StatusMiddlewareTest {
@@ -68,4 +66,3 @@ class StatusMiddlewareTest {
             verify(exactly = 0) { processor.reduce(any()) }
         }
 }
-*/
