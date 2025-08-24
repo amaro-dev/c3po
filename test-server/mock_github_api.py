@@ -12,8 +12,9 @@ Then configure C3PO with:
     update.check.url=http://localhost:8080/releases/latest
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file, request, Response
 import json
+import os
 from datetime import datetime
 
 app = Flask(__name__)
@@ -21,19 +22,20 @@ app = Flask(__name__)
 # Default scenario: update available
 current_scenario = "update_available"
 
-# Test scenarios
+# Test scenarios with real checksums
 SCENARIOS = {
     "update_available": {
         "tag_name": "v2.1.0",
         "name": "C3PO 2.1.0 - Enhanced Android Explorer",
-        "body": "## What's New\n- Auto-update functionality\n- Improved performance\n- Bug fixes and stability improvements",
+        "body": "## What's New\n- Auto-update functionality\n- Improved performance\n- Bug fixes and stability improvements\n\n**Checksum (SHA-256):** 2088144d6ca86c9546b24df5315bec33dea5137f73b00703d90d50959effe47b",
         "published_at": "2024-08-22T12:00:00Z",
         "html_url": "https://github.com/amaro-dev/c3po/releases/tag/v2.1.0",
+        "checksum": "2088144d6ca86c9546b24df5315bec33dea5137f73b00703d90d50959effe47b",
         "assets": [
             {
                 "name": "c3po-2.1.0.dmg",
                 "content_type": "application/octet-stream",
-                "size": 23456789,
+                "size": 115317454,
                 "browser_download_url": "http://localhost:8080/download/c3po-2.1.0.dmg"
             }
         ]
@@ -103,11 +105,42 @@ def get_current_scenario():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    """Simulate file download endpoint (returns mock response)"""
-    return f"Mock download of {filename} - this would be the actual DMG file", 200, {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': f'attachment; filename={filename}'
-    }
+    """Serve actual DMG files for testing with throttling for progress testing"""
+    import time
+    
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    
+    if not os.path.exists(file_path):
+        return jsonify({
+            "error": "File not found", 
+            "filename": filename,
+            "message": "The requested DMG file is not available on the test server"
+        }), 404
+    
+    # Get throttling parameters from query string (default: 1MB/sec for visible progress)
+    chunk_size = int(request.args.get('chunk_size', 1024 * 1024))  # 1MB chunks
+    delay_per_chunk = float(request.args.get('delay', 1.0))  # 1 second delay per chunk
+    
+    def generate():
+        with open(file_path, 'rb') as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+                # Add delay to simulate slower download
+                time.sleep(delay_per_chunk)
+    
+    file_size = os.path.getsize(file_path)
+    
+    return Response(
+        generate(),
+        headers={
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': f'attachment; filename={filename}',
+            'Content-Length': str(file_size)
+        }
+    )
 
 @app.route('/status')
 def server_status():

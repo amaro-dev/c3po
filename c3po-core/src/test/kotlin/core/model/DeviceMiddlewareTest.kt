@@ -1,16 +1,15 @@
+package core.model
+
+import Settings
 import core.command.CommandExecutor
-import core.model.Action
-import core.model.AppState
-import core.model.DeviceMiddleware
-import core.model.IActionScheduler
-import core.model.IProcessor
+import core.middleware.DeviceMiddleware
+import dev.amaro.sonic.IProcessor
 import io.mockk.Matcher
 import io.mockk.MockKMatcherScope
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import models.AdbDevice
 import org.junit.jupiter.api.Test
 import java.util.Properties
 import kotlin.reflect.KClass
@@ -119,3 +118,4 @@ class AnyOfTypeMatcher<T>(
 }
 
 inline fun <reified T> MockKMatcherScope.anyOfType(): T = match(AnyOfTypeMatcher(T::class))
+

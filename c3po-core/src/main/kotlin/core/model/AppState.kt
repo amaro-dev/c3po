@@ -13,6 +13,7 @@ data class AppState(
     val errorMessage: String? = null,
     val updateState: UpdateState = UpdateState.NoUpdate,
     val updateInfo: UpdateInfo? = null,
+    val downloadProgress: Int = 0,
 ) {
     val hasDeviceSet: Boolean
         get() = currentDevice != null

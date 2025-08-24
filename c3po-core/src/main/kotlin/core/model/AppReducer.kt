@@ -137,14 +137,15 @@ class AppReducer : IReducer<AppState> {
                 is Action.DownloadUpdate -> {
                     currentState.copy(
                         updateState = UpdateState.Downloading,
-                        updateInfo = action.updateInfo
+                        updateInfo = action.updateInfo,
+                        downloadProgress = 0
                     )
                 }
 
                 is Action.UpdateDownloadProgress -> {
-                    // For now, just maintain current state during progress updates
-                    // In future, could track progress percentage
-                    currentState
+                    currentState.copy(
+                        downloadProgress = action.progress
+                    )
                 }
 
                 is Action.UpdateError -> {
@@ -152,6 +153,45 @@ class AppReducer : IReducer<AppState> {
                         updateState = UpdateState.Error,
                         errorMessage = action.message
                     )
+                }
+
+                is Action.DismissUpdate -> {
+                    currentState.copy(
+                        updateState = UpdateState.UpdateDismissed,
+                        // Keep updateInfo for potential later use
+                    )
+                }
+
+                is Action.UpdateDownloadComplete -> {
+                    currentState.copy(
+                        updateState = UpdateState.DownloadComplete,
+                        // Could store filePath in state if needed
+                    )
+                }
+
+                is Action.UpdateInstallReady -> {
+                    currentState.copy(
+                        updateState = UpdateState.InstallReady,
+                        // Could store filePath in state if needed
+                    )
+                }
+
+                is Action.InstallUpdate -> {
+                    currentState.copy(
+                        updateState = UpdateState.Installing
+                    )
+                }
+
+                is Action.UpdateInstallComplete -> {
+                    currentState.copy(
+                        updateState = UpdateState.NoUpdate,
+                        updateInfo = null
+                    )
+                }
+
+                is Action.RestartApplication -> {
+                    // State doesn't change as app will restart
+                    currentState
                 }
 
                 else -> currentState

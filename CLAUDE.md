@@ -251,3 +251,7 @@ Other base application files are placed in the code directory root.
 - **ADB connection problems**: Check device authorization and ADB path configuration
 - **Plugin not showing**: Verify plugin is registered in `di/AppModule.kt` PLUGIN_LIST_DEPENDENCY
 - Remove the test files. These should never be commited. When you generate them, you must always sanitize after using
+
+## Interaction notes
+- When the User ask questions this does not mean something is wrong or needs to change. You just need to check and provide the answer.
+- 

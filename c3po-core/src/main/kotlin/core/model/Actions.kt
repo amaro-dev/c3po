@@ -107,6 +107,8 @@ sealed interface Action : IAction {
         val updateInfo: UpdateInfo,
     ) : Action
 
+    data object CancelDownload : Action
+
     data class UpdateCheckComplete(
         val updateInfo: UpdateInfo?,
     ) : Action
@@ -119,5 +121,22 @@ sealed interface Action : IAction {
         val message: String,
     ) : Action
 
+    data object DismissUpdate : Action
+
+    data class UpdateDownloadComplete(
+        val filePath: String,
+    ) : Action
+
+    data class UpdateInstallReady(
+        val filePath: String,
+    ) : Action
+
+    data class InstallUpdate(
+        val filePath: String,
+    ) : Action
+
+    data object UpdateInstallComplete : Action
+
+    data object RestartApplication : Action
 
 }

@@ -1,106 +1,270 @@
-import core.facade.UpdateService
-import core.middleware.UpdateMiddleware
+package core.middleware
+
+import core.facade.update.UpdateChecker
+import core.facade.update.UpdateDownloader
+import core.facade.update.UpdateInstaller
 import core.model.Action
 import core.model.AppState
 import core.model.UpdateInfo
 import dev.amaro.sonic.IProcessor
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.IOException
 import java.util.Properties
 
 class UpdateMiddlewareTest {
 
-    private val updateService: UpdateService = mockk()
-    private val processor: IProcessor<AppState> = mockk(relaxed = true)
-    private val updateMiddleware = UpdateMiddleware(updateService)
+    private val mockUpdateChecker = mockk<UpdateChecker>()
+    private val mockUpdateDownloader = mockk<UpdateDownloader>()
+    private val mockUpdateInstaller = mockk<UpdateInstaller>()
+    private val mockProcessor = mockk<IProcessor<AppState>>()
 
-    @Test
-    fun `should handle CheckForUpdate action`() = runTest {
-        val appState = AppState(
-            settings = Properties().apply {
-                setProperty("update.check.url", "https://api.github.com/repos/test/repo/releases/latest")
-                setProperty("update.auto.enabled", "true")
-            }
-        )
+    private val middleware = UpdateMiddleware(mockUpdateChecker, mockUpdateDownloader, mockUpdateInstaller)
 
-        val updateInfo = UpdateInfo(
-            version = "2.1.0",
-            downloadUrl = "https://github.com/test/repo/releases/download/v2.1.0/app.dmg"
-        )
-
-        coEvery { updateService.checkForUpdates(any(), any()) } returns updateInfo
-
-        updateMiddleware.asyncProcess(Action.CheckForUpdate, appState, processor)
-
-        coVerify { updateService.checkForUpdates("2.0.1", "https://api.github.com/repos/test/repo/releases/latest") }
-        verify { processor.reduce(Action.UpdateCheckComplete(updateInfo)) }
-    }
-
-    @Test
-    fun `should dispatch UpdateCheckComplete with null when no update available`() = runTest {
-        val appState = AppState(
-            settings = Properties().apply {
-                setProperty("update.auto.enabled", "true")
-            }
-        )
-
-        coEvery { updateService.checkForUpdates(any(), any()) } returns null
-
-        updateMiddleware.asyncProcess(Action.CheckForUpdate, appState, processor)
-
-        verify { processor.reduce(Action.UpdateCheckComplete(null)) }
-    }
-
-    @Test
-    fun `should handle errors gracefully and dispatch UpdateError`() = runTest {
-        val appState = AppState(
-            settings = Properties().apply {
-                setProperty("update.auto.enabled", "true")
-            }
-        )
-
-        coEvery { updateService.checkForUpdates(any(), any()) } throws RuntimeException("Network error")
-
-        updateMiddleware.asyncProcess(Action.CheckForUpdate, appState, processor)
-
-        verify { processor.reduce(Action.UpdateError("Failed to check for updates: Network error")) }
-    }
-
-    @Test
-    fun `should use default URL when not configured`() = runTest {
-        val appState = AppState(
-            settings = Properties().apply {
-                setProperty("update.auto.enabled", "true")
-            }
-        )
-
-        coEvery { updateService.checkForUpdates(any(), any()) } returns null
-
-        updateMiddleware.asyncProcess(Action.CheckForUpdate, appState, processor)
-
-        coVerify {
-            updateService.checkForUpdates(
-                "2.0.1",
-                "https://api.github.com/repos/amaro-dev/c3po/releases/latest"
-            )
+    private val testState = AppState(
+        settings = Properties().apply {
+            setProperty("update.auto.enabled", "true")
+            setProperty("update.check.url", "https://api.github.com/repos/test/repo/releases/latest")
         }
+    )
+
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+        every { mockProcessor.reduce(any()) } returns Unit
     }
 
     @Test
-    fun `should skip update check when disabled in settings`() = runTest {
-        val appState = AppState(
+    fun `asyncProcess - CheckForUpdate calls handleCheckForUpdate`() = runBlocking {
+        val action = Action.CheckForUpdate
+
+        every { mockUpdateChecker.isValidUrl(any()) } returns true
+        every { mockUpdateChecker.validateVersion(any(), any()) } returns true
+        coEvery { mockUpdateChecker.withRetry<UpdateInfo?>(any(), any(), any()) } returns null
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateCheckComplete(null)) }
+    }
+
+    @Test
+    fun `asyncProcess - DownloadUpdate calls handleDownloadUpdate`() = runBlocking {
+        val updateInfo = UpdateInfo("2.1.0", "https://example.com/app.dmg")
+        val action = Action.DownloadUpdate(updateInfo)
+
+        every { mockUpdateChecker.validateVersion("2.1.0", "2.0.1") } returns true
+        every { mockUpdateDownloader.downloadUpdate(updateInfo) } returns flowOf(
+            UpdateDownloader.DownloadProgress(100, 1024L, 1024L)
+        )
+        every { mockUpdateDownloader.validateDownloadedFile(any(), any()) } returns
+                UpdateDownloader.ValidationResult.Success
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateDownloadProgress(100)) }
+        verify { mockProcessor.reduce(match<Action.UpdateDownloadComplete> { it.filePath.contains("c3po-2.1.0.dmg") }) }
+    }
+
+    @Test
+    fun `asyncProcess - InstallUpdate calls handleInstallUpdate`() = runBlocking {
+        val action = Action.InstallUpdate("/path/to/file.dmg")
+
+        coEvery { mockUpdateInstaller.installUpdate(any()) } returns UpdateInstaller.InstallResult.success(
+            requiresRestart = true
+        )
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
+        verify { mockProcessor.reduce(Action.RestartApplication) }
+    }
+
+    @Test
+    fun `asyncProcess - DismissUpdate dispatches directly`() = runBlocking {
+        val action = Action.DismissUpdate
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.DismissUpdate) }
+    }
+
+    @Test
+    fun `asyncProcess - CancelDownload calls handleCancelDownload`() = runBlocking {
+        val action = Action.CancelDownload
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Download was cancelled" }) }
+    }
+
+    @Test
+    fun `asyncProcess - ignores non-update actions`() = runBlocking {
+        val action = Action.ClearError
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify(exactly = 0) { mockProcessor.reduce(any()) }
+    }
+
+    @Test
+    fun `handleCheckForUpdate - auto-updates disabled dispatches error`() = runBlocking {
+        val disabledState = testState.copy(
             settings = Properties().apply {
                 setProperty("update.auto.enabled", "false")
             }
         )
 
-        updateMiddleware.asyncProcess(Action.CheckForUpdate, appState, processor)
+        middleware.asyncProcess(Action.CheckForUpdate, disabledState, mockProcessor)
 
-        coVerify(exactly = 0) { updateService.checkForUpdates(any(), any()) }
-        verify { processor.reduce(Action.UpdateError("Auto-updates are disabled")) }
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Auto-updates are disabled" }) }
+    }
+
+    @Test
+    fun `handleCheckForUpdate - invalid URL dispatches error`() = runBlocking {
+        every { mockUpdateChecker.isValidUrl(any()) } returns false
+
+        middleware.asyncProcess(Action.CheckForUpdate, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message.contains("Invalid update URL") }) }
+    }
+
+    @Test
+    fun `handleCheckForUpdate - network error dispatches error`() = runBlocking {
+        every { mockUpdateChecker.isValidUrl(any()) } returns true
+        coEvery { mockUpdateChecker.withRetry<UpdateInfo?>(any(), any(), any()) } throws IOException("Network error")
+
+        middleware.asyncProcess(Action.CheckForUpdate, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message.contains("Network error while checking for updates") }) }
+    }
+
+    @Test
+    fun `handleCheckForUpdate - successful check with newer version`() = runBlocking {
+        val updateInfo = UpdateInfo("2.1.0", "https://example.com/app.dmg")
+
+        every { mockUpdateChecker.isValidUrl(any()) } returns true
+        every { mockUpdateChecker.validateVersion("2.1.0", "2.0.1") } returns true
+        coEvery { mockUpdateChecker.withRetry<UpdateInfo?>(any(), any(), any()) } returns updateInfo
+
+        middleware.asyncProcess(Action.CheckForUpdate, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateCheckComplete(updateInfo)) }
+    }
+
+    @Test
+    fun `handleDownloadUpdate - version validation failure dispatches error`() = runBlocking {
+        val updateInfo = UpdateInfo("2.0.0", "https://example.com/app.dmg")
+        val action = Action.DownloadUpdate(updateInfo)
+
+        every { mockUpdateChecker.validateVersion("2.0.0", "2.0.1") } returns false
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify {
+            mockProcessor.reduce(match<Action.UpdateError> {
+                it.message.contains("Invalid version") && it.message.contains("not newer")
+            })
+        }
+    }
+
+    @Test
+    fun `handleDownloadUpdate - download validation failure dispatches error`() = runBlocking {
+        val updateInfo = UpdateInfo("2.1.0", "https://example.com/app.dmg")
+        val action = Action.DownloadUpdate(updateInfo)
+
+        every { mockUpdateChecker.validateVersion("2.1.0", "2.0.1") } returns true
+        every { mockUpdateDownloader.downloadUpdate(updateInfo) } returns flowOf(
+            UpdateDownloader.DownloadProgress(100, 1024L, 1024L)
+        )
+        every { mockUpdateDownloader.validateDownloadedFile(any(), any()) } returns
+                UpdateDownloader.ValidationResult.Failed("Validation failed")
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateDownloadProgress(100)) }
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Validation failed" }) }
+    }
+
+    @Test
+    fun `handleDownloadUpdate - network error cleans up and dispatches error`() = runBlocking {
+        val updateInfo = UpdateInfo("2.1.0", "https://example.com/app.dmg")
+        val action = Action.DownloadUpdate(updateInfo)
+
+        every { mockUpdateChecker.validateVersion("2.1.0", "2.0.1") } returns true
+        every { mockUpdateDownloader.downloadUpdate(updateInfo) } throws IOException("Network error")
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify {
+            mockProcessor.reduce(match<Action.UpdateError> {
+                it.message.contains("Network error during download")
+            })
+        }
+    }
+
+    @Test
+    fun `handleInstallUpdate - installation failure dispatches error`() = runBlocking {
+        val action = Action.InstallUpdate("/path/to/file.dmg")
+
+        coEvery { mockUpdateInstaller.installUpdate(any()) } returns
+                UpdateInstaller.InstallResult.failure("Installation failed")
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Installation failed" }) }
+    }
+
+    @Test
+    fun `handleInstallUpdate - successful installation without restart`() = runBlocking {
+        val action = Action.InstallUpdate("/path/to/file.dmg")
+
+        coEvery { mockUpdateInstaller.installUpdate(any()) } returns
+                UpdateInstaller.InstallResult.success(requiresRestart = false)
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
+        verify(exactly = 0) { mockProcessor.reduce(Action.RestartApplication) }
+    }
+
+    @Test
+    fun `handleInstallUpdate - exception dispatches error`() = runBlocking {
+        val action = Action.InstallUpdate("/path/to/file.dmg")
+
+        coEvery { mockUpdateInstaller.installUpdate(any()) } throws RuntimeException("Unexpected error")
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify {
+            mockProcessor.reduce(match<Action.UpdateError> {
+                it.message.contains("Installation error") && it.message.contains("Unexpected error")
+            })
+        }
+    }
+
+    @Test
+    fun `cleanupDownloadedFile - handles file cleanup gracefully`() = runBlocking {
+        // Test that cleanup doesn't throw exceptions by running a successful flow
+        val updateInfo = UpdateInfo("2.1.0", "https://example.com/app.dmg")
+        val action = Action.DownloadUpdate(updateInfo)
+
+        every { mockUpdateChecker.validateVersion("2.1.0", "2.0.1") } returns true
+        every { mockUpdateDownloader.downloadUpdate(updateInfo) } returns flowOf(
+            UpdateDownloader.DownloadProgress(100, 1024L, 1024L)
+        )
+        every { mockUpdateDownloader.validateDownloadedFile(any(), any()) } returns
+                UpdateDownloader.ValidationResult.Failed("Test failure")
+
+        // Should not throw exception even if cleanup fails
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Test failure" }) }
     }
 }

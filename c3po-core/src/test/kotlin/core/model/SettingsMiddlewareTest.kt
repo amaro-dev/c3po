@@ -1,10 +1,11 @@
+package core.model
+
+import Settings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import core.model.Action
-import core.model.AppState
-import core.model.IProcessor
-import core.model.SettingsMiddleware
-import facade.SettingsRepository
+import core.facade.SettingsRepository
+import core.middleware.SettingsMiddleware
+import dev.amaro.sonic.IProcessor
 import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.mockk

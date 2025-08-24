@@ -1,6 +1,5 @@
-import core.model.Action
-import core.model.AppState
-import core.model.AppStateManager
+package core.model
+
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IReducer
 import io.mockk.every

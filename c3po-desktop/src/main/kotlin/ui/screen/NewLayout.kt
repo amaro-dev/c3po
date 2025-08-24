@@ -128,15 +128,57 @@ fun NewLayout(
             )
         }
 
-        // Update notification dialog
-        if (state.updateState == core.model.UpdateState.UpdateAvailable && state.updateInfo != null) {
+        // Update notification dialog - show for various update states
+        val showUpdateDialog = state.updateInfo != null && state.updateState in listOf(
+            core.model.UpdateState.UpdateAvailable,
+            core.model.UpdateState.Downloading,
+            core.model.UpdateState.DownloadComplete,
+            core.model.UpdateState.InstallReady,
+            core.model.UpdateState.Installing,
+            core.model.UpdateState.Error
+        )
+
+        if (showUpdateDialog) {
             ui.component.UpdateNotificationDialog(
                 updateInfo = state.updateInfo!!,
+                updateState = state.updateState,
+                downloadProgress = state.downloadProgress,
+                errorMessage = state.errorMessage,
                 onUpdateNow = {
                     onAction(Action.DownloadUpdate(state.updateInfo!!))
                 },
+                onInstallNow = {
+                    // Get the downloaded file path from temp directory
+                    val downloadDir = java.io.File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+                    val downloadedFile = java.io.File(downloadDir, "c3po-${state.updateInfo!!.version}.dmg")
+                    if (downloadedFile.exists()) {
+                        onAction(Action.InstallUpdate(downloadedFile.absolutePath))
+                    } else {
+                        onAction(Action.UpdateError("Downloaded file not found: ${downloadedFile.absolutePath}"))
+                    }
+                },
                 onUpdateLater = {
-                    onAction(Action.ClearError) // Reset update state for now
+                    onAction(Action.DismissUpdate) // Properly dismiss until next app restart
+                },
+                onRetry = {
+                    // Reset error state and retry the last operation
+                    when (state.updateState) {
+                        core.model.UpdateState.Error -> {
+                            // Determine what to retry based on available data
+                            if (state.updateInfo != null) {
+                                onAction(Action.DownloadUpdate(state.updateInfo!!))
+                            } else {
+                                onAction(Action.CheckForUpdate)
+                            }
+                        }
+
+                        else -> {
+                            onAction(Action.CheckForUpdate)
+                        }
+                    }
+                },
+                onCancelDownload = {
+                    onAction(Action.CancelDownload)
                 }
             )
         }

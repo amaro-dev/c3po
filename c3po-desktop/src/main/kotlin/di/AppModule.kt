@@ -1,9 +1,14 @@
 package di
 
 import core.PluginSelectorMiddleware
-import core.facade.UpdateService
+import core.facade.update.UpdateChecker
+import core.facade.update.UpdateDownloader
+import core.facade.update.UpdateFileManager
+import core.facade.update.UpdateInstaller
+import core.facade.update.UpdateValidator
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware
+import core.middleware.RestartMiddleware
 import core.middleware.SettingsMiddleware
 import core.middleware.StatusMiddleware
 import core.middleware.USBMonitorMiddleware
@@ -39,7 +44,8 @@ val AppModule =
                 SettingsMiddleware(get()),
                 StatusMiddleware(get()),
                 USBMonitorMiddleware(get()),
-                UpdateMiddleware(get()),
+                UpdateMiddleware(get(), get(), get()),
+                RestartMiddleware(),
                 ConditionedDirectMiddleware(
                     Action.SelectPlugin::class,
                     Action.SelectDevice::class,
@@ -49,8 +55,12 @@ val AppModule =
             )
         }
 
-        // Update Service
-        single { UpdateService() }
+        // Update Services
+        single { UpdateValidator() }
+        single { UpdateFileManager() }
+        single { UpdateChecker(get()) }
+        single { UpdateDownloader(get(), get()) }
+        single { UpdateInstaller(get()) }
 
         factory(named(PLUGIN_LIST_DEPENDENCY)) {
             listOf(
