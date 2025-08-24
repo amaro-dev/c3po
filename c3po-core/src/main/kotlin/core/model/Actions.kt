@@ -129,4 +129,12 @@ sealed interface Action : IAction {
         val filePath: String,
     ) : Action
 
+    data class InstallUpdate(
+        val filePath: String,
+    ) : Action
+
+    data object UpdateInstallComplete : Action
+
+    data object RestartApplication : Action
+
 }

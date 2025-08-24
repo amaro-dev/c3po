@@ -4,6 +4,7 @@ import core.PluginSelectorMiddleware
 import core.facade.UpdateService
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware
+import core.middleware.RestartMiddleware
 import core.middleware.SettingsMiddleware
 import core.middleware.StatusMiddleware
 import core.middleware.USBMonitorMiddleware
@@ -40,6 +41,7 @@ val AppModule =
                 StatusMiddleware(get()),
                 USBMonitorMiddleware(get()),
                 UpdateMiddleware(get()),
+                RestartMiddleware(),
                 ConditionedDirectMiddleware(
                     Action.SelectPlugin::class,
                     Action.SelectDevice::class,
