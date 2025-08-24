@@ -39,7 +39,8 @@ fun UpdateNotificationDialog(
     onInstallNow: () -> Unit = {},
     onUpdateLater: () -> Unit,
     onRetry: () -> Unit = {},
-    onDismiss: () -> Unit = onUpdateLater
+    onDismiss: () -> Unit = onUpdateLater,
+    onOpenReleaseNotes: ((String) -> Unit)? = null
 ) {
     Dialog(onDismissRequest = { if (updateState != UpdateState.Installing) onDismiss() }) {
         Card(
@@ -54,43 +55,7 @@ fun UpdateNotificationDialog(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                val (title, description, isError) = when (updateState) {
-                    UpdateState.UpdateAvailable -> Triple(
-                        "Update Available",
-                        "Version ${updateInfo.version} is now available. Would you like to download and install it now?",
-                        false
-                    )
-
-                    UpdateState.Downloading -> Triple(
-                        "Downloading Update",
-                        "Downloading version ${updateInfo.version}... Please wait.",
-                        false
-                    )
-
-                    UpdateState.DownloadComplete, UpdateState.InstallReady -> Triple(
-                        "Ready to Install",
-                        "Version ${updateInfo.version} has been downloaded and is ready to install.",
-                        false
-                    )
-
-                    UpdateState.Installing -> Triple(
-                        "Installing Update",
-                        "Installing version ${updateInfo.version}... The application will restart automatically.",
-                        false
-                    )
-
-                    UpdateState.Error -> Triple(
-                        "Update Failed",
-                        errorMessage ?: "An error occurred while updating. Please try again.",
-                        true
-                    )
-
-                    else -> Triple(
-                        "Update Available",
-                        "Version ${updateInfo.version} is now available.",
-                        false
-                    )
-                }
+                val (title, description, isError) = generateTextForUI(updateState, updateInfo, errorMessage)
 
                 Text(
                     text = title,
@@ -182,9 +147,9 @@ fun UpdateNotificationDialog(
                     else -> {}
                 }
 
-                if (updateInfo.releaseNotesUrl != null && !isError) {
+                if (updateInfo.releaseNotesUrl != null && !isError && onOpenReleaseNotes != null) {
                     TextButton(
-                        onClick = { /* Open release notes URL */ },
+                        onClick = { onOpenReleaseNotes(updateInfo.releaseNotesUrl!!) },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         Text(
@@ -265,4 +230,46 @@ fun UpdateNotificationDialog(
             }
         }
     }
+}
+
+private fun generateTextForUI(
+    updateState: UpdateState,
+    updateInfo: UpdateInfo,
+    errorMessage: String?
+): Triple<String, String, Boolean> = when (updateState) {
+    UpdateState.UpdateAvailable -> Triple(
+        "Update Available",
+        "Version ${updateInfo.version} is now available. Would you like to download and install it now?",
+        false
+    )
+
+    UpdateState.Downloading -> Triple(
+        "Downloading Update",
+        "Downloading version ${updateInfo.version}... Please wait.",
+        false
+    )
+
+    UpdateState.DownloadComplete, UpdateState.InstallReady -> Triple(
+        "Ready to Install",
+        "Version ${updateInfo.version} has been downloaded and is ready to install.",
+        false
+    )
+
+    UpdateState.Installing -> Triple(
+        "Installing Update",
+        "Installing version ${updateInfo.version}... The application will restart automatically.",
+        false
+    )
+
+    UpdateState.Error -> Triple(
+        "Update Failed",
+        errorMessage ?: "An error occurred while updating. Please try again.",
+        true
+    )
+
+    else -> Triple(
+        "Update Available",
+        "Version ${updateInfo.version} is now available.",
+        false
+    )
 }

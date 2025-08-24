@@ -10,8 +10,11 @@ class UpdateStateTest {
             "NoUpdate",
             "CheckingForUpdate",
             "UpdateAvailable",
+            "UpdateDismissed",
             "Downloading",
             "DownloadComplete",
+            "InstallReady",
+            "Installing",
             "Error"
         )
 

@@ -1,6 +1,8 @@
 package core.middleware
 
-import core.facade.UpdateService
+import core.facade.update.UpdateChecker
+import core.facade.update.UpdateDownloader
+import core.facade.update.UpdateInstaller
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
@@ -10,7 +12,9 @@ import java.io.File
 import java.io.IOException
 
 class UpdateMiddleware(
-    private val updateService: UpdateService
+    private val updateChecker: UpdateChecker,
+    private val updateDownloader: UpdateDownloader,
+    private val updateInstaller: UpdateInstaller
 ) : AsyncMiddlewareBase<AppState>() {
 
     override suspend fun asyncProcess(
@@ -24,7 +28,7 @@ class UpdateMiddleware(
             }
 
             is Action.DownloadUpdate -> {
-                handleDownloadUpdate(action, state, processor)
+                handleDownloadUpdate(action, processor)
             }
 
             is Action.DismissUpdate -> {
@@ -60,7 +64,7 @@ class UpdateMiddleware(
             )
 
             // Validate update URL format
-            if (!isValidUrl(updateUrl)) {
+            if (!updateChecker.isValidUrl(updateUrl)) {
                 processor.reduce(Action.UpdateError("Invalid update URL configured: $updateUrl"))
                 return
             }
@@ -69,13 +73,13 @@ class UpdateMiddleware(
             val currentVersion = "2.0.1"
 
             // Check for updates with timeout and retries
-            val updateInfo = withRetry(maxRetries = 3, delayMs = 1000) {
-                updateService.checkForUpdates(currentVersion, updateUrl)
+            val updateInfo = updateChecker.withRetry(maxRetries = 3, delayMs = 1000) {
+                updateChecker.checkForUpdates(currentVersion, updateUrl)
             }
             
             // Additional validation - ensure we got a valid newer version
             if (updateInfo != null) {
-                if (!updateService.validateVersion(updateInfo.version, currentVersion)) {
+                if (!updateChecker.validateVersion(updateInfo.version, currentVersion)) {
                     // Log but don't show error - this is expected behavior for same/older versions
                     processor.reduce(Action.UpdateCheckComplete(null))
                     return
@@ -97,7 +101,6 @@ class UpdateMiddleware(
 
     private suspend fun handleDownloadUpdate(
         action: Action.DownloadUpdate,
-        state: AppState,
         processor: IProcessor<AppState>
     ) {
         var downloadedFile: File? = null
@@ -106,19 +109,15 @@ class UpdateMiddleware(
             val currentVersion = "2.0.1" // Same as in handleCheckForUpdate
             
             // Enhanced version validation before download
-            if (!updateService.validateVersion(action.updateInfo.version, currentVersion)) {
+            if (!updateChecker.validateVersion(action.updateInfo.version, currentVersion)) {
                 processor.reduce(Action.UpdateError("Invalid version: ${action.updateInfo.version} is not newer than current version $currentVersion"))
                 return
             }
 
-            // Validate download URL
-            if (!isValidUrl(action.updateInfo.downloadUrl)) {
-                processor.reduce(Action.UpdateError("Invalid download URL: ${action.updateInfo.downloadUrl}"))
-                return
-            }
+            processor.reduce(action)
 
             // Start download with timeout and progress tracking
-            updateService.downloadUpdate(action.updateInfo).collect { progress ->
+            updateDownloader.downloadUpdate(action.updateInfo).collect { progress ->
                 // Update progress
                 processor.reduce(Action.UpdateDownloadProgress(progress.progress))
                 
@@ -127,32 +126,23 @@ class UpdateMiddleware(
                     val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
                     downloadedFile = File(downloadDir, "c3po-${action.updateInfo.version}.dmg")
 
-                    if (!downloadedFile!!.exists()) {
-                        processor.reduce(Action.UpdateError("Download completed but file not found"))
-                        return@collect
-                    }
+                    // Validate downloaded file
+                    val validationResult = updateDownloader.validateDownloadedFile(
+                        downloadedFile!!,
+                        action.updateInfo.checksum
+                    )
 
-                    // Verify file size
-                    if (downloadedFile!!.length() == 0L) {
-                        processor.reduce(Action.UpdateError("Downloaded file is empty"))
-                        cleanupDownloadedFile(downloadedFile!!)
-                        return@collect
-                    }
-                    
-                    // Verify checksum if available
-                    try {
-                        if (!updateService.verifyChecksum(downloadedFile!!, action.updateInfo.checksum)) {
-                            processor.reduce(Action.UpdateError("Downloaded file failed checksum verification. The file may be corrupted."))
+                    when (validationResult) {
+                        is UpdateDownloader.ValidationResult.Success -> {
+                            processor.reduce(Action.UpdateDownloadComplete(downloadedFile!!.absolutePath))
+                        }
+
+                        is UpdateDownloader.ValidationResult.Failed -> {
+                            processor.reduce(Action.UpdateError(validationResult.message))
                             cleanupDownloadedFile(downloadedFile!!)
                             return@collect
                         }
-                    } catch (e: Exception) {
-                        processor.reduce(Action.UpdateError("Checksum verification failed: ${e.message}"))
-                        cleanupDownloadedFile(downloadedFile!!)
-                        return@collect
                     }
-
-                    processor.reduce(Action.UpdateDownloadComplete(downloadedFile!!.absolutePath))
                 }
             }
 
@@ -177,32 +167,7 @@ class UpdateMiddleware(
     ) {
         try {
             val installFile = File(action.filePath)
-
-            // Pre-installation validation
-            if (!installFile.exists()) {
-                processor.reduce(Action.UpdateError("Installation file not found: ${action.filePath}"))
-                return
-            }
-
-            if (installFile.length() == 0L) {
-                processor.reduce(Action.UpdateError("Installation file is empty or corrupted"))
-                cleanupDownloadedFile(installFile)
-                return
-            }
-
-            // Check available disk space for installation
-            val requiredSpace = installFile.length() * 3 // Estimate 3x for extraction and installation
-            val availableSpace = installFile.parentFile.usableSpace
-            if (availableSpace < requiredSpace) {
-                processor.reduce(
-                    Action.UpdateError(
-                        "Insufficient disk space for installation. Required: ${requiredSpace / 1024 / 1024}MB, Available: ${availableSpace / 1024 / 1024}MB"
-                    )
-                )
-                return
-            }
-
-            val installResult = updateService.installUpdate(installFile)
+            val installResult = updateInstaller.installUpdate(installFile)
 
             if (installResult.success) {
                 // Clean up downloaded file after successful installation
@@ -217,47 +182,12 @@ class UpdateMiddleware(
                     processor.reduce(Action.RestartApplication)
                 }
             } else {
-                processor.reduce(Action.UpdateError("Installation failed: ${installResult.message}"))
+                processor.reduce(Action.UpdateError(installResult.message ?: "Installation failed"))
                 // Keep downloaded file for retry attempts
             }
-
-        } catch (e: SecurityException) {
-            processor.reduce(Action.UpdateError("Installation permission denied. Please run as administrator or check file permissions."))
-        } catch (e: IOException) {
-            processor.reduce(Action.UpdateError("Installation I/O error: ${e.message}. Please check disk space and file permissions."))
-        } catch (e: InterruptedException) {
-            processor.reduce(Action.UpdateError("Installation was cancelled"))
         } catch (e: Exception) {
             processor.reduce(Action.UpdateError("Installation error: ${e.message}"))
         }
-    }
-
-    private fun isValidUrl(url: String): Boolean {
-        return try {
-            val uri = java.net.URI(url)
-            uri.scheme != null && (uri.scheme == "http" || uri.scheme == "https") && uri.host != null
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    private suspend fun <T> withRetry(
-        maxRetries: Int,
-        delayMs: Long,
-        operation: suspend () -> T
-    ): T {
-        var lastException: Exception? = null
-        repeat(maxRetries) { attempt ->
-            try {
-                return operation()
-            } catch (e: Exception) {
-                lastException = e
-                if (attempt < maxRetries - 1) {
-                    kotlinx.coroutines.delay(delayMs)
-                }
-            }
-        }
-        throw lastException ?: RuntimeException("All retry attempts failed")
     }
 
     private fun cleanupDownloadedFile(file: File) {
