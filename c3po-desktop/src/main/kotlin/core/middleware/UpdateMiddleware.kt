@@ -168,11 +168,11 @@ class UpdateMiddleware(
                 processor.reduce(Action.UpdateError("Network error during download. Please check your internet connection and try again."))
                 downloadedFile?.let { cleanupDownloadedFile(it) }
             } catch (e: CancellationException) {
-                processor.reduce(Action.UpdateError("Download was cancelled"))
+                processor.reduce(Action.UpdateCancelled)
                 downloadedFile?.let { cleanupDownloadedFile(it) }
                 throw e // Re-throw to properly handle cancellation
             } catch (e: InterruptedException) {
-                processor.reduce(Action.UpdateError("Download was cancelled"))
+                processor.reduce(Action.UpdateCancelled)
                 downloadedFile?.let { cleanupDownloadedFile(it) }
             } catch (e: Exception) {
                 processor.reduce(Action.UpdateError("Download failed: ${e.message}"))
@@ -187,10 +187,10 @@ class UpdateMiddleware(
         try {
             downloadJob?.cancel()
             downloadJob = null
-            processor.reduce(Action.UpdateError("Download was cancelled"))
+            processor.reduce(Action.UpdateCancelled)
         } catch (e: Exception) {
             // Cancellation failed, but still update state
-            processor.reduce(Action.UpdateError("Download was cancelled"))
+            processor.reduce(Action.UpdateCancelled)
         }
     }
 

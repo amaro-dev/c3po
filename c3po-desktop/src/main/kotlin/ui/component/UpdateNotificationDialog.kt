@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -71,31 +70,31 @@ fun UpdateNotificationDialog(
                     color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
 
-                // Error details section
-                if (isError && errorMessage != null) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp)
-                        ) {
-                            Text(
-                                text = "Error Details:",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Text(
-                                text = errorMessage,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
-                    }
-                }
+//                // Error details section
+//                if (isError && errorMessage != null) {
+//                    Card(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        colors = CardDefaults.cardColors(
+//                            containerColor = MaterialTheme.colorScheme.errorContainer
+//                        )
+//                    ) {
+//                        Column(
+//                            modifier = Modifier.padding(12.dp)
+//                        ) {
+//                            Text(
+//                                text = "Error Details:",
+//                                style = MaterialTheme.typography.labelMedium,
+//                                fontWeight = FontWeight.Bold,
+//                                color = MaterialTheme.colorScheme.onErrorContainer
+//                            )
+//                            Text(
+//                                text = errorMessage,
+//                                style = MaterialTheme.typography.bodySmall,
+//                                color = MaterialTheme.colorScheme.onErrorContainer
+//                            )
+//                        }
+//                    }
+//                }
 
                 // Show progress indicator for downloading/installing states
                 when (updateState) {
@@ -194,6 +193,15 @@ fun UpdateNotificationDialog(
                             }
                         }
 
+                        UpdateState.UpdateCancelled -> {
+                            TextButton(onClick = onUpdateLater) {
+                                Text("Close")
+                            }
+                            Button(onClick = onRetry) {
+                                Text("Try Again")
+                            }
+                        }
+
                         UpdateState.Downloading, UpdateState.Installing -> {
                             // No buttons during these states - user must wait
                             // But allow canceling download
@@ -266,6 +274,12 @@ private fun generateTextForUI(
         "Update Failed",
         errorMessage ?: "An error occurred while updating. Please try again.",
         true
+    )
+
+    UpdateState.UpdateCancelled -> Triple(
+        "Download Cancelled",
+        "The download of version ${updateInfo.version} was cancelled.",
+        false
     )
 
     else -> Triple(

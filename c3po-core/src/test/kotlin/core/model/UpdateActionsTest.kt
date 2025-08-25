@@ -35,6 +35,14 @@ class UpdateActionsTest {
     }
 
     @Test
+    fun `UpdateCancelled should be an Action`() {
+        val action = Action.UpdateCancelled
+
+        assertThat(action).isInstanceOf(Action::class)
+        assertThat(action).isInstanceOf(IAction::class)
+    }
+
+    @Test
     fun `UpdateCheckComplete should handle both success and no-update cases`() {
         val updateInfo = UpdateInfo(
             version = "2.1.0",

@@ -155,6 +155,12 @@ class AppReducer : IReducer<AppState> {
                     )
                 }
 
+                is Action.UpdateCancelled -> {
+                    currentState.copy(
+                        updateState = UpdateState.UpdateCancelled
+                    )
+                }
+
                 is Action.DismissUpdate -> {
                     currentState.copy(
                         updateState = UpdateState.UpdateDismissed,
@@ -198,4 +204,5 @@ class AppReducer : IReducer<AppState> {
             }
         return state
     }
+
 }

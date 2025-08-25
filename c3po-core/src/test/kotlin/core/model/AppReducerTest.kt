@@ -96,6 +96,18 @@ class AppReducerTest {
     }
 
     @Test
+    fun `reduce - UpdateCancelled sets cancelled state`() {
+        val action = Action.UpdateCancelled
+        val stateWithDownload = initialState.copy(
+            updateState = UpdateState.Downloading
+        )
+
+        val result = reducer.reduce(action, stateWithDownload)
+
+        assertThat(result.updateState).isEqualTo(UpdateState.UpdateCancelled)
+    }
+
+    @Test
     fun `reduce - CheckForUpdate sets state to CheckingForUpdate`() {
         val action = Action.CheckForUpdate
 

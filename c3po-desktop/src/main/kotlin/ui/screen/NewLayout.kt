@@ -135,6 +135,7 @@ fun NewLayout(
             core.model.UpdateState.DownloadComplete,
             core.model.UpdateState.InstallReady,
             core.model.UpdateState.Installing,
+            core.model.UpdateState.UpdateCancelled,
             core.model.UpdateState.Error
         )
 

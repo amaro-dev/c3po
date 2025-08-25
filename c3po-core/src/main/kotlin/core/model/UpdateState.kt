@@ -7,6 +7,7 @@ enum class UpdateState {
     UpdateDismissed,
     Downloading,
     DownloadComplete,
+    UpdateCancelled,
     InstallReady,
     Installing,
     Error

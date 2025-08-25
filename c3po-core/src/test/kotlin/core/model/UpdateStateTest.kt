@@ -13,6 +13,7 @@ class UpdateStateTest {
             "UpdateDismissed",
             "Downloading",
             "DownloadComplete",
+            "UpdateCancelled",
             "InstallReady",
             "Installing",
             "Error"

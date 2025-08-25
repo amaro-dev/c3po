@@ -101,7 +101,7 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Download was cancelled" }) }
+        verify { mockProcessor.reduce(Action.UpdateCancelled) }
     }
 
     @Test
