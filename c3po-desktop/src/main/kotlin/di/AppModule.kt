@@ -64,7 +64,7 @@ val AppModule =
 
         factory(named(PLUGIN_LIST_DEPENDENCY)) {
             listOf(
-                DevicePlugin(),
+                DevicePlugin(get()),
                 ActivitiesPlugin(get()),
                 PackagesPlugin(get(), get()),
                 DeviceAttrsPlugin(get()),
