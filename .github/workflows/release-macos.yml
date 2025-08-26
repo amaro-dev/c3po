@@ -35,15 +35,18 @@ jobs:
       - name: Build .dmg
         run: ../gradlew :c3po-desktop:packageDmg -Pversion=${{ steps.version.outputs.version }}
 
+      - name: List generated DMG files
+        run: ls -lh build/compose/binaries/main/dmg/
+
       - name: Calculate SHA-256 checksum
         id: checksum
         run: |
-          checksum=$(shasum -a 256 c3po-desktop/build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg | cut -d ' ' -f 1)
+          checksum=$(shasum -a 256 build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg | cut -d ' ' -f 1)
           echo "checksum=$checksum" >> $GITHUB_OUTPUT
 
       - name: Generate GitHub-style JSON metadata
         run: |
-          size=$(stat -f%z c3po-desktop/build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg)
+          size=$(stat -f%z build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg)
           published_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           cat <<EOF > release.json
