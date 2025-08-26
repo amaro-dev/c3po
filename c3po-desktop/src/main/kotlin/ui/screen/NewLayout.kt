@@ -296,7 +296,15 @@ private fun TopBar(
                 Icon(imageVector = Icons.Filled.Refresh, contentDescription = "Refresh")
             }
             Spacer(Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
+
+            // Version display on the right
+            Text(
+                "v${Settings.getAppVersion()}",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFF22223B).copy(alpha = 0.7f)
+            )
+
+            Spacer(Modifier.width(24.dp))
         }
     }
 }

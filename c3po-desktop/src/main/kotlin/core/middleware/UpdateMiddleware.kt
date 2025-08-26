@@ -1,5 +1,6 @@
 package core.middleware
 
+import Settings
 import core.facade.update.UpdateChecker
 import core.facade.update.UpdateDownloader
 import core.facade.update.UpdateInstaller
@@ -79,8 +80,8 @@ class UpdateMiddleware(
                 return
             }
 
-            // Get current version - for now hardcoded, could be made configurable
-            val currentVersion = "2.0.1"
+            // Get current version from app manifest
+            val currentVersion = Settings.getAppVersion()
 
             // Check for updates with timeout and retries
             val updateInfo = updateChecker.withRetry(maxRetries = 3, delayMs = 1000) {
@@ -117,7 +118,7 @@ class UpdateMiddleware(
         downloadJob?.cancel()
 
         // Get current version for validation
-        val currentVersion = "2.0.1" // Same as in handleCheckForUpdate
+        val currentVersion = Settings.getAppVersion()
 
         // Enhanced version validation before download
         if (!updateChecker.validateVersion(action.updateInfo.version, currentVersion)) {
