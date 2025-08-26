@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.amaro.c3po"
-version = project.findProperty("version")?.toString() ?: "dev"
+version = project.findProperty("version").takeIf { it != "unspecified" }?.toString() ?: "3.0.0"
 
 allprojects {
     repositories {
