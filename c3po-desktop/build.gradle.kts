@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.amaro.c3po"
-version = "2.0.1"
+version = project.findProperty("version")?.toString() ?: "dev"
 val mainClassName = "Mainkt"
 val mainClassPath = "$group.$mainClassName"
 

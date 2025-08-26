@@ -1,0 +1,75 @@
+name: Build & Release macOS App
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release-macos:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: c3po-desktop
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Run tests (core)
+        run: ../gradlew :c3po-core:test
+
+      - name: Run tests (desktop)
+        run: ../gradlew :c3po-desktop:test
+
+      - name: Build .dmg
+        run: ../gradlew :c3po-desktop:packageDmg -Pversion=${{ steps.version.outputs.version }}
+
+      - name: Calculate SHA-256 checksum
+        id: checksum
+        run: |
+          checksum=$(shasum -a 256 build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg | cut -d ' ' -f 1)
+          echo "checksum=$checksum" >> $GITHUB_OUTPUT
+
+      - name: Generate GitHub-style JSON metadata
+        run: |
+          size=$(stat -f%z build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg)
+          published_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          cat <<EOF > release.json
+          {
+            "tag_name": "v${{ steps.version.outputs.version }}",
+            "name": "C3PO ${{ steps.version.outputs.version }}",
+            "body": "Auto-generated release via GitHub Actions",
+            "published_at": "$published_at",
+            "html_url": "https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }}",
+            "checksum": "${{ steps.checksum.outputs.checksum }}",
+            "assets": [
+              {
+                "name": "c3po-${{ steps.version.outputs.version }}.dmg",
+                "content_type": "application/octet-stream",
+                "size": $size,
+                "browser_download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/c3po-${{ steps.version.outputs.version }}.dmg"
+              }
+            ]
+          }
+          EOF
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg
+            release.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
