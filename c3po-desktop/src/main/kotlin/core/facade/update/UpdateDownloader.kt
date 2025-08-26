@@ -20,6 +20,7 @@ class UpdateDownloader(
 ) {
     private val httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(30))
+        .followRedirects(HttpClient.Redirect.NORMAL)
         .build()
 
     fun downloadUpdate(updateInfo: UpdateInfo): Flow<DownloadProgress> = flow {
@@ -71,6 +72,12 @@ class UpdateDownloader(
                     }
 
                     emit(DownloadProgress(100, downloadFile.length(), contentLength))
+                }
+
+                in 300..399 -> {
+                    // Handle redirect cases that weren't automatically followed
+                    val location = response.headers().firstValue("location").orElse(null)
+                    throw IOException("Redirect not handled automatically. Location: $location, Status: ${response.statusCode()}")
                 }
 
                 404 -> throw IOException("Download file not found: ${updateInfo.downloadUrl}")

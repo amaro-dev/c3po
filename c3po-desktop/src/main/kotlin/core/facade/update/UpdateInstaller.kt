@@ -67,7 +67,8 @@ class UpdateInstaller(
     }
 
     private suspend fun mountDmg(dmgFile: File): File = withContext(Dispatchers.IO) {
-        val mountCommand = arrayOf("hdiutil", "attach", dmgFile.absolutePath, "-nobrowse", "-quiet")
+        // Remove -quiet flag to get the mount point information we need
+        val mountCommand = arrayOf("hdiutil", "attach", dmgFile.absolutePath, "-nobrowse")
         val process = ProcessBuilder(*mountCommand)
             .redirectErrorStream(true)
             .start()
@@ -76,19 +77,40 @@ class UpdateInstaller(
         val output = process.inputStream.bufferedReader().readText()
 
         if (exitCode != 0) {
+            // Always log mount failures to help with debugging
+            println("[UpdateInstaller] hdiutil mount failed with exit code $exitCode")
+            println("[UpdateInstaller] hdiutil output: $output")
             throw IOException("Failed to mount DMG: $output")
         }
 
-        val mountPoint = output.lines()
-            .lastOrNull { it.contains("/Volumes/") }
-            ?.split(Regex("\\s+"))
-            ?.lastOrNull()
-            ?.let { File(it) }
-            ?: throw IOException("Could not determine mount point from hdiutil output")
+        // Always log the raw hdiutil output for debugging
+        println("[UpdateInstaller] hdiutil output: $output")
 
-        if (!mountPoint.exists()) {
-            throw IOException("Mount point does not exist: ${mountPoint.absolutePath}")
-        }
+        // Get all potential mount points from this DMG mount operation
+        val mountPoints = output.lines()
+            .filter { line -> line.contains("/Volumes/") }
+            .mapNotNull { line ->
+                println("[UpdateInstaller] Parsing line: $line")
+                // hdiutil output format: /dev/disk2s1 \t Apple_HFS \t /Volumes/AppName
+                val parts = line.split(Regex("\\s+"))
+                if (parts.size >= 3) {
+                    // Find the index where /Volumes/ starts and join the rest
+                    val volumesIndex = parts.indexOfFirst { it.startsWith("/Volumes/") }
+                    if (volumesIndex >= 0) {
+                        val path = parts.drop(volumesIndex).joinToString(" ")
+                        println("[UpdateInstaller] Detected path: $path")
+                        if (path.startsWith("/Volumes/")) File(path) else null
+                    } else null
+                } else null
+            }
+
+        println("[UpdateInstaller] All detected mount points: ${mountPoints.map { it.absolutePath }}")
+
+        // Take the first valid mount point that exists
+        val mountPoint = mountPoints.firstOrNull { it.exists() }
+            ?: throw IOException("Could not find a valid mount point from hdiutil output. Detected paths: ${mountPoints.map { it.absolutePath }}, Output: $output")
+
+        println("[UpdateInstaller] Selected mount point: ${mountPoint.absolutePath}")
 
         mountPoint
     }
