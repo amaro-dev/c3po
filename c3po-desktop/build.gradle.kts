@@ -65,6 +65,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
             packageVersion = project.version.toString()
+            modules("java.base", "java.desktop", "java.net.http")
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))
