@@ -32,7 +32,8 @@ class UpdateMiddlewareTest {
         settings = Properties().apply {
             setProperty("update.auto.enabled", "true")
             setProperty("update.check.url", "https://api.github.com/repos/test/repo/releases/latest")
-        }
+        },
+        appVersion = "2.0.1"
     )
 
     @BeforeEach

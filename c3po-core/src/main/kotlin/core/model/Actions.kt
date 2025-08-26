@@ -37,6 +37,10 @@ sealed interface Action : IAction {
 
     data object ClearError : Action
 
+    data class SetAppVersion(
+        val version: String,
+    ) : Action
+
     data object LoadSettings : Action
 
     data class ChangeSettingsProperty(

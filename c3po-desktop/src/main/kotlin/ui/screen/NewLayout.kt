@@ -86,6 +86,7 @@ fun NewLayout(
                 TopBar(
                     devices = state.devices,
                     selectedDevice = selectedDevice,
+                    appVersion = state.appVersion,
                     onDeviceSelected = { id ->
                         val device = state.devices.find { it.id == id }
                         if (device != null && settingsState == core.model.SettingsState.Initialized) {
@@ -247,6 +248,7 @@ private fun Sidebar(
 private fun TopBar(
     devices: List<core.model.AdbDevice>,
     selectedDevice: String?,
+    appVersion: String,
     onDeviceSelected: (String) -> Unit,
     onRefreshDevices: () -> Unit
 ) {
@@ -299,7 +301,7 @@ private fun TopBar(
 
             // Version display on the right
             Text(
-                "v${Settings.getAppVersion()}",
+                "v$appVersion",
                 style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFF22223B).copy(alpha = 0.7f)
             )

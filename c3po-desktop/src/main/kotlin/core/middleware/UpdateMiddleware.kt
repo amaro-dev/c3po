@@ -1,6 +1,5 @@
 package core.middleware
 
-import Settings
 import core.facade.update.UpdateChecker
 import core.facade.update.UpdateDownloader
 import core.facade.update.UpdateInstaller
@@ -35,7 +34,7 @@ class UpdateMiddleware(
             }
 
             is Action.DownloadUpdate -> {
-                handleDownloadUpdate(action, processor)
+                handleDownloadUpdate(action, state, processor)
             }
 
             is Action.CancelDownload -> {
@@ -80,8 +79,8 @@ class UpdateMiddleware(
                 return
             }
 
-            // Get current version from app manifest
-            val currentVersion = Settings.getAppVersion()
+            // Get current version from app state
+            val currentVersion = state.appVersion
 
             // Check for updates with timeout and retries
             val updateInfo = updateChecker.withRetry(maxRetries = 3, delayMs = 1000) {
@@ -112,13 +111,14 @@ class UpdateMiddleware(
 
     private suspend fun handleDownloadUpdate(
         action: Action.DownloadUpdate,
+        state: AppState,
         processor: IProcessor<AppState>
     ) = coroutineScope {
         // Cancel any existing download
         downloadJob?.cancel()
 
         // Get current version for validation
-        val currentVersion = Settings.getAppVersion()
+        val currentVersion = state.appVersion
 
         // Enhanced version validation before download
         if (!updateChecker.validateVersion(action.updateInfo.version, currentVersion)) {

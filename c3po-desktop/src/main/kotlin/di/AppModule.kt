@@ -51,6 +51,7 @@ val AppModule =
                     Action.SelectDevice::class,
                     Action.ChangeFilter::class,
                     Action.ClearError::class,
+                    Action.SetAppVersion::class,
                 ),
             )
         }

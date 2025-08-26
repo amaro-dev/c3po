@@ -88,6 +88,9 @@ class AppReducer : IReducer<AppState> {
                         commandStatus = CommandStatus.Idle,
                     )
 
+                is Action.SetAppVersion ->
+                    currentState.copy(appVersion = action.version)
+
                 is Action.ChangeFilter ->
                     currentState.copy(
                         windows =

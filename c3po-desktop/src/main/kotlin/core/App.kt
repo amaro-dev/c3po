@@ -1,5 +1,6 @@
 package core
 
+import Settings
 import core.model.Action
 import core.model.AppStateManager
 import dev.amaro.sonic.IAction
@@ -16,6 +17,7 @@ class App : KoinComponent {
     private val stateManager: AppStateManager = get()
 
     fun start() {
+        perform(Action.SetAppVersion(Settings.getAppVersion()))
         perform(Action.LoadSettings)
         perform(Action.CheckForUpdate) // Check for updates on startup
     }
