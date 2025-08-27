@@ -10,13 +10,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
+import androidx.compose.material.icons.outlined.FileCopy
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import ui.definitions.Dimens
-import ui.definitions.Icons
 import ui.definitions.Texts
 
 @Composable
@@ -42,7 +41,7 @@ fun CopyButton(
                     .clip(CircleShape),
         ) {
             Icon(
-                painterResource(Icons.COPY),
+                androidx.compose.material.icons.Icons.Outlined.FileCopy,
                 contentDescription = Texts.EMPTY,
                 modifier =
                     Modifier

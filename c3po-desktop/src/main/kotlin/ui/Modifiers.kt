@@ -42,7 +42,7 @@ fun Modifier.allPaddings() = horizontalPadding().verticalPadding()
 @Composable
 fun Modifier.withIconStyle(): Modifier =
     background(color = MaterialTheme.colors.background)
-        .padding(Dimens.HORIZONTAL_SPACER.dp)
+        .padding(4.dp)
         .size(16.dp)
 
 @OptIn(ExperimentalComposeUiApi::class)

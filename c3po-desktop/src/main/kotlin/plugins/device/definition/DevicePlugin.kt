@@ -75,6 +75,7 @@ class DevicePlugin(
                         DeviceInfoCard(
                             title = title,
                             items = items,
+                            onAction = onAction,
                             modifier = Modifier.width(280.dp)
                         )
                     }
@@ -94,6 +95,7 @@ class DevicePlugin(
                         DeviceInfoCard(
                             title = title,
                             items = items,
+                            onAction = onAction,
                             modifier = Modifier.width(420.dp)
                         )
                     }
@@ -113,6 +115,7 @@ class DevicePlugin(
                         DeviceInfoCard(
                             title = title,
                             items = items,
+                            onAction = onAction,
                             modifier = Modifier.width(420.dp)
                         )
                     }
