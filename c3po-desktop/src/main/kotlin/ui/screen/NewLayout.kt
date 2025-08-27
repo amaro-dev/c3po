@@ -23,19 +23,16 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,6 +50,7 @@ import core.model.AppState
 import core.model.CommandStatus
 import dev.amaro.sonic.IAction
 import plugins.Plugin
+import ui.component.SettingsDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -66,6 +64,7 @@ fun NewLayout(
     val showLoading = state.commandStatus == CommandStatus.Running
     val errorMessage = state.errorMessage
     val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
+    val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
     val settingsState = state.settingsState
     var showSettingsDialog by remember { mutableStateOf(settingsState.name == "NotInitialized" || settingsState.name == "NotFound" || adbPath.isBlank()) }
 
@@ -95,6 +94,9 @@ fun NewLayout(
                     },
                     onRefreshDevices = {
                         if (settingsState == core.model.SettingsState.Initialized) onAction(Action.RefreshDevices)
+                    },
+                    onShowSettings = {
+                        showSettingsDialog = true
                     }
                 )
                 Box(
@@ -122,8 +124,11 @@ fun NewLayout(
         if (showSettingsDialog) {
             SettingsDialog(
                 initialAdbPath = adbPath,
-                onSave = { newPath ->
-                    onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newPath))
+                initialUpdatesUrl = updatesUrl,
+                onSave = { newAdbPath, newUpdatesUrl ->
+                    onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
+                    onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
+                    showSettingsDialog = false
                 },
                 onCancel = { showSettingsDialog = false }
             )
@@ -250,7 +255,8 @@ private fun TopBar(
     selectedDevice: String?,
     appVersion: String,
     onDeviceSelected: (String) -> Unit,
-    onRefreshDevices: () -> Unit
+    onRefreshDevices: () -> Unit,
+    onShowSettings: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -299,11 +305,22 @@ private fun TopBar(
             }
             Spacer(Modifier.weight(1f))
 
+            // Settings gear icon
+            IconButton(onClick = { onShowSettings() }) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
             // Version display on the right
             Text(
                 "v$appVersion",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF22223B).copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
             Spacer(Modifier.width(24.dp))
@@ -411,39 +428,3 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
     }
 }
 
-@Composable
-private fun SettingsDialog(initialAdbPath: String, onSave: (String) -> Unit, onCancel: () -> Unit) {
-    var adbPath by remember { mutableStateOf(initialAdbPath) }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color(0xAA22223B)),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            shadowElevation = 16.dp,
-            color = Color.White,
-            modifier = Modifier.width(400.dp)
-        ) {
-            Column(Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Configure ADB Path", style = MaterialTheme.typography.titleLarge, color = Color(0xFF22223B))
-                Spacer(Modifier.height(24.dp))
-                OutlinedTextField(
-                    value = adbPath,
-                    onValueChange = { adbPath = it },
-                    label = { Text("ADB Path", color = Color(0xFF22223B)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = LocalTextStyle.current.copy(color = Color(0xFF22223B))
-                )
-                Spacer(Modifier.height(24.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onCancel) { Text("Cancel") }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { onSave(adbPath) }) { Text("Save") }
-                }
-            }
-        }
-    }
-}
