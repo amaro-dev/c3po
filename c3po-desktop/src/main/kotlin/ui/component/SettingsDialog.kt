@@ -12,16 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,29 +78,18 @@ fun SettingsDialog(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
+                        CustomTextField(
                             value = adbPath,
                             onValueChange = { adbPath = it },
-                            placeholder = {
-                                Text(
-                                    "/path/to/adb",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                )
-                            },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            )
+                            placeholder = "/path/to/adb",
+                            modifier = Modifier.weight(1f)
                         )
 
                         IconButton(
                             onClick = { showFilePicker = true },
                             modifier = Modifier
-                                .size(56.dp)
                                 .background(
                                     MaterialTheme.colorScheme.primary,
                                     MaterialTheme.shapes.medium
@@ -132,21 +116,11 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
+                    CustomTextField(
                         value = updatesUrl,
                         onValueChange = { updatesUrl = it },
-                        placeholder = {
-                            Text(
-                                "https://api.github.com/repos/...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            )
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        )
+                        placeholder = "https://api.github.com/repos/...",
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Text(
@@ -161,22 +135,15 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                 ) {
-                    TextButton(onClick = onCancel) {
-                        Text(
-                            "Cancel",
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    SecondaryButton(
+                        text = "Cancel",
+                        onClick = onCancel
+                    )
 
-                    Button(
-                        onClick = { onSave(adbPath, updatesUrl) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text("Save")
-                    }
+                    PrimaryButton(
+                        text = "Save",
+                        onClick = { onSave(adbPath, updatesUrl) }
+                    )
                 }
             }
         }

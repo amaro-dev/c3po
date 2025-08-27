@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -140,26 +138,11 @@ fun FilePickerDialog(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedTextField(
+                    CustomTextField(
                         value = manualPath,
                         onValueChange = { manualPath = it },
-                        label = {
-                            Text(
-                                "${if (mode == FilePickerMode.FILE) "File" else "Directory"} Path",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        placeholder = {
-                            Text(
-                                if (mode == FilePickerMode.FILE) "/path/to/your/file" else "/path/to/your/directory",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        )
+                        placeholder = if (mode == FilePickerMode.FILE) "/path/to/your/file" else "/path/to/your/directory",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
