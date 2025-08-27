@@ -13,7 +13,7 @@ fun DeviceInfo.toDisplayItems(): List<List<DeviceInfoItem>> {
                 DeviceInfoItem("📱", "Manufacturer", "${identity.manufacturer} ${identity.model}"),
                 DeviceInfoItem("🤖", "Android", "${identity.androidVersion} (API ${identity.apiLevel})"),
                 DeviceInfoItem("🔒", "Security Patch", identity.securityPatch),
-                DeviceInfoItem("🏷️", "Serial", identity.serialNumber.take(12) + "...")
+                DeviceInfoItem("🏷️", "Serial", identity.serialNumber)
             ),
             // Hardware & Display
             listOf(
@@ -64,7 +64,7 @@ fun DeviceInfo.toDisplayItems(): List<List<DeviceInfoItem>> {
                     "Usage",
                     "CPU: ${performance.cpuUsage}% • RAM: ${performance.memoryUsage.toInt()}%"
                 ),
-                DeviceInfoItem("💽", "Partitions", "System: 2.1GB • Data: ${formatBytes(hardware.usedStorage)}"),
+                DeviceInfoItem("💽", "Partitions", "Data: ${formatBytes(hardware.usedStorage)}"),
                 DeviceInfoItem(
                     "📦",
                     "Apps",

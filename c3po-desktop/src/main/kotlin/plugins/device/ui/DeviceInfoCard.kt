@@ -87,12 +87,14 @@ private fun DeviceInfoRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 14.sp
                 )
+                println(value)
                 Text(
                     text = value,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
