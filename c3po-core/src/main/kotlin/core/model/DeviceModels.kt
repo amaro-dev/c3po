@@ -1,80 +1,57 @@
 package core.model
 
 data class DeviceInfo(
-    val identity: DeviceIdentity,
-    val hardware: HardwareInfo,
-    val performance: PerformanceInfo,
-    val network: NetworkInfo,
-    val build: BuildInfo,
-    val features: HardwareFeatures
+    val device: Device,
+    val system: System,
+    val status: Status
 )
 
-data class DeviceIdentity(
-    val manufacturer: String,
+data class Device(
     val model: String,
-    val product: String,
     val brand: String,
-    val androidVersion: String,
-    val apiLevel: Int,
-    val securityPatch: String,
+    val processor: String,
+    val architecture: String,
     val serialNumber: String,
-    val fingerprint: String
+    val ramSize: String,
+    val screenSize: String,
+    val screenResolution: String
 )
 
-data class HardwareInfo(
-    val cpuArchitecture: String,
-    val cpuCores: Int,
-    val cpuFeatures: String,
-    val totalRam: Long,
-    val availableRam: Long,
-    val displayWidth: Int,
-    val displayHeight: Int,
-    val displayDensity: Int,
-    val totalStorage: Long,
-    val usedStorage: Long
+data class System(
+    val androidVersion: String,
+    val securityPatch: String,
+    val build: String,
+    val firmware: String
 )
 
-data class PerformanceInfo(
-    val uptime: Long,
-    val processCount: Int,
-    val cpuUsage: Float,
-    val memoryUsage: Float,
-    val totalApps: Int,
-    val userApps: Int,
-    val systemApps: Int,
+data class Status(
     val batteryLevel: Int,
-    val batteryStatus: String,
-    val powerSource: String
+    val batteryHealth: String,
+    val batteryTemperature: Float,
+    val chargingStatus: String,
+    val batteryVoltage: Int,
+    val diskUsage: List<DiskPartition>,
+    val connectionMode: String,
+    val connectionDetails: String?
 )
 
-data class NetworkInfo(
-    val wifiConnected: Boolean,
-    val wifiSsid: String?,
-    val ipAddress: String?,
-    val mobileCarrier: String?,
-    val mobileNetworkType: String?,
-    val simState: String?,
-    val operatorName: String?
+data class DiskPartition(
+    val partition: String,
+    val used: String,
+    val total: String,
+    val percentage: Int,
+    val mountPoint: String
 )
 
-data class BuildInfo(
-    val buildId: String,
-    val buildType: String,
-    val buildDate: String,
-    val buildHost: String,
-    val buildUser: String,
-    val buildTags: String
+data class BatteryInfo(
+    val level: Int,
+    val health: String,
+    val temperature: Float,
+    val chargingStatus: String,
+    val voltage: Int
 )
 
-data class HardwareFeatures(
-    val hasNfc: Boolean,
-    val hasBluetooth: Boolean,
-    val hasCamera: Boolean,
-    val hasGps: Boolean,
-    val hasSensors: Boolean,
-    val hasFingerprint: Boolean,
-    val hasWifi: Boolean,
-    val hasUsb: Boolean,
-    val hasTelephony: Boolean,
-    val hasSdCard: Boolean
+data class DisplayInfo(
+    val size: String,
+    val density: String
 )

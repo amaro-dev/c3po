@@ -2,12 +2,10 @@ package plugins.device.definition
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,6 +22,7 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.device.structure.DevicePluginMiddleware
 import plugins.device.ui.DeviceInfoCard
+import plugins.device.ui.DiskUsageCard
 import plugins.device.ui.toDisplayItems
 import ui.OnAction
 
@@ -44,15 +43,6 @@ class DevicePlugin(
         if (deviceInfo != null) {
             val cardGroups = deviceInfo.toDisplayItems()
 
-            // Card group indices
-            val DEVICE_IDENTITY_INDEX = 0
-            val HARDWARE_DISPLAY_INDEX = 1
-            val STATUS_INDEX = 2
-            val BUILD_INFO_INDEX = 3
-            val SYSTEM_PERFORMANCE_INDEX = 4
-            val NETWORK_DETAILS_INDEX = 5
-            val HARDWARE_FEATURES_INDEX = 6
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -60,65 +50,42 @@ class DevicePlugin(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Top row - 3 cards
-                LazyRow(
+                // Top row: Device and Disk Usage cards
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(
-                        listOf(
-                            cardGroups[DEVICE_IDENTITY_INDEX] to "Device Identity",
-                            cardGroups[HARDWARE_DISPLAY_INDEX] to "Hardware & Display",
-                            cardGroups[STATUS_INDEX] to "Status"
-                        )
-                    ) { (items, title) ->
-                        DeviceInfoCard(
-                            title = title,
-                            items = items,
-                            onAction = onAction,
-                            modifier = Modifier.width(280.dp)
-                        )
-                    }
+                    DeviceInfoCard(
+                        title = "Device",
+                        items = cardGroups[0],
+                        onAction = onAction,
+                        modifier = Modifier.weight(1f)
+                    )
+                    DiskUsageCard(
+                        title = "Disk Usage",
+                        diskPartitions = deviceInfo.status.diskUsage,
+                        onAction = onAction,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
-                // Middle row - 2 cards
-                LazyRow(
+                // Bottom row: System and Status cards
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(
-                        listOf(
-                            cardGroups[BUILD_INFO_INDEX] to "Build Information",
-                            cardGroups[SYSTEM_PERFORMANCE_INDEX] to "System Performance"
-                        )
-                    ) { (items, title) ->
-                        DeviceInfoCard(
-                            title = title,
-                            items = items,
-                            onAction = onAction,
-                            modifier = Modifier.width(420.dp)
-                        )
-                    }
-                }
-
-                // Bottom row - 2 cards
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(
-                        listOf(
-                            cardGroups[NETWORK_DETAILS_INDEX] to "Network Details",
-                            cardGroups[HARDWARE_FEATURES_INDEX] to "Hardware Features"
-                        )
-                    ) { (items, title) ->
-                        DeviceInfoCard(
-                            title = title,
-                            items = items,
-                            onAction = onAction,
-                            modifier = Modifier.width(420.dp)
-                        )
-                    }
+                    DeviceInfoCard(
+                        title = "System",
+                        items = cardGroups[1],
+                        onAction = onAction,
+                        modifier = Modifier.weight(1f)
+                    )
+                    DeviceInfoCard(
+                        title = "Status",
+                        items = cardGroups[2],
+                        onAction = onAction,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
