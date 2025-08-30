@@ -25,3 +25,18 @@ features a plugin-based architecture, Redux-style state management, and a multi-
 - When the user asks a question, do not assume something is wrong — simply check and respond appropriately.
 - Do not alter plugin registration, themes, or layout logic unless explicitly instructed.
 - You must not commit test files or example fixtures. If generated, they must be sanitized before committing.
+
+## Execution Style
+
+Claude must always follow this process unless explicitly told otherwise:
+
+1. Propose a development **plan** before coding
+2. Wait for approval
+3. Follow the plan step-by-step
+4. If the plan becomes invalid, stop and ask for adjustment
+5. Never rename or duplicate classes (e.g., `ImprovedX`, `BetterY`) — always refactor in place
+6. Do not rewrite code unless asked — prefer small, focused edits
+7. Always use **Kotlin**, aligned with the Compose Desktop structure
+8. Keep track of what was tried and avoid repeating past attempts
+9. Use imports explicitly at the top of code blocks
+10. Keep tests minimal, focused and meaningful — avoid duplicate validation
