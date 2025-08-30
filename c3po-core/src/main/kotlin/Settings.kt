@@ -2,6 +2,7 @@ object Settings {
     const val FILE_NAME = "c3po.cfg"
     const val ADB_PATH_PROP = "command.adb.path"
     const val UPDATES_URL_PROP = "updates.url"
+    const val DARK_MODE_PROP = "ui.dark.mode"
     private const val PACKAGE_PROP = "jpackage.app-path"
     private const val USER_HOME = "user.home"
 

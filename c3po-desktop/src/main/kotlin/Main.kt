@@ -1,3 +1,4 @@
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -32,7 +33,10 @@ fun main() =
                     height = Dimens.WINDOW_HEIGHT.dp,
                 ),
         ) {
-            AndroidGreenTheme(false) {
+            val state = myApp.listen().collectAsState().value
+            val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
+
+            AndroidGreenTheme(useDarkTheme = darkMode) {
                 NewLayout(myApp)
             }
         }

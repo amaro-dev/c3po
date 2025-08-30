@@ -1,5 +1,6 @@
 package ui.component
 
+import Settings
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.hasSize
@@ -33,5 +34,11 @@ class SettingsDialogTest {
             prop(FilePickerFilter::description).isEqualTo("Executable Files")
             prop(FilePickerFilter::extensions).hasSize(2)
         }
+    }
+
+    @Test
+    fun `Dark mode setting constant should be accessible`() {
+        // Verify the dark mode setting constant is properly defined
+        assertThat(Settings.DARK_MODE_PROP).isEqualTo("ui.dark.mode")
     }
 }

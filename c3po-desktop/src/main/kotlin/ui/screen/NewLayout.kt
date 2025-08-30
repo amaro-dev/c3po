@@ -65,6 +65,7 @@ fun NewLayout(
     val errorMessage = state.errorMessage
     val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
     val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
+    val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
     val settingsState = state.settingsState
     var showSettingsDialog by remember { mutableStateOf(settingsState.name == "NotInitialized" || settingsState.name == "NotFound" || adbPath.isBlank()) }
 
@@ -125,9 +126,11 @@ fun NewLayout(
             SettingsDialog(
                 initialAdbPath = adbPath,
                 initialUpdatesUrl = updatesUrl,
-                onSave = { newAdbPath, newUpdatesUrl ->
+                initialDarkMode = darkMode,
+                onSave = { newAdbPath, newUpdatesUrl, newDarkMode ->
                     onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
                     onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
+                    onAction(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, newDarkMode.toString()))
                     showSettingsDialog = false
                 },
                 onCancel = { showSettingsDialog = false }

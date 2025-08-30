@@ -112,4 +112,21 @@ class SettingsMiddlewareTest {
             settingsRepository.save(settings)
         }
     }
+
+    @Test
+    fun `Handle dark mode setting change`() {
+        val properties = Properties()
+        val state = AppState(settings = properties)
+        val settingsRepository: SettingsRepository = mockk(relaxed = true)
+        val middleware = SettingsMiddleware(settingsRepository)
+        val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+        middleware.process(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, "true"), state, processor)
+
+        val slot = CapturingSlot<Action.LoadSettingsIntoState>()
+        verify {
+            processor.reduce(capture(slot))
+        }
+        assertThat(slot.captured.props[Settings.DARK_MODE_PROP]).isEqualTo("true")
+    }
 }

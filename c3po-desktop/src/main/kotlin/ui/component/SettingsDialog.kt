@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,11 +30,12 @@ import ui.overlayColor
 import ui.secondaryTextColor
 
 /**
- * Enhanced settings dialog supporting both ADB Path and Updates URL configuration.
+ * Enhanced settings dialog supporting ADB Path, Updates URL, and Dark Mode configuration.
  * Replaces the simple inline settings dialog with a comprehensive, reusable component.
  *
  * @param initialAdbPath Current ADB path from settings
  * @param initialUpdatesUrl Current updates URL from settings
+ * @param initialDarkMode Current dark mode setting from settings
  * @param onSave Callback when settings should be saved
  * @param onCancel Callback when dialog is cancelled
  */
@@ -41,11 +43,13 @@ import ui.secondaryTextColor
 fun SettingsDialog(
     initialAdbPath: String,
     initialUpdatesUrl: String,
-    onSave: (adbPath: String, updatesUrl: String) -> Unit,
+    initialDarkMode: Boolean,
+    onSave: (adbPath: String, updatesUrl: String, darkMode: Boolean) -> Unit,
     onCancel: () -> Unit
 ) {
     var adbPath by remember { mutableStateOf(initialAdbPath) }
     var updatesUrl by remember { mutableStateOf(initialUpdatesUrl) }
+    var darkMode by remember { mutableStateOf(initialDarkMode) }
     var showFilePicker by remember { mutableStateOf(false) }
 
     Box(
@@ -132,6 +136,32 @@ fun SettingsDialog(
                     )
                 }
 
+                // Dark Mode Section
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Dark Mode",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Use dark theme for the application interface",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondaryTextColor
+                        )
+                    }
+                    Switch(
+                        checked = darkMode,
+                        onCheckedChange = { darkMode = it }
+                    )
+                }
+
                 // Action buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -144,7 +174,7 @@ fun SettingsDialog(
 
                     PrimaryButton(
                         text = "Save",
-                        onClick = { onSave(adbPath, updatesUrl) }
+                        onClick = { onSave(adbPath, updatesUrl, darkMode) }
                     )
                 }
             }
