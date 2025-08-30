@@ -25,7 +25,7 @@ fun PermissionStamp(permissionFlag: PermissionFlag) {
         color = permissionFlag.getPermissionForegroundColor(),
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .border(1.dp, permissionFlag.getPermissionBorderColor(), RoundedCornerShape(6.dp))
+            .border(1.dp, getPermissionBorderColor(permissionFlag), RoundedCornerShape(6.dp))
             .background(permissionFlag.getPermissionBackgroundColor())
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )

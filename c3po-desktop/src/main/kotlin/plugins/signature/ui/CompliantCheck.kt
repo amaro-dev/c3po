@@ -9,10 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ColorFilter
 import core.facade.BoolState
-import darkenedBy
 import ui.dangerColor
-import ui.successColor
-import ui.warningColor
+import ui.emphasizedSuccessColor
+import ui.emphasizedWarningColor
 
 @Composable
 fun CompliantCheck(value: BoolState) {
@@ -20,7 +19,7 @@ fun CompliantCheck(value: BoolState) {
         BoolState.TRUE -> Image(
             Icons.Default.Check,
             "",
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.successColor.darkenedBy(0.1f))
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.emphasizedSuccessColor)
         )
 
         BoolState.FALSE -> Image(
@@ -32,7 +31,7 @@ fun CompliantCheck(value: BoolState) {
             Image(
                 Icons.Default.Warning,
                 "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.warningColor.darkenedBy(0.1f)),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.emphasizedWarningColor),
             )
     }
 }

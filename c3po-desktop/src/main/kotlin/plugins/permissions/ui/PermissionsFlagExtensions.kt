@@ -5,6 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import core.command.PermissionFlag
 import ui.dangerColor
+import ui.emphasizedDangerColor
+import ui.emphasizedInfoColor
+import ui.emphasizedSuccessColor
+import ui.emphasizedWarningColor
 import ui.infoColor
 import ui.mutedColor
 import ui.onDangerColor
@@ -40,13 +44,12 @@ fun PermissionFlag.getPermissionBackgroundColor(): Color = when (this) {
 }
 
 @Composable
-fun PermissionFlag.getPermissionBorderColor(): Color = when (this) {
-    PermissionFlag.NORMAL -> MaterialTheme.colorScheme.successColor.copy(alpha = 0.8f) // Darker green
-    PermissionFlag.DANGEROUS -> MaterialTheme.colorScheme.dangerColor.copy(alpha = 0.8f) // Darker red
-    PermissionFlag.SIGNATURE -> MaterialTheme.colorScheme.infoColor.copy(alpha = 0.8f) // Darker blue
-    PermissionFlag.PRIVILEGED -> MaterialTheme.colorScheme.warningColor.copy(alpha = 0.8f) // Darker orange
-    PermissionFlag.INSTANT -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f)
-    PermissionFlag.RUNTIME -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) // Darker purple
-    // All other flags (Others category) - darker gray
-    else -> MaterialTheme.colorScheme.mutedColor.copy(alpha = 0.8f) // Darker gray
+fun getPermissionBorderColor(permissionFlag: PermissionFlag): Color = when (permissionFlag) {
+    PermissionFlag.NORMAL -> MaterialTheme.colorScheme.emphasizedSuccessColor // Enhanced green
+    PermissionFlag.DANGEROUS -> MaterialTheme.colorScheme.emphasizedDangerColor // Enhanced red
+    PermissionFlag.SIGNATURE -> MaterialTheme.colorScheme.emphasizedInfoColor // Enhanced blue
+    PermissionFlag.PRIVILEGED -> MaterialTheme.colorScheme.emphasizedWarningColor // Enhanced orange
+    PermissionFlag.INSTANT -> MaterialTheme.colorScheme.tertiary
+    PermissionFlag.RUNTIME -> MaterialTheme.colorScheme.primary // Primary purple
+    else -> MaterialTheme.colorScheme.mutedColor // Muted gray
 }
