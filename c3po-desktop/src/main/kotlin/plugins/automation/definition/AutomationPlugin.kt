@@ -25,18 +25,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,13 +50,16 @@ import dev.amaro.sonic.IMiddleware
 import plugins.Plugin
 import plugins.automation.structure.AutomationMiddleware
 import plugins.automation.structure.AutomationState
-import plugins.automation.structure.Script
 import plugins.automation.structure.ScriptStep
 import plugins.automation.structure.ScriptStepType
 import ui.OnAction
 import ui.component.CustomActionButton
 import ui.component.CustomTextField
+import ui.component.DialogAction
 import ui.component.EnhancedHeaderRow
+import ui.component.PrimaryButton
+import ui.component.SecondaryButton
+import ui.component.StandardDialog
 
 class AutomationPlugin(
     automationMiddleware: AutomationMiddleware,
@@ -161,27 +160,24 @@ class AutomationPlugin(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Button(
-                            onClick = { onAction(Actions.CreateNewScript) },
-                        ) {
-                            Text("Create New Script")
-                        }
+                        PrimaryButton(
+                            text = "Create New Script",
+                            onClick = { onAction(Actions.CreateNewScript) }
+                        )
 
-                        Button(
+                        PrimaryButton(
+                            text = "Open Script",
                             onClick = { onAction(Actions.OpenScript) },
-                            enabled = !state.isCreatingScript,
-                        ) {
-                            Text("Open Script")
-                        }
+                            enabled = !state.isCreatingScript
+                        )
 
                         // Save button - only show when creating script
                         if (state.isCreatingScript) {
-                            Button(
+                            PrimaryButton(
+                                text = "Save Script",
                                 onClick = { onAction(Actions.SaveScript) },
-                                enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning,
-                            ) {
-                                Text("Save Script")
-                            }
+                                enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning
+                            )
                         }
                     }
                 }
@@ -318,16 +314,17 @@ class AutomationPlugin(
 
         // Error dialog for malformed script
         state.openScriptError?.let { message ->
-            AlertDialog(
-                onDismissRequest = { onAction(Actions.DismissOpenScriptError) },
-                title = { Text("Open Script Error") },
-                text = { Text(message) },
-                confirmButton = {
-                    TextButton(
-                        onClick = { onAction(Actions.DismissOpenScriptError) }
-                    ) { Text("OK") }
-                }
-            )
+            StandardDialog(
+                title = "Open Script Error",
+                onDismiss = { onAction(Actions.DismissOpenScriptError) },
+                primaryAction = DialogAction(
+                    text = "OK",
+                    onClick = { onAction(Actions.DismissOpenScriptError) },
+                    isPrimary = true
+                )
+            ) {
+                Text(message)
+            }
         }
     }
 }
@@ -415,12 +412,11 @@ private fun ScriptCreationUI(
                             }
 
                             // Run button next to Add Step
-                            Button(
+                            PrimaryButton(
+                                text = "Run",
                                 onClick = { onAction(AutomationPlugin.Actions.RunScript) },
-                                enabled = state.currentScriptFolder != null && !state.isRunning,
-                            ) {
-                                Text("Run")
-                            }
+                                enabled = state.currentScriptFolder != null && !state.isRunning
+                            )
                         }
                     }
                 }
@@ -468,11 +464,10 @@ private fun ScriptCreationUI(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                     ) {
-                        OutlinedButton(
-                            onClick = { onAction(AutomationPlugin.Actions.CancelScript) },
-                        ) {
-                            Text("Cancel")
-                        }
+                        SecondaryButton(
+                            text = "Cancel",
+                            onClick = { onAction(AutomationPlugin.Actions.CancelScript) }
+                        )
                     }
                 }
             }
@@ -490,11 +485,10 @@ private fun AddStepDropdown(onAction: OnAction) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        Button(
+        PrimaryButton(
+            text = "Add Step",
             onClick = { expanded = true }
-        ) {
-            Text("Add Step")
-        }
+        )
 
         DropdownMenu(
             expanded = expanded,
@@ -597,59 +591,54 @@ private fun PackageSelectorDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Package") },
-        text = {
-            Column {
-                CustomTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    placeholder = "Search packages...",
-                    modifier = Modifier.fillMaxWidth()
-                )
+    StandardDialog(
+        title = "Select Package",
+        onDismiss = onDismiss,
+        secondaryAction = DialogAction(
+            text = "Cancel",
+            onClick = onDismiss
+        )
+    ) {
+        CustomTextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = "Search packages...",
+            modifier = Modifier.fillMaxWidth()
+        )
 
-                Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 300.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 300.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            items(filteredPackages.size) { index ->
+                val packageInfo = filteredPackages[index]
+                Surface(
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        onPackageSelected(packageInfo.packageName)
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
-                    items(filteredPackages.size) { index ->
-                        val packageInfo = filteredPackages[index]
-                        Surface(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                onPackageSelected(packageInfo.packageName)
-                            },
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = packageInfo.packageName,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                if (packageInfo.versionName.isNotBlank()) {
-                                    Text(
-                                        text = "Version: ${packageInfo.versionName}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                    )
-                                }
-                            }
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = packageInfo.packageName,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (packageInfo.versionName.isNotBlank()) {
+                            Text(
+                                text = "Version: ${packageInfo.versionName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            )
                         }
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -668,68 +657,52 @@ private fun ActivitySelectorDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Column {
-                Text("Select Activity")
-                if (selectedPackage.isNotBlank()) {
-                    Text(
-                        text = "Package: $selectedPackage",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-            }
-        },
-        text = {
-            Column {
-                CustomTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    placeholder = "Search activities...",
-                    modifier = Modifier.fillMaxWidth()
-                )
+    StandardDialog(
+        title = if (selectedPackage.isNotBlank()) "Select Activity - Package: $selectedPackage" else "Select Activity",
+        onDismiss = onDismiss,
+        secondaryAction = DialogAction(
+            text = "Cancel",
+            onClick = onDismiss
+        )
+    ) {
+        CustomTextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = "Search activities...",
+            modifier = Modifier.fillMaxWidth()
+        )
 
-                Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 300.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 300.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            items(filteredActivities.size) { index ->
+                val activity = filteredActivities[index]
+                Surface(
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        onActivitySelected(activity.activityPath)
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
-                    items(filteredActivities.size) { index ->
-                        val activity = filteredActivities[index]
-                        Surface(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                onActivitySelected(activity.activityPath)
-                            },
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = activity.activityPath,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Package: ${activity.packageName}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                )
-                            }
-                        }
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = activity.activityPath,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Package: ${activity.packageName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        )
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -765,92 +738,76 @@ private fun ApkPickerDialog(
 
     if (filePath.isNotEmpty()) {
         // Show confirmation dialog with selected file
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Confirm APK Selection") },
-            text = {
-                Column {
-                    Text(
-                        text = "Selected APK file:",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+        StandardDialog(
+            title = "Confirm APK Selection",
+            onDismiss = onDismiss,
+            primaryAction = DialogAction(
+                text = "Use This File",
+                onClick = { onApkSelected(filePath) },
+                isPrimary = true
+            ),
+            secondaryAction = DialogAction(
+                text = "Cancel",
+                onClick = onDismiss
+            )
+        ) {
+            Text(
+                text = "Selected APK file:",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = filePath,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+            Text(
+                text = filePath,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "The file will be copied to the script folder.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { onApkSelected(filePath) }
-                ) {
-                    Text("Use This File")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+            Text(
+                text = "The file will be copied to the script folder.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            )
+        }
     } else {
         // Fallback manual input dialog
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Select APK File") },
-            text = {
-                Column {
-                    Text(
-                        text = "File picker unavailable. Please enter the path manually:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
+        StandardDialog(
+            title = "Select APK File",
+            onDismiss = onDismiss,
+            primaryAction = DialogAction(
+                text = "Select",
+                onClick = {
+                    if (filePath.isNotBlank()) {
+                        onApkSelected(filePath)
+                    }
+                },
+                enabled = filePath.isNotBlank(),
+                isPrimary = true
+            ),
+            secondaryAction = DialogAction(
+                text = "Cancel",
+                onClick = onDismiss
+            )
+        ) {
+            Text(
+                text = "File picker unavailable. Please enter the path manually:",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    CustomTextField(
-                        value = filePath,
-                        onValueChange = { filePath = it },
-                        placeholder = "/path/to/your/app.apk",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (filePath.isNotBlank()) {
-                            onApkSelected(filePath)
-                        }
-                    },
-                    enabled = filePath.isNotBlank()
-                ) {
-                    Text("Select")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+            CustomTextField(
+                value = filePath,
+                onValueChange = { filePath = it },
+                placeholder = "/path/to/your/app.apk",
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -923,14 +880,3 @@ private fun getStepDescription(step: ScriptStep): String =
         is ScriptStep.ClearData -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
     }
 
-data class AutomationState(
-    val isCreatingScript: Boolean = false,
-    val currentScript: Script? = null,
-    val availableScripts: List<String> = emptyList(),
-    val editingStepIndex: Int? = null,
-    val availablePackages: List<core.model.AppPackage> = emptyList(),
-    val availableActivities: List<core.model.ActivityInfo> = emptyList(),
-    val showPackageSelector: Boolean = false,
-    val showActivitySelector: Boolean = false,
-    val showApkPicker: Boolean = false,
-)

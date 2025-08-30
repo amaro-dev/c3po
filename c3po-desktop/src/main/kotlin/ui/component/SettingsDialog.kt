@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.overlayColor
+import ui.secondaryTextColor
 
 /**
  * Enhanced settings dialog supporting both ADB Path and Updates URL configuration.
@@ -49,7 +51,7 @@ fun SettingsDialog(
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f)),
+            .background(MaterialTheme.colorScheme.overlayColor),
         contentAlignment = Alignment.Center
     ) {
         Surface(
@@ -107,7 +109,7 @@ fun SettingsDialog(
                     Text(
                         text = "Select the Android Debug Bridge (adb) executable on your system",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.secondaryTextColor
                     )
                 }
 
@@ -126,7 +128,7 @@ fun SettingsDialog(
                     Text(
                         text = "URL endpoint for checking application updates",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.secondaryTextColor
                     )
                 }
 

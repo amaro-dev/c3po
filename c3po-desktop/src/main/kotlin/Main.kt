@@ -32,7 +32,7 @@ fun main() =
                     height = Dimens.WINDOW_HEIGHT.dp,
                 ),
         ) {
-            AndroidGreenTheme {
+            AndroidGreenTheme(false) {
                 NewLayout(myApp)
             }
         }

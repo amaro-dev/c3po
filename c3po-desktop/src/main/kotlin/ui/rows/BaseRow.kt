@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ui.AppTheme
+import ui.AndroidGreenTheme
 import ui.baselinePadding
 import ui.definitions.Dimens
 import ui.horizontalPadding
@@ -40,7 +40,7 @@ fun BaseRow(
 @Composable
 @Preview()
 private fun previewRow() {
-    AppTheme {
+    AndroidGreenTheme {
         Column {
             Spacer(Modifier.height(20.dp))
             Spacer(

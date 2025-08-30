@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.overlayColor
 
 data class DialogAction(
     val text: String,
@@ -37,7 +38,7 @@ fun StandardDialog(
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f)),
+            .background(MaterialTheme.colorScheme.overlayColor),
         contentAlignment = Alignment.Center
     ) {
         Surface(

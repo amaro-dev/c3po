@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import ui.mutedTextColor
 
 @Composable
 fun CustomTextField(
@@ -57,7 +58,7 @@ fun CustomTextField(
                         Text(
                             text = placeholder,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.mutedTextColor
                         )
                     }
 

@@ -28,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import ui.highEmphasisAlpha
+import ui.hoverAlpha
+import ui.pressedAlpha
 
 /**
  * Configuração para posicionamento do tooltip
@@ -70,13 +73,13 @@ fun CustomActionButton(
     val isHovered by interactionSource.collectIsHoveredAsState()
 
     val backgroundColor = when {
-        isPressed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-        isHovered -> MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+        isPressed -> MaterialTheme.colorScheme.pressedAlpha
+        isHovered -> MaterialTheme.colorScheme.hoverAlpha
         else -> Color.Transparent
     }
 
     val iconTint = when {
-        isPressed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+        isPressed -> MaterialTheme.colorScheme.highEmphasisAlpha
         else -> MaterialTheme.colorScheme.primary
     }
 

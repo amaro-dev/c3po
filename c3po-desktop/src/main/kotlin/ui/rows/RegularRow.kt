@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ui.AppTheme
+import ui.AndroidGreenTheme
 
 @Composable
 fun RegularRow(
@@ -31,7 +31,7 @@ fun RegularRow(
 @Composable
 @Preview()
 private fun previewRow() {
-    AppTheme {
+    AndroidGreenTheme {
         Column {
             Spacer(Modifier.height(20.dp))
             Spacer(

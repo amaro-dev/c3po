@@ -102,7 +102,7 @@ fun NewLayout(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(Color(0xFFF5F5F5)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     ContentArea(
@@ -206,7 +206,8 @@ private fun Sidebar(
         Spacer(Modifier.height(20.dp))
         plugins.forEach { plugin ->
             val isSelected = plugin.id == selectedPluginId
-            val background = if (isSelected) Color(0xFF4A4E69).copy(alpha = 0.5f) else Color.Transparent
+            val background =
+                if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f) else Color.Transparent
             val shape = MaterialTheme.shapes.large.copy(all = androidx.compose.foundation.shape.CornerSize(20.dp))
             val horizontalPadding = 12.dp // Increased margin
             val verticalPadding = 8.dp
@@ -233,12 +234,12 @@ private fun Sidebar(
                         imageVector = plugin.icon,
                         contentDescription = plugin.name,
                         modifier = Modifier.size(32.dp),
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
                         plugin.name,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = MaterialTheme.typography.labelSmall.fontSize
                     )
                 }
@@ -275,12 +276,12 @@ private fun TopBar(
                     modifier = Modifier.height(40.dp)
                 ) {
                     val selectedName = devices.find { it.id == selectedDevice }?.name ?: "No device"
-                    Text(selectedName, color = Color(0xFF22223B))
+                    Text(selectedName, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.Filled.ArrowDropDown,
                         contentDescription = "Show devices",
-                        tint = Color(0xFF22223B),
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -320,7 +321,7 @@ private fun TopBar(
             Text(
                 "v$appVersion",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.secondaryTextColor
             )
 
             Spacer(Modifier.width(24.dp))
@@ -354,7 +355,7 @@ private fun LoadingPill() {
         contentAlignment = Alignment.TopEnd
     ) {
         Surface(
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.large,
             shadowElevation = 8.dp,
             modifier = Modifier
@@ -366,14 +367,14 @@ private fun LoadingPill() {
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 CircularProgressIndicator(
-                    color = Color(0xFF4A4E69),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 3.dp
                 )
                 Spacer(Modifier.width(16.dp))
                 Text(
                     "Processing...",
-                    color = Color(0xFF22223B),
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -389,7 +390,7 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
         contentAlignment = Alignment.TopEnd
     ) {
         Surface(
-            color = Color(0xFFE07A5F),
+            color = MaterialTheme.colorScheme.error,
             shape = MaterialTheme.shapes.large,
             shadowElevation = 8.dp,
             modifier = Modifier
@@ -403,13 +404,13 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
                     message,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onError,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.width(12.dp))
@@ -420,7 +421,7 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Dismiss",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onError
                     )
                 }
             }
