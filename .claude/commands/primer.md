@@ -3,7 +3,13 @@
 Use the command `tree` to get an understanding of the project structure.
 
 Start with reading the CLAUD.md file to get an understanding of the project.
-Then read the PROMPTS.md and STRATEGY.md to understand how you should perform your work
+Then read the following files in the docs folder, to understand how you should perform your work.
+
+- DEVELOPMENT.md
+- PLUGINS.md
+- PROMPTS.md
+- STRATEGY.md
+- UI.md
 
 Read key files in the src/ or root directory
 

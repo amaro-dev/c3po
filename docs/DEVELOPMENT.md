@@ -19,11 +19,7 @@ This document provides guidance for developers contributing to the C3PO Android 
    /usr/libexec/java_home -V
    ```
 
-2. Set your preferred Java 17+ version by creating `local-config.properties`:
-   ```
-   java.home=/path/to/java/17/home
-   ```
-   This file is `.gitignore`d.
+2. This project uses Java 17+. Check `local-config.properties` for its path
 
 ---
 
@@ -163,6 +159,19 @@ plugins/
 
 - Use `./gradlew koverHtmlReport`
 - UI files are excluded from coverage requirements
+
+### What/How to test
+
+- Tests should focus the feature, not coverage
+- Tests that does not add to the whole purpose, suggest to delete
+- For new features, use TDD
+
+### After finishing your development
+
+- Run the tests to guarantee that they pass
+- Run the app to check if it compile
+- We have MCPs in place for instrumentation of the screen. It should be enough for you to test the features and bug
+  fixes you made
 
 ---
 
