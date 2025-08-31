@@ -209,7 +209,7 @@ class AutomationMiddleware(
                         )
                     }
 
-                    is ScriptStep.RemovePackage, is ScriptStep.ClearData -> {
+                    is ScriptStep.RemovePackage, is ScriptStep.ClearData, is ScriptStep.StopPackage -> {
                         currentState.copy(
                             editingStepIndex = action.index,
                             showPackageSelector = true
@@ -314,6 +314,25 @@ class AutomationMiddleware(
                 processor.deliver(pluginName, newState)
             }
 
+            is AutomationPlugin.Actions.ConfigureStopPackage -> {
+                val currentState = getCurrentState(state)
+                val currentScript = currentState.currentScript ?: return
+                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                    if (index == action.index) {
+                        ScriptStep.StopPackage(packageName = action.packageName)
+                    } else {
+                        step
+                    }
+                }
+                val updatedScript = currentScript.copy(steps = updatedSteps)
+                val newState = currentState.copy(
+                    currentScript = updatedScript,
+                    editingStepIndex = null,
+                    showPackageSelector = false
+                )
+                processor.deliver(pluginName, newState)
+            }
+
             is AutomationPlugin.Actions.CancelScript -> {
                 val currentState = getCurrentState(state)
                 val newState =
@@ -341,5 +360,6 @@ class AutomationMiddleware(
             ScriptStepType.REMOVE_PACKAGE -> ScriptStep.RemovePackage(packageName = "")
             ScriptStepType.START_ACTIVITY -> ScriptStep.StartActivity(packageName = "", activityName = "")
             ScriptStepType.CLEAR_DATA -> ScriptStep.ClearData(packageName = "")
+            ScriptStepType.STOP_PACKAGE -> ScriptStep.StopPackage(packageName = "")
         }
 }

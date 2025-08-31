@@ -81,6 +81,11 @@ class ScriptStorage {
                         steps.add(ScriptStep.ClearData(packageName = pkg ?: ""))
                     }
 
+                    "stop_package" -> {
+                        val pkg = collectValue(lines, i + 1, "package_name")
+                        steps.add(ScriptStep.StopPackage(packageName = pkg ?: ""))
+                    }
+
                     else -> {
                         throw IllegalArgumentException("Unknown step type: $type")
                     }
@@ -124,6 +129,10 @@ class ScriptStorage {
                 }
 
                 is ScriptStep.ClearData -> {
+                    sb.appendLine("    package_name: \"${step.packageName}\"")
+                }
+
+                is ScriptStep.StopPackage -> {
                     sb.appendLine("    package_name: \"${step.packageName}\"")
                 }
             }

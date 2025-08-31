@@ -124,6 +124,11 @@ class AutomationPlugin(
             val packageName: String,
         ) : Actions
 
+        data class ConfigureStopPackage(
+            val index: Int,
+            val packageName: String,
+        ) : Actions
+
         object SaveScript : Actions
         object RunScript : Actions
 
@@ -232,6 +237,7 @@ class AutomationPlugin(
                     when (currentStep) {
                         is ScriptStep.RemovePackage -> onAction(Actions.ConfigureRemovePackage(stepIndex, packageName))
                         is ScriptStep.ClearData -> onAction(Actions.ConfigureClearData(stepIndex, packageName))
+                        is ScriptStep.StopPackage -> onAction(Actions.ConfigureStopPackage(stepIndex, packageName))
                         else -> onAction(Actions.CancelStepEdit)
                     }
                 },
@@ -863,6 +869,7 @@ private fun getStepDisplayName(step: ScriptStep): String =
         is ScriptStep.RemovePackage -> "Remove Package"
         is ScriptStep.StartActivity -> "Start Activity"
         is ScriptStep.ClearData -> "Clear Data"
+        is ScriptStep.StopPackage -> "Stop Package"
     }
 
 private fun getStepDescription(step: ScriptStep): String =
@@ -878,5 +885,6 @@ private fun getStepDescription(step: ScriptStep): String =
         }
 
         is ScriptStep.ClearData -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
+        is ScriptStep.StopPackage -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
     }
 

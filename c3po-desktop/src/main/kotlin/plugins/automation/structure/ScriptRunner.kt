@@ -6,6 +6,7 @@ import core.command.ClearDataCommand
 import core.command.CommandExecutor
 import core.command.InstallApkCommand
 import core.command.StartActivityCommand
+import core.command.StopAppCommand
 import core.command.UninstallAppCommand
 import core.model.Action
 import core.model.ActivityInfo
@@ -50,6 +51,9 @@ class ScriptRunner(
                 }
 
                 is ScriptStep.StartActivity -> runStartActivity(step, state, executor)
+                is ScriptStep.StopPackage -> runStopPackage(step, state, executor).also {
+                    if (it.isSuccess) update { s -> s.copy(runLogs = s.runLogs + "Stop package executed for \${step.packageName}") }
+                }
             }
 
             if (result.isFailure) {
@@ -119,6 +123,15 @@ class ScriptRunner(
     ): Result<Unit> {
         val info = ActivityInfo(step.packageName, step.activityName)
         val cmd = StartActivityCommand(info, forDebug = false)
+        return executor.go(cmd, state.settings.getProperty(Settings.ADB_PATH_PROP), state.currentDevice).map { }
+    }
+
+    private suspend fun runStopPackage(
+        step: ScriptStep.StopPackage,
+        state: AppState,
+        executor: CommandExecutor,
+    ): Result<Unit> {
+        val cmd = StopAppCommand(AppPackage(step.packageName))
         return executor.go(cmd, state.settings.getProperty(Settings.ADB_PATH_PROP), state.currentDevice).map { }
     }
 }

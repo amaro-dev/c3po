@@ -34,6 +34,12 @@ sealed class ScriptStep {
     ) : ScriptStep() {
         override val type: String = "clear_data"
     }
+
+    data class StopPackage(
+        val packageName: String,
+    ) : ScriptStep() {
+        override val type: String = "stop_package"
+    }
 }
 
 data class ScriptExecutionState(
@@ -51,4 +57,5 @@ enum class ScriptStepType(
     REMOVE_PACKAGE("Remove Package"),
     START_ACTIVITY("Start Activity"),
     CLEAR_DATA("Clear Data"),
+    STOP_PACKAGE("Stop Package"),
 }
