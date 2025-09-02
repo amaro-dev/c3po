@@ -73,8 +73,7 @@ class AutomationMiddleware(
                     scriptStorage.saveScript(currentScript)
                     val scriptFolder = scriptStorage.getScriptFolder(currentScript.name).absolutePath
                     val newState = currentState.copy(
-                        isCreatingScript = false,
-                        currentScript = null,
+                        // Keep script open: isCreatingScript remains true, currentScript preserved
                         currentScriptFolder = scriptFolder,
                     )
                     processor.deliver(pluginName, newState)
