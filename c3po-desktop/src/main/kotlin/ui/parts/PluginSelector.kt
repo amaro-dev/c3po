@@ -1,13 +1,14 @@
 package ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import core.model.Action
 import ui.rows.BaseRow
 
@@ -18,26 +19,23 @@ fun PluginSelector(
     onSelect: OnAction,
 ) {
     Column {
-        plugins.forEach {
+        plugins.forEach { plugin ->
             val surfaceColor =
-                if (it.id == currentPlugin) MaterialTheme.colors.primary else MaterialTheme.colors.surface
+                if (plugin.id == currentPlugin) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surface
             val contentColor =
-                if (it.id == currentPlugin) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface
+                if (plugin.id == currentPlugin) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurface
+
             Surface(
+                onClick = { onSelect(Action.StartPlugin(plugin.id)) },
+                shape = RoundedCornerShape(12.dp),
                 color = surfaceColor,
                 contentColor = contentColor,
-                modifier =
-                    Modifier
-                        .clickable {
-                            onSelect(Action.StartPlugin(it.id))
-                        }.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 BaseRow {
-                    Text(
-                        it.name,
-                        style = MaterialTheme.typography.h6,
-                        color = contentColor,
-                    )
+                    Text(plugin.name, style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

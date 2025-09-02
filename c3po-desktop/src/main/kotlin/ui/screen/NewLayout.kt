@@ -3,7 +3,6 @@ package ui
 import Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
@@ -212,22 +212,19 @@ private fun Sidebar(
             val isSelected = plugin.id == selectedPluginId
             val background =
                 if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f) else Color.Transparent
-            val shape = MaterialTheme.shapes.large.copy(all = androidx.compose.foundation.shape.CornerSize(20.dp))
-            val horizontalPadding = 12.dp // Increased margin
-            val verticalPadding = 8.dp
             val internalPadding = if (isSelected) PaddingValues(horizontal = 0.dp, vertical = 4.dp) else PaddingValues(
                 horizontal = 12.dp,
                 vertical = 8.dp
             )
-            Column(
+            Surface(
+                onClick = { onPluginSelected(plugin.id) },
+                shape = RoundedCornerShape(20.dp),
+                color = background,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
                     .height(72.dp)
-                    .background(background, shape = shape)
-                    .clickable { onPluginSelected(plugin.id) },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(internalPadding),
