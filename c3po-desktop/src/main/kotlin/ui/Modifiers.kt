@@ -31,14 +31,6 @@ fun Modifier.horizontalPadding() =
         end = Dimens.ROW_HORIZONTAL_MARGIN.dp,
     )
 
-fun Modifier.verticalPadding() =
-    padding(
-        top = Dimens.ROW_VERTICAL_MARGIN.dp,
-        bottom = Dimens.ROW_VERTICAL_MARGIN.dp,
-    )
-
-fun Modifier.allPaddings() = horizontalPadding().verticalPadding()
-
 @Composable
 fun Modifier.withIconStyle(): Modifier =
     background(color = MaterialTheme.colors.background)

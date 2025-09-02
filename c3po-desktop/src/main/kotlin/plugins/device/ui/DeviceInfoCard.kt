@@ -24,8 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import core.model.Action
-import ui.CopyButton
 import ui.OnAction
+import ui.component.CopyButton
 import ui.onHover
 import ui.slideInHorizontallyFromRight
 import ui.slideOutHorizontallyToRight

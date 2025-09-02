@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.amaro.sonic.IAction
-import ui.ActionButton
+import ui.component.ActionButton
 import ui.definitions.Dimens
 
 @Composable

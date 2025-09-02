@@ -9,8 +9,8 @@ import di.FacadeModule
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import ui.AndroidGreenTheme
-import ui.NewLayout
 import ui.definitions.Dimens
+import ui.screen.NewLayout
 
 fun main() =
     application {

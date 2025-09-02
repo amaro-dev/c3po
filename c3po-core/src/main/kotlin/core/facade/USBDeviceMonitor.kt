@@ -140,25 +140,4 @@ class USBDeviceMonitor(
         debug("USB device monitoring stopped")
     }
 
-    /**
-     * Check if a specific device is currently connected
-     */
-    suspend fun isDeviceConnected(deviceId: String, adbPath: String): Boolean {
-        return try {
-            val devices = executor.go(ListDevicesCommand(), adbPath).getOrElse { emptyList() }
-            devices.any { it.id == deviceId }
-        } catch (e: Exception) {
-            debug("Error checking device connectivity: ${e.message}")
-            false
-        }
-    }
-
-    /**
-     * Get current device statistics
-     */
-    fun getMonitoringStats(): String {
-        return "Monitoring: ${monitoringJob?.isActive == true}, " +
-                "Known devices: ${lastKnownDevices.size}, " +
-                "Stability tracking: ${deviceStabilityMap.size}"
-    }
 }

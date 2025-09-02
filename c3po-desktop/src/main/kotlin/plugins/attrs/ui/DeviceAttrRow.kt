@@ -21,8 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import core.model.Action
-import ui.CopyButton
 import ui.OnAction
+import ui.component.CopyButton
 import ui.definitions.Texts
 import ui.onHover
 import ui.slideInHorizontallyFromRight

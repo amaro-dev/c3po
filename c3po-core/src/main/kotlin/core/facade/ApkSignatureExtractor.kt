@@ -72,20 +72,4 @@ class ApkSignatureExtractor(
         }
     }
 
-    /**
-     * Clean up entire temp directory and all extracted APKs
-     */
-    fun cleanupTempDirectory() {
-        try {
-            if (tempDir.exists()) {
-                tempDir.listFiles()?.forEach { file ->
-                    if (file.isFile && file.name.endsWith(".apk")) {
-                        file.delete()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("Warning: Failed to clean up temp directory: ${e.message}")
-        }
-    }
 }

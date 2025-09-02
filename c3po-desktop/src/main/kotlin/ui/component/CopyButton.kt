@@ -1,4 +1,4 @@
-package ui
+package ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FileCopy
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ui.definitions.Dimens
 import ui.definitions.Texts
+import ui.onHover
+import ui.withIconStyle
 
 @Composable
 fun CopyButton(
@@ -41,7 +44,7 @@ fun CopyButton(
                     .clip(CircleShape),
         ) {
             Icon(
-                androidx.compose.material.icons.Icons.Outlined.FileCopy,
+                Icons.Outlined.FileCopy,
                 contentDescription = Texts.EMPTY,
                 modifier =
                     Modifier

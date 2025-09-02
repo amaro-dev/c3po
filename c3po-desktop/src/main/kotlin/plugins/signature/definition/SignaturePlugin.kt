@@ -40,10 +40,10 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.signature.ComplianceBox
 import plugins.signature.structure.SignatureMiddleware
-import ui.FileBox
 import ui.OnAction
 import ui.component.CustomActionButton
 import ui.component.EnhancedHeaderRow
+import ui.parts.FileBox
 
 class SignaturePlugin(
     signatureExtractor: SignatureExtractor,

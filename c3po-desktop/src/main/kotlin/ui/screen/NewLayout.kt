@@ -1,4 +1,4 @@
-package ui
+package ui.screen
 
 import Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -50,7 +50,9 @@ import core.model.AppState
 import core.model.CommandStatus
 import dev.amaro.sonic.IAction
 import plugins.Plugin
+import ui.OnAction
 import ui.component.SettingsDialog
+import ui.secondaryTextColor
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

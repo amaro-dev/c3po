@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import core.command.PermissionFlag
 import core.model.Action
 import dev.amaro.sonic.IAction
-import ui.CopyButton
+import ui.component.CopyButton
 import ui.definitions.Dimens
 import ui.onHover
 

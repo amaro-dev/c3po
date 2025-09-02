@@ -14,8 +14,8 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.intents.pending.PendingIntentRow
 import plugins.intents.pending.structure.PendingIntentsMiddleware
-import ui.ContentBox
 import ui.OnAction
+import ui.parts.ContentBox
 import ui.rows.HeaderRow
 
 class PendingIntentsPlugin(
