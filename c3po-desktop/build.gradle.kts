@@ -37,14 +37,15 @@ dependencies {
 
     // Desktop UI dependencies
     implementation(compose.desktop.currentOs)
+    implementation(compose.material3)
+    implementation(compose.material)
+    implementation(compose.materialIconsExtended)
+
     implementation("org.jetbrains.compose.runtime:runtime:1.7.3")
     implementation(project.dependencies.platform("io.insert-koin:koin-bom:4.0.2"))
     implementation("io.insert-koin:koin-core")
     implementation("com.composables.ui:menu:1.4.0")
-    // Replace with JetBrains Compose Material 3 for desktop
-    implementation("org.jetbrains.compose.material3:material3-desktop:1.5.0")
-    // Jetpack Compose Material Icons for Desktop
-    implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.5.0")
+
 
     // JSON serialization for GitHub API
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")

@@ -1,6 +1,7 @@
 package ui.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
@@ -91,7 +92,7 @@ fun CustomActionButton(
                 .background(backgroundColor)
                 .clickable(
                     interactionSource = interactionSource,
-                    indication = null,
+                    indication = LocalIndication.current,
                     onClick = onClick
                 ),
             contentAlignment = Alignment.Center
