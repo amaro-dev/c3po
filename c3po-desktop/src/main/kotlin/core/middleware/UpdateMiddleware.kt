@@ -201,9 +201,15 @@ class UpdateMiddleware(
     ) {
         try {
             val installFile = File(action.filePath)
-            val installResult = updateInstaller.installUpdate(installFile)
+
+            val installResult = updateInstaller.installUpdate(installFile) { progressMessage ->
+                processor.reduce(Action.UpdateInstallProgress(progressMessage))
+            }
 
             if (installResult.success) {
+                // Provide feedback about cleanup phase
+                processor.reduce(Action.UpdateInstallProgress("Cleaning up installation files..."))
+                
                 // Clean up downloaded file after successful installation
                 cleanupDownloadedFile(installFile)
 
@@ -216,11 +222,13 @@ class UpdateMiddleware(
                     processor.reduce(Action.RestartApplication)
                 }
             } else {
-                processor.reduce(Action.UpdateError(installResult.message ?: "Installation failed"))
+                val message = installResult.message ?: "Installation failed"
+                processor.reduce(Action.UpdateError(message))
                 // Keep downloaded file for retry attempts
             }
         } catch (e: Exception) {
-            processor.reduce(Action.UpdateError("Installation error: ${e.message}"))
+            val message = "Installation error: ${e.message}"
+            processor.reduce(Action.UpdateError(message))
         }
     }
 

@@ -153,6 +153,7 @@ fun NewLayout(
                 updateInfo = state.updateInfo!!,
                 updateState = state.updateState,
                 downloadProgress = state.downloadProgress,
+                installProgress = state.installProgress,
                 errorMessage = state.errorMessage,
                 onUpdateNow = {
                     onAction(Action.DownloadUpdate(state.updateInfo!!))

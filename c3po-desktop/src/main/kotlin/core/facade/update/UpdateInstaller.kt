@@ -7,10 +7,17 @@ import java.io.IOException
 
 class UpdateInstaller(
     private val fileManager: UpdateFileManager,
-    private val platformDetector: PlatformDetector = DefaultPlatformDetector()
+    private val platformDetector: PlatformDetector = DefaultPlatformDetector(),
+    private val pathManager: UpdatePathManager = UpdatePathManager()
 ) {
 
-    suspend fun installUpdate(installFile: File): InstallResult {
+    suspend fun installUpdate(
+        installFile: File,
+        onProgress: suspend (String) -> Unit = {}
+    ): InstallResult {
+        onProgress("Validating installation file...")
+        // Add delay to simulate real validation time
+        kotlinx.coroutines.delay(500)
         val validation = fileManager.validateFile(installFile)
 
         when (validation) {
@@ -28,31 +35,66 @@ class UpdateInstaller(
             }
         }
 
-        val diskSpaceResult = fileManager.checkDiskSpace(installFile, multiplier = 3)
-        if (diskSpaceResult is UpdateFileManager.DiskSpaceResult.Insufficient) {
-            return InstallResult.failure(diskSpaceResult.formatMessage())
+        // Use enhanced disk space validation with UpdatePathManager
+        onProgress("Checking disk space and permissions...")
+        // Add delay to simulate real disk space checking
+        kotlinx.coroutines.delay(800)
+        val version = extractVersionFromFilename(installFile.name)
+        val readiness =
+            pathManager.validateInstallationReadiness(version, "C3PO", pathManager.estimateAppSizeFromDmg(installFile))
+
+        when (readiness) {
+            is UpdatePathManager.InstallationReadiness.Failed ->
+                return InstallResult.failure(readiness.reason)
+
+            is UpdatePathManager.InstallationReadiness.InsufficientSpace ->
+                return InstallResult.failure(readiness.spaceInfo.formatUserMessage())
+
+            else -> Unit
         }
 
+        onProgress("Starting installation process...")
+        // Add delay to simulate preparation time
+        kotlinx.coroutines.delay(500)
         return when (platformDetector.getCurrentPlatform()) {
-            Platform.MACOS -> installDmgOnMacOS(installFile)
+            Platform.MACOS -> installDmgOnMacOS(installFile, onProgress)
             Platform.WINDOWS -> InstallResult.failure("Windows installation not yet implemented")
             Platform.LINUX -> InstallResult.failure("Linux installation not yet implemented")
             Platform.UNKNOWN -> InstallResult.failure("Unsupported platform for auto-installation")
         }
     }
 
-    private suspend fun installDmgOnMacOS(dmgFile: File): InstallResult {
+    private fun extractVersionFromFilename(filename: String): String {
+        // Extract version from filename like "c3po-2.1.0.dmg"
+        val versionPattern = Regex("""c3po-(.+)\.dmg""", RegexOption.IGNORE_CASE)
+        return versionPattern.find(filename)?.groupValues?.get(1) ?: "unknown"
+    }
+
+    private suspend fun installDmgOnMacOS(
+        dmgFile: File,
+        onProgress: suspend (String) -> Unit
+    ): InstallResult {
         return try {
+            onProgress("Mounting DMG file...")
+            kotlinx.coroutines.delay(1000) // Simulate mount time
             val mountPoint = mountDmg(dmgFile)
 
             try {
+                onProgress("Finding application bundle...")
+                kotlinx.coroutines.delay(500) // Simulate search time
                 val appBundle = findAppBundle(mountPoint)
                 val targetLocation = getApplicationsDirectory()
 
+                onProgress("Copying application to Applications folder...")
+                kotlinx.coroutines.delay(2000) // Simulate copy time
                 copyAppBundle(appBundle, targetLocation)
 
+                onProgress("Installation completed successfully")
+                kotlinx.coroutines.delay(500) // Allow user to see completion message
                 InstallResult.success(requiresRestart = true)
             } finally {
+                onProgress("Unmounting DMG file...")
+                kotlinx.coroutines.delay(300) // Simulate unmount time
                 unmountDmg(mountPoint)
             }
         } catch (e: SecurityException) {

@@ -77,7 +77,7 @@ class UpdateMiddlewareTest {
     fun `asyncProcess - InstallUpdate calls handleInstallUpdate`() = runBlocking {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
-        coEvery { mockUpdateInstaller.installUpdate(any()) } returns UpdateInstaller.InstallResult.success(
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns UpdateInstaller.InstallResult.success(
             requiresRestart = true
         )
 
@@ -214,7 +214,7 @@ class UpdateMiddlewareTest {
     fun `handleInstallUpdate - installation failure dispatches error`() = runBlocking {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
-        coEvery { mockUpdateInstaller.installUpdate(any()) } returns
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns
                 UpdateInstaller.InstallResult.failure("Installation failed")
 
         middleware.asyncProcess(action, testState, mockProcessor)
@@ -226,7 +226,7 @@ class UpdateMiddlewareTest {
     fun `handleInstallUpdate - successful installation without restart`() = runBlocking {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
-        coEvery { mockUpdateInstaller.installUpdate(any()) } returns
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns
                 UpdateInstaller.InstallResult.success(requiresRestart = false)
 
         middleware.asyncProcess(action, testState, mockProcessor)
@@ -239,7 +239,7 @@ class UpdateMiddlewareTest {
     fun `handleInstallUpdate - exception dispatches error`() = runBlocking {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
-        coEvery { mockUpdateInstaller.installUpdate(any()) } throws RuntimeException("Unexpected error")
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } throws RuntimeException("Unexpected error")
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
@@ -248,6 +248,29 @@ class UpdateMiddlewareTest {
                 it.message.contains("Installation error") && it.message.contains("Unexpected error")
             })
         }
+    }
+
+    @Test
+    fun `handleInstallUpdate - calls progress callback multiple times`() = runBlocking {
+        val action = Action.InstallUpdate("/path/to/file.dmg")
+
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } coAnswers {
+            val onProgress = secondArg<suspend (String) -> Unit>()
+            onProgress("Validating installation file...")
+            onProgress("Starting installation process...")
+            onProgress("Copying files...")
+            onProgress("Installation completed successfully")
+            UpdateInstaller.InstallResult.success(requiresRestart = true)
+        }
+
+        middleware.asyncProcess(action, testState, mockProcessor)
+
+        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Validating installation file...")) }
+        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Starting installation process...")) }
+        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Copying files...")) }
+        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Installation completed successfully")) }
+        verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
+        verify { mockProcessor.reduce(Action.RestartApplication) }
     }
 
     @Test

@@ -191,10 +191,18 @@ class AppReducer : IReducer<AppState> {
                     )
                 }
 
+                is Action.UpdateInstallProgress -> {
+                    currentState.copy(
+                        updateState = UpdateState.Installing,
+                        installProgress = action.stage
+                    )
+                }
+
                 is Action.UpdateInstallComplete -> {
                     currentState.copy(
                         updateState = UpdateState.NoUpdate,
-                        updateInfo = null
+                        updateInfo = null,
+                        installProgress = null
                     )
                 }
 

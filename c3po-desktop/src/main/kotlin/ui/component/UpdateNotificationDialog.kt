@@ -33,6 +33,7 @@ fun UpdateNotificationDialog(
     updateInfo: UpdateInfo,
     updateState: UpdateState,
     downloadProgress: Int = 0,
+    installProgress: String? = null,
     errorMessage: String? = null,
     onUpdateNow: () -> Unit,
     onInstallNow: () -> Unit = {},
@@ -70,32 +71,6 @@ fun UpdateNotificationDialog(
                     color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
 
-//                // Error details section
-//                if (isError && errorMessage != null) {
-//                    Card(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        colors = CardDefaults.cardColors(
-//                            containerColor = MaterialTheme.colorScheme.errorContainer
-//                        )
-//                    ) {
-//                        Column(
-//                            modifier = Modifier.padding(12.dp)
-//                        ) {
-//                            Text(
-//                                text = "Error Details:",
-//                                style = MaterialTheme.typography.labelMedium,
-//                                fontWeight = FontWeight.Bold,
-//                                color = MaterialTheme.colorScheme.onErrorContainer
-//                            )
-//                            Text(
-//                                text = errorMessage,
-//                                style = MaterialTheme.typography.bodySmall,
-//                                color = MaterialTheme.colorScheme.onErrorContainer
-//                            )
-//                        }
-//                    }
-//                }
-
                 // Show progress indicator for downloading/installing states
                 when (updateState) {
                     UpdateState.Downloading -> {
@@ -126,21 +101,38 @@ fun UpdateNotificationDialog(
                     }
 
                     UpdateState.Installing -> {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Installing... Do not close the application.",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Installing... Do not close the application.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            // Show detailed install progress if available
+                            if (installProgress != null) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = installProgress,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
 

@@ -140,6 +140,10 @@ sealed interface Action : IAction {
         val filePath: String,
     ) : Action
 
+    data class UpdateInstallProgress(
+        val stage: String,
+    ) : Action
+
     data object UpdateInstallComplete : Action
 
     data object RestartApplication : Action

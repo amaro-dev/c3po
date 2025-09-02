@@ -1,10 +1,12 @@
 package di
 
 import core.PluginSelectorMiddleware
+import core.facade.update.DefaultPlatformDetector
 import core.facade.update.UpdateChecker
 import core.facade.update.UpdateDownloader
 import core.facade.update.UpdateFileManager
 import core.facade.update.UpdateInstaller
+import core.facade.update.UpdatePathManager
 import core.facade.update.UpdateValidator
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware
@@ -59,9 +61,10 @@ val AppModule =
         // Update Services
         single { UpdateValidator() }
         single { UpdateFileManager() }
+        single { UpdatePathManager() }
         single { UpdateChecker(get()) }
         single { UpdateDownloader(get(), get()) }
-        single { UpdateInstaller(get()) }
+        single { UpdateInstaller(get(), platformDetector = DefaultPlatformDetector(), pathManager = get()) }
 
         factory(named(PLUGIN_LIST_DEPENDENCY)) {
             listOf(

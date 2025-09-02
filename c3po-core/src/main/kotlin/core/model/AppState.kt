@@ -14,6 +14,7 @@ data class AppState(
     val updateState: UpdateState = UpdateState.NoUpdate,
     val updateInfo: UpdateInfo? = null,
     val downloadProgress: Int = 0,
+    val installProgress: String? = null,
     val appVersion: String = "unknown",
 ) {
     val hasDeviceSet: Boolean

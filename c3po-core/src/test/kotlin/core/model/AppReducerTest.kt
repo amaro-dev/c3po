@@ -158,6 +158,19 @@ class AppReducerTest {
     }
 
     @Test
+    fun `reduce - UpdateInstallProgress sets Installing state and progress`() {
+        val action = Action.UpdateInstallProgress("Installing application...")
+        val stateWithDownload = initialState.copy(
+            updateState = UpdateState.DownloadComplete
+        )
+
+        val result = reducer.reduce(action, stateWithDownload)
+
+        assertThat(result.updateState).isEqualTo(UpdateState.Installing)
+        assertThat(result.installProgress).isEqualTo("Installing application...")
+    }
+
+    @Test
     fun `reduce - RestartApplication leaves state unchanged`() {
         val action = Action.RestartApplication
         val currentState = initialState.copy(
@@ -230,6 +243,31 @@ class AppReducerTest {
         state = reducer.reduce(Action.UpdateInstallComplete, state)
         assertThat(state.updateState).isEqualTo(UpdateState.NoUpdate)
         assertThat(state.updateInfo).isNull()
+    }
+
+    @Test
+    fun `reduce - install flow with progress updates maintains state consistency`() {
+        var state = initialState.copy(updateState = UpdateState.DownloadComplete)
+
+        // First progress update should set Installing state  
+        state = reducer.reduce(Action.UpdateInstallProgress("Validating installation file..."), state)
+        assertThat(state.updateState).isEqualTo(UpdateState.Installing)
+        assertThat(state.installProgress).isEqualTo("Validating installation file...")
+
+        // Subsequent progress updates should maintain Installing state
+        state = reducer.reduce(Action.UpdateInstallProgress("Copying files..."), state)
+        assertThat(state.updateState).isEqualTo(UpdateState.Installing)
+        assertThat(state.installProgress).isEqualTo("Copying files...")
+
+        // More progress updates
+        state = reducer.reduce(Action.UpdateInstallProgress("Installation completed successfully"), state)
+        assertThat(state.updateState).isEqualTo(UpdateState.Installing)
+        assertThat(state.installProgress).isEqualTo("Installation completed successfully")
+
+        // Installation complete should reset progress
+        state = reducer.reduce(Action.UpdateInstallComplete, state)
+        assertThat(state.updateState).isEqualTo(UpdateState.NoUpdate)
+        assertThat(state.installProgress).isNull()
     }
 
     @Test
