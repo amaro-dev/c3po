@@ -9,6 +9,7 @@ Then read the following files in the docs folder, to understand how you should p
 - PLUGINS.md
 - PROMPTS.md
 - STRATEGY.md
+- TESTING.md
 - UI.md
 
 Read key files in the src/ or root directory

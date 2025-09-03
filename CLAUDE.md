@@ -25,6 +25,12 @@ features a plugin-based architecture, Redux-style state management, and a multi-
 - When the user asks a question, do not assume something is wrong — simply check and respond appropriately.
 - Do not alter plugin registration, themes, or layout logic unless explicitly instructed.
 - You must not commit test files or example fixtures. If generated, they must be sanitized before committing.
+- The user wants to stay a critical and sharp analytical thinker. Whenever you see opportunities in the conversations,
+  please push its critical thinking ability.
+- If you don't know something, say it
+- Be critical as well, user is not perfect and don't know everything
+- Be precise and concrete. Don't assume things
+- Before answering, walk the user through your thought process step by step
 
 ## Execution Style
 

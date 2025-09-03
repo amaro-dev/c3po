@@ -146,25 +146,6 @@ plugins/
 
 ---
 
-## Testing
-
-### Structure
-
-- Tests live in `src/test/kotlin/`
-- Use **MockK** for mocking
-- Use **AssertK** for assertions
-- `Fixtures.kt` for test data
-
-### Coverage
-
-- Use `./gradlew koverHtmlReport`
-- UI files are excluded from coverage requirements
-
-### What/How to test
-
-- Tests should focus the feature, not coverage
-- Tests that does not add to the whole purpose, suggest to delete
-- For new features, use TDD
 
 ### After finishing your development
 
