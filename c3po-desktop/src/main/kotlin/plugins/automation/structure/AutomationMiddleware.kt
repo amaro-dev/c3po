@@ -232,7 +232,8 @@ class AutomationMiddleware(
                     editingStepIndex = null,
                     showPackageSelector = false,
                     showActivitySelector = false,
-                    showApkPicker = false
+                    showApkPicker = false,
+                    showOpenScriptPicker = false
                 )
                 processor.deliver(pluginName, newState)
             }
