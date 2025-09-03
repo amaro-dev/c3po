@@ -15,7 +15,6 @@ import plugins.automation.structure.AutomationMiddleware
 import plugins.automation.structure.AutomationState
 import plugins.automation.structure.Script
 import plugins.automation.structure.ScriptStorage
-import plugins.automation.structure.deliver
 import java.io.File
 
 class AutomationMiddlewareTest {
@@ -52,7 +51,6 @@ class AutomationMiddlewareTest {
     @BeforeEach
     fun setup() {
         clearAllMocks()
-        every { mockProcessor.deliver(any(), any()) } returns Unit
         every { mockProcessor.reduce(any()) } returns Unit
     }
 
