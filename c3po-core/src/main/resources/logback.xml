@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Define the logs directory -->
+    <property name="LOGS_DIR" value="${user.home}/.c3po/logs"/>
+
+    <!-- File appender with rotation and compression -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS_DIR}/current.jsonl</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rotation -->
+            <fileNamePattern>${LOGS_DIR}/%d{yyyy-MM-dd}.jsonl.gz</fileNamePattern>
+
+            <!-- Keep logs for 30 days or until total size exceeds 50MB -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>50MB</totalSizeCap>
+
+            <!-- Clean up on startup -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+
+        <!-- Use pattern layout to output raw JSON lines -->
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Console appender for development (errors only) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>[%d{HH:mm:ss}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- C3PO logger configuration -->
+    <logger name="C3PO" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Root logger (suppress other libraries) -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

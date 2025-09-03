@@ -68,6 +68,12 @@ fun NewLayout(
     val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
     val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
     val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
+
+    // Logging settings
+    val loggingEnabled = state.settings.getProperty(Settings.LOGGING_ENABLED_PROP)?.toBoolean() ?: false
+    val adbLogging = state.settings.getProperty(Settings.LOGGING_ADB_PROP) ?: "off"
+    val performLogging = state.settings.getProperty(Settings.LOGGING_PERFORM_PROP)?.toBoolean() ?: false
+    val reduceLogging = state.settings.getProperty(Settings.LOGGING_REDUCE_PROP)?.toBoolean() ?: false
     val settingsState = state.settingsState
     var showSettingsDialog by remember { mutableStateOf(settingsState.name == "NotInitialized" || settingsState.name == "NotFound" || adbPath.isBlank()) }
 
@@ -129,10 +135,18 @@ fun NewLayout(
                 initialAdbPath = adbPath,
                 initialUpdatesUrl = updatesUrl,
                 initialDarkMode = darkMode,
-                onSave = { newAdbPath, newUpdatesUrl, newDarkMode ->
+                initialLoggingEnabled = loggingEnabled,
+                initialAdbLogging = adbLogging,
+                initialPerformLogging = performLogging,
+                initialReduceLogging = reduceLogging,
+                onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
                     onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
                     onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
                     onAction(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, newDarkMode.toString()))
+                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ENABLED_PROP, newLoggingEnabled.toString()))
+                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ADB_PROP, newAdbLogging))
+                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_PERFORM_PROP, newPerformLogging.toString()))
+                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_REDUCE_PROP, newReduceLogging.toString()))
                     showSettingsDialog = false
                 },
                 onCancel = { showSettingsDialog = false }

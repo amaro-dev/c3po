@@ -20,6 +20,10 @@ dependencies {
     implementation("io.sentry:sentry:7.0.0")
     implementation("commons-io:commons-io:2.11.0")
 
+    // Logging dependencies
+    implementation("org.slf4j:slf4j-api:2.0.12")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

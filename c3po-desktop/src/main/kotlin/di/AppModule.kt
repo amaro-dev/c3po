@@ -10,6 +10,7 @@ import core.facade.update.UpdatePathManager
 import core.facade.update.UpdateValidator
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware
+import core.middleware.LoggingMiddleware
 import core.middleware.RestartMiddleware
 import core.middleware.SettingsMiddleware
 import core.middleware.StatusMiddleware
@@ -40,6 +41,7 @@ val AppModule =
     module {
         factory(named(MIDDLEWARE_LIST_DEPENDENCY)) {
             arrayOf(
+                LoggingMiddleware(), // Add logging as first middleware to capture all actions
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),

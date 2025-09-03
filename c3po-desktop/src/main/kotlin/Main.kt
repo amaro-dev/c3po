@@ -4,6 +4,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import core.App
+import core.logging.StructuredLogger
 import di.AppModule
 import di.FacadeModule
 import org.koin.core.context.startKoin
@@ -17,11 +18,19 @@ fun main() =
         startKoin {
             modules(AppModule, FacadeModule)
         }
+
+        // Initialize logging system
+        val logger = StructuredLogger.getInstance()
+        logger.start()
+        logger.log("sys", "Application", "C3PO started")
+        
         val myApp = App()
         myApp.start()
         Metrics().start()
         Window(
             onCloseRequest = {
+                logger.log("sys", "Application", "C3PO shutting down")
+                logger.stop()
                 stopKoin()
                 myApp.exit()
                 exitApplication()
