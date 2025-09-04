@@ -74,6 +74,7 @@ class UpdateInstaller(
         dmgFile: File,
         onProgress: suspend (String) -> Unit
     ): InstallResult {
+        var backupFile: File? = null
         return try {
             onProgress("Mounting DMG file...")
             kotlinx.coroutines.delay(1000) // Simulate mount time
@@ -87,9 +88,23 @@ class UpdateInstaller(
 
                 onProgress("Copying application to Applications folder...")
                 kotlinx.coroutines.delay(2000) // Simulate copy time
-                copyAppBundle(appBundle, targetLocation)
+                backupFile = copyAppBundle(appBundle, targetLocation)
 
                 onProgress("Installation completed successfully")
+                
+                // Clean up backup file after successful installation
+                if (backupFile != null && backupFile.exists()) {
+                    onProgress("Cleaning up backup files...")
+                    try {
+                        if (backupFile.deleteRecursively()) {
+                            kotlinx.coroutines.delay(200) // Brief delay to show cleanup message
+                        }
+                    } catch (e: Exception) {
+                        // Log but don't fail the installation for backup cleanup issues
+                        println("[UpdateInstaller] Warning: Failed to clean up backup file: ${backupFile.absolutePath}")
+                    }
+                }
+                
                 kotlinx.coroutines.delay(500) // Allow user to see completion message
                 InstallResult.success(requiresRestart = true)
             } finally {
@@ -180,13 +195,14 @@ class UpdateInstaller(
         return File("/Applications")
     }
 
-    private suspend fun copyAppBundle(sourceApp: File, targetDir: File): Unit = withContext(Dispatchers.IO) {
+    private suspend fun copyAppBundle(sourceApp: File, targetDir: File): File? = withContext(Dispatchers.IO) {
         val targetApp = File(targetDir, sourceApp.name)
+        var backupApp: File? = null
 
         // Handle existing app by creating backup
         if (targetApp.exists()) {
             val backupName = "${sourceApp.nameWithoutExtension}-backup-${System.currentTimeMillis()}.app"
-            val backupApp = File(targetDir, backupName)
+            backupApp = File(targetDir, backupName)
 
             // Use File.renameTo instead of mv command
             if (!targetApp.renameTo(backupApp)) {
@@ -200,18 +216,34 @@ class UpdateInstaller(
                 throw IOException("Failed to copy app bundle - copyRecursively returned false")
             }
         } catch (e: Exception) {
+            // If copy failed and we made a backup, try to restore it
+            if (backupApp != null && backupApp.exists()) {
+                backupApp.renameTo(targetApp) // Attempt to restore backup
+            }
             throw IOException("Failed to copy app bundle from ${sourceApp.absolutePath} to ${targetApp.absolutePath}: ${e.message}", e)
         }
 
         // Verify the copy was successful
         if (!targetApp.exists()) {
+            // If copy failed and we made a backup, try to restore it
+            if (backupApp != null && backupApp.exists()) {
+                backupApp.renameTo(targetApp) // Attempt to restore backup
+            }
             throw IOException("App bundle was not copied successfully to: ${targetApp.absolutePath}")
         }
         
         // Verify it's a valid app bundle (contains at least the expected structure)
         if (!targetApp.isDirectory) {
+            // If verification failed and we made a backup, try to restore it
+            if (backupApp != null && backupApp.exists()) {
+                targetApp.deleteRecursively() // Remove the invalid copy
+                backupApp.renameTo(targetApp) // Attempt to restore backup
+            }
             throw IOException("Copied app bundle is not a directory: ${targetApp.absolutePath}")
         }
+
+        // Return the backup file so it can be cleaned up later
+        return@withContext backupApp
     }
 
     private suspend fun unmountDmg(mountPoint: File): Unit = withContext(Dispatchers.IO) {
