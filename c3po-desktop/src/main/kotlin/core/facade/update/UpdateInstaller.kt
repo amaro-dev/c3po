@@ -183,32 +183,34 @@ class UpdateInstaller(
     private suspend fun copyAppBundle(sourceApp: File, targetDir: File): Unit = withContext(Dispatchers.IO) {
         val targetApp = File(targetDir, sourceApp.name)
 
+        // Handle existing app by creating backup
         if (targetApp.exists()) {
             val backupName = "${sourceApp.nameWithoutExtension}-backup-${System.currentTimeMillis()}.app"
             val backupApp = File(targetDir, backupName)
 
-            val moveCommand = arrayOf("mv", targetApp.absolutePath, backupApp.absolutePath)
-            val moveProcess = ProcessBuilder(*moveCommand).start()
-
-            if (moveProcess.waitFor() != 0) {
-                throw IOException("Failed to backup existing application")
+            // Use File.renameTo instead of mv command
+            if (!targetApp.renameTo(backupApp)) {
+                throw IOException("Failed to backup existing application from ${targetApp.absolutePath} to ${backupApp.absolutePath}")
             }
         }
 
-        val copyCommand = arrayOf("cp", "-R", sourceApp.absolutePath, targetApp.absolutePath)
-        val copyProcess = ProcessBuilder(*copyCommand)
-            .redirectErrorStream(true)
-            .start()
-
-        val exitCode = copyProcess.waitFor()
-        val output = copyProcess.inputStream.bufferedReader().readText()
-
-        if (exitCode != 0) {
-            throw IOException("Failed to copy app bundle: $output")
+        // Use Kotlin's built-in copyRecursively instead of cp command
+        try {
+            if (!sourceApp.copyRecursively(targetApp, overwrite = true)) {
+                throw IOException("Failed to copy app bundle - copyRecursively returned false")
+            }
+        } catch (e: Exception) {
+            throw IOException("Failed to copy app bundle from ${sourceApp.absolutePath} to ${targetApp.absolutePath}: ${e.message}", e)
         }
 
+        // Verify the copy was successful
         if (!targetApp.exists()) {
             throw IOException("App bundle was not copied successfully to: ${targetApp.absolutePath}")
+        }
+        
+        // Verify it's a valid app bundle (contains at least the expected structure)
+        if (!targetApp.isDirectory) {
+            throw IOException("Copied app bundle is not a directory: ${targetApp.absolutePath}")
         }
     }
 
