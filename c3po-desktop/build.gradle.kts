@@ -11,7 +11,7 @@ plugins {
 
 group = "dev.amaro.c3po"
 version = rootProject.version
-val mainClassName = "Mainkt"
+val mainClassName = "MainKt"
 val mainClassPath = "$group.$mainClassName"
 
 repositories {
@@ -20,13 +20,13 @@ repositories {
     google()
 }
 
-//sentry {
-//    includeSourceContext = true
-//    org = "amaro-dev"
-//    projectName = "C3PO"
-//    authToken = System.getenv("SENTRY_AUTH_TOKEN")
-//        ?: "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"
-//}
+sentry {
+    includeSourceContext = true
+    org = "amaro-dev"
+    projectName = "C3PO"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+        ?: "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"
+}
 
 dependencies {
     // Core module dependency
@@ -107,8 +107,16 @@ tasks {
             attributes(
                 "Implementation-Title" to project.name,
                 "Implementation-Version" to archiveVersion,
-                "Main-Class" to mainClasses,
+                "Main-Class" to mainClassPath,
             )
         }
+    }
+
+// Apply verification tasks from separate file
+    apply(from = "verification.gradle.kts")
+
+// Integrate verification into build pipeline
+    build {
+        dependsOn("validateModules")  // Static analysis validation
     }
 }
