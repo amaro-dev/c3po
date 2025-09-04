@@ -34,7 +34,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import core.App
 import core.model.Action
-import core.model.AppState
 import core.model.CommandStatus
 import dev.amaro.sonic.IAction
 import plugins.Plugin
@@ -54,12 +52,9 @@ import ui.OnAction
 import ui.component.SettingsDialog
 import ui.secondaryTextColor
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NewLayout(
-    app: App,
-) {
-    val state = app.listen().collectAsState(initial = AppState()).value
+fun NewLayout(app: App) {
+    val state = app.listen().collectAsState().value
     val onAction: OnAction = { action: IAction -> app.perform(action) }
     val selectedDevice = state.currentDevice?.id
     val selectedPlugin = state.currentPlugin
@@ -68,147 +63,140 @@ fun NewLayout(
     val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
     val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
     val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
-
-    // Logging settings
     val loggingEnabled = state.settings.getProperty(Settings.LOGGING_ENABLED_PROP)?.toBoolean() ?: false
-    val adbLogging = state.settings.getProperty(Settings.LOGGING_ADB_PROP) ?: "off"
-    val performLogging = state.settings.getProperty(Settings.LOGGING_PERFORM_PROP)?.toBoolean() ?: false
-    val reduceLogging = state.settings.getProperty(Settings.LOGGING_REDUCE_PROP)?.toBoolean() ?: false
+    val adbLogging = state.settings.getProperty(Settings.LOGGING_ADB_PROP) ?: "full"
+    val performLogging = state.settings.getProperty(Settings.LOGGING_PERFORM_PROP)?.toBoolean() ?: true
+    val reduceLogging = state.settings.getProperty(Settings.LOGGING_REDUCE_PROP)?.toBoolean() ?: true
     val settingsState = state.settingsState
-    var showSettingsDialog by remember { mutableStateOf(settingsState.name == "NotInitialized" || settingsState.name == "NotFound" || adbPath.isBlank()) }
 
-    // Automatically close dialog when settings are initialized
-    LaunchedEffect(settingsState) {
-        if (settingsState == core.model.SettingsState.Initialized) {
-            showSettingsDialog = false
-        }
-    }
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Row(Modifier.fillMaxSize()) {
-            Sidebar(
-                plugins = app.plugins,
-                selectedPluginId = selectedPlugin,
-                onPluginSelected = { onAction(Action.StartPlugin(it)) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
+
+    Row(Modifier.fillMaxSize()) {
+        Sidebar(
+            plugins = app.plugins,
+            selectedPluginId = selectedPlugin,
+            onPluginSelected = { onAction(Action.StartPlugin(it)) }
+        )
+        Column(Modifier.weight(1f).fillMaxHeight()) {
+            TopBar(
+                devices = state.devices,
+                selectedDevice = selectedDevice,
+                appVersion = state.appVersion,
+                onDeviceSelected = { id ->
+                    val device = state.devices.find { it.id == id }
+                    if (device != null && settingsState == core.model.SettingsState.Initialized) {
+                        onAction(Action.SelectDevice(device))
+                        // Auto-select Device plugin when user manually selects a device
+                        onAction(Action.StartPlugin("DEVICE"))
+                    }
+                },
+                onRefreshDevices = {
+                    if (settingsState == core.model.SettingsState.Initialized) onAction(Action.RefreshDevices)
+                },
+                onShowSettings = {
+                    showSettingsDialog = true
+                }
             )
-            Column(Modifier.weight(1f).fillMaxHeight()) {
-                TopBar(
-                    devices = state.devices,
-                    selectedDevice = selectedDevice,
-                    appVersion = state.appVersion,
-                    onDeviceSelected = { id ->
-                        val device = state.devices.find { it.id == id }
-                        if (device != null && settingsState == core.model.SettingsState.Initialized) {
-                            onAction(Action.SelectDevice(device))
-                        }
-                    },
-                    onRefreshDevices = {
-                        if (settingsState == core.model.SettingsState.Initialized) onAction(Action.RefreshDevices)
-                    },
-                    onShowSettings = {
-                        showSettingsDialog = true
-                    }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                ContentArea(
+                    plugins = app.plugins,
+                    selectedPluginId = selectedPlugin,
+                    results = state.windows,
+                    onAction = onAction
                 )
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ContentArea(
-                        plugins = app.plugins,
-                        selectedPluginId = selectedPlugin,
-                        results = state.windows,
-                        onAction = onAction
-                    )
 
-                    if (showLoading) LoadingPill()
+                if (showLoading) LoadingPill()
 
-                    errorMessage?.let {
-                        ErrorMessage(it) { onAction(Action.ClearError) }
-                    }
+                errorMessage?.let {
+                    ErrorMessage(it) { onAction(Action.ClearError) }
                 }
             }
         }
+    }
 
-        if (showSettingsDialog) {
-            SettingsDialog(
-                initialAdbPath = adbPath,
-                initialUpdatesUrl = updatesUrl,
-                initialDarkMode = darkMode,
-                initialLoggingEnabled = loggingEnabled,
-                initialAdbLogging = adbLogging,
-                initialPerformLogging = performLogging,
-                initialReduceLogging = reduceLogging,
-                onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
-                    onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
-                    onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
-                    onAction(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, newDarkMode.toString()))
-                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ENABLED_PROP, newLoggingEnabled.toString()))
-                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ADB_PROP, newAdbLogging))
-                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_PERFORM_PROP, newPerformLogging.toString()))
-                    onAction(Action.ChangeSettingsProperty(Settings.LOGGING_REDUCE_PROP, newReduceLogging.toString()))
-                    showSettingsDialog = false
-                },
-                onCancel = { showSettingsDialog = false }
-            )
-        }
-
-        // Update notification dialog - show for various update states
-        val showUpdateDialog = state.updateInfo != null && state.updateState in listOf(
-            core.model.UpdateState.UpdateAvailable,
-            core.model.UpdateState.Downloading,
-            core.model.UpdateState.DownloadComplete,
-            core.model.UpdateState.InstallReady,
-            core.model.UpdateState.Installing,
-            core.model.UpdateState.UpdateCancelled,
-            core.model.UpdateState.Error
+    if (showSettingsDialog) {
+        SettingsDialog(
+            initialAdbPath = adbPath,
+            initialUpdatesUrl = updatesUrl,
+            initialDarkMode = darkMode,
+            initialLoggingEnabled = loggingEnabled,
+            initialAdbLogging = adbLogging,
+            initialPerformLogging = performLogging,
+            initialReduceLogging = reduceLogging,
+            onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
+                onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
+                onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
+                onAction(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, newDarkMode.toString()))
+                onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ENABLED_PROP, newLoggingEnabled.toString()))
+                onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ADB_PROP, newAdbLogging))
+                onAction(Action.ChangeSettingsProperty(Settings.LOGGING_PERFORM_PROP, newPerformLogging.toString()))
+                onAction(Action.ChangeSettingsProperty(Settings.LOGGING_REDUCE_PROP, newReduceLogging.toString()))
+                showSettingsDialog = false
+            },
+            onCancel = { showSettingsDialog = false }
         )
+    }
 
-        if (showUpdateDialog) {
-            ui.component.UpdateNotificationDialog(
-                updateInfo = state.updateInfo!!,
-                updateState = state.updateState,
-                downloadProgress = state.downloadProgress,
-                installProgress = state.installProgress,
-                errorMessage = state.errorMessage,
-                onUpdateNow = {
-                    onAction(Action.DownloadUpdate(state.updateInfo!!))
-                },
-                onInstallNow = {
-                    // Get the downloaded file path from temp directory
-                    val downloadDir = java.io.File(System.getProperty("java.io.tmpdir"), "c3po-updates")
-                    val downloadedFile = java.io.File(downloadDir, "c3po-${state.updateInfo!!.version}.dmg")
-                    if (downloadedFile.exists()) {
-                        onAction(Action.InstallUpdate(downloadedFile.absolutePath))
-                    } else {
-                        onAction(Action.UpdateError("Downloaded file not found: ${downloadedFile.absolutePath}"))
-                    }
-                },
-                onUpdateLater = {
-                    onAction(Action.DismissUpdate) // Properly dismiss until next app restart
-                },
-                onRetry = {
-                    // Reset error state and retry the last operation
-                    when (state.updateState) {
-                        core.model.UpdateState.Error -> {
-                            // Determine what to retry based on available data
-                            if (state.updateInfo != null) {
-                                onAction(Action.DownloadUpdate(state.updateInfo!!))
-                            } else {
-                                onAction(Action.CheckForUpdate)
-                            }
-                        }
+    // Update notification dialog - show for various update states
+    val showUpdateDialog = state.updateInfo != null && state.updateState in listOf(
+        core.model.UpdateState.UpdateAvailable,
+        core.model.UpdateState.Downloading,
+        core.model.UpdateState.DownloadComplete,
+        core.model.UpdateState.InstallReady,
+        core.model.UpdateState.Installing,
+        core.model.UpdateState.UpdateCancelled,
+        core.model.UpdateState.Error
+    )
 
-                        else -> {
+    if (showUpdateDialog) {
+        ui.component.UpdateNotificationDialog(
+            updateInfo = state.updateInfo!!,
+            updateState = state.updateState,
+            downloadProgress = state.downloadProgress,
+            installProgress = state.installProgress,
+            errorMessage = state.errorMessage,
+            onUpdateNow = {
+                onAction(Action.DownloadUpdate(state.updateInfo!!))
+            },
+            onInstallNow = {
+                // Get the downloaded file path from temp directory
+                val downloadDir = java.io.File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+                val downloadedFile = java.io.File(downloadDir, "c3po-${state.updateInfo!!.version}.dmg")
+                if (downloadedFile.exists()) {
+                    onAction(Action.InstallUpdate(downloadedFile.absolutePath))
+                } else {
+                    onAction(Action.UpdateError("Downloaded file not found: ${downloadedFile.absolutePath}"))
+                }
+            },
+            onUpdateLater = {
+                onAction(Action.DismissUpdate) // Properly dismiss until next app restart
+            },
+            onRetry = {
+                // Reset error state and retry the last operation
+                when (state.updateState) {
+                    core.model.UpdateState.Error -> {
+                        // Determine what to retry based on available data
+                        if (state.updateInfo != null) {
+                            onAction(Action.DownloadUpdate(state.updateInfo!!))
+                        } else {
                             onAction(Action.CheckForUpdate)
                         }
                     }
-                },
-                onCancelDownload = {
-                    onAction(Action.CancelDownload)
+
+                    else -> {
+                        onAction(Action.CheckForUpdate)
+                    }
                 }
-            )
-        }
+            },
+            onCancelDownload = {
+                onAction(Action.CancelDownload)
+            }
+        )
     }
 }
 
@@ -292,7 +280,13 @@ private fun TopBar(
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.height(40.dp)
                 ) {
-                    val selectedName = devices.find { it.id == selectedDevice }?.name ?: "No device"
+                    val selectedName = when {
+                        devices.isEmpty() -> "No devices"
+                        selectedDevice != null -> devices.find { it.id == selectedDevice }?.name
+                            ?: ui.definitions.Texts.SELECT_DEVICE
+
+                        else -> ui.definitions.Texts.SELECT_DEVICE
+                    }
                     Text(selectedName, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.width(4.dp))
                     Icon(
