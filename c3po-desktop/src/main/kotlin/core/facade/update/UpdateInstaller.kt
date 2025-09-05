@@ -160,16 +160,71 @@ class UpdateInstaller(
                     if (entry.name.contains("MacOS/") || entry.name.endsWith(".sh")) {
                         entryFile.setExecutable(true, false)
                     }
+
+                    // For all files, ensure proper permissions
+                    if (entry.name.contains(".app/")) {
+                        // Files inside app bundle should be readable
+                        entryFile.setReadable(true, false)
+                        entryFile.setWritable(true, true) // Owner writable only
+                    }
                 }
                 entry = zipInput.nextEntry
             }
         }
 
+        // After extraction, find the .app bundle and try to fix its permissions comprehensively
+        val appBundle = findAppBundle(stagingDir)
+        try {
+            fixAppBundlePermissions(appBundle)
+        } catch (e: Exception) {
+            println("[UpdateInstaller] Warning: Failed to fix app bundle permissions: ${e.message}")
+        }
+
         return@withContext stagingDir
+    }
+
+    private suspend fun fixAppBundlePermissions(appBundle: File): Unit = withContext(Dispatchers.IO) {
+        try {
+            // Fix permissions using chmod - more reliable than Java's setXXX methods
+            val chmodCommand = arrayOf(
+                "/bin/chmod",
+                "-R",
+                "755",
+                appBundle.absolutePath
+            )
+            val process = ProcessBuilder(*chmodCommand)
+                .redirectErrorStream(true)
+                .start()
+
+            val exitCode = process.waitFor()
+            if (exitCode == 0) {
+                println("[UpdateInstaller] Fixed permissions for app bundle: ${appBundle.absolutePath}")
+
+                // Make sure the main executable is definitely executable
+                val executablePath = File(appBundle, "Contents/MacOS")
+                if (executablePath.exists()) {
+                    executablePath.listFiles()?.forEach { executable ->
+                        if (executable.isFile) {
+                            val makeExecCommand = arrayOf(
+                                "/bin/chmod",
+                                "+x",
+                                executable.absolutePath
+                            )
+                            ProcessBuilder(*makeExecCommand).start().waitFor()
+                        }
+                    }
+                }
+            } else {
+                println("[UpdateInstaller] Warning: chmod failed with exit code $exitCode")
+            }
+        } catch (e: Exception) {
+            println("[UpdateInstaller] Warning: Exception while fixing permissions: ${e.message}")
+        }
     }
 
     private suspend fun removeQuarantine(appBundle: File): Unit = withContext(Dispatchers.IO) {
         try {
+            // First, remove quarantine attribute recursively
             val removeQuarantineCommand = arrayOf(
                 "/usr/bin/xattr",
                 "-dr",
@@ -185,12 +240,47 @@ class UpdateInstaller(
 
             if (exitCode != 0) {
                 println("[UpdateInstaller] Warning: Failed to remove quarantine ($exitCode): $output")
-                // Don't throw exception - quarantine removal failure shouldn't stop installation
             } else {
                 println("[UpdateInstaller] Successfully removed quarantine from: ${appBundle.absolutePath}")
             }
+
+            // Also try to clear any extended attributes that might cause issues
+            try {
+                val clearXattrCommand = arrayOf(
+                    "/usr/bin/xattr",
+                    "-cr",
+                    appBundle.absolutePath
+                )
+                val clearProcess = ProcessBuilder(*clearXattrCommand)
+                    .redirectErrorStream(true)
+                    .start()
+
+                clearProcess.waitFor()
+                println("[UpdateInstaller] Cleared all extended attributes from: ${appBundle.absolutePath}")
+            } catch (e: Exception) {
+                println("[UpdateInstaller] Warning: Failed to clear extended attributes: ${e.message}")
+            }
+
+            // Try to explicitly allow the app through Gatekeeper
+            try {
+                val allowCommand = arrayOf(
+                    "/usr/bin/spctl",
+                    "--add",
+                    "--label", "C3PO Auto-Update",
+                    appBundle.absolutePath
+                )
+                val allowProcess = ProcessBuilder(*allowCommand)
+                    .redirectErrorStream(true)
+                    .start()
+
+                allowProcess.waitFor()
+                println("[UpdateInstaller] Added Gatekeeper exception for: ${appBundle.absolutePath}")
         } catch (e: Exception) {
-            println("[UpdateInstaller] Warning: Exception during quarantine removal: ${e.message}")
+                println("[UpdateInstaller] Warning: Failed to add Gatekeeper exception: ${e.message}")
+            }
+
+        } catch (e: Exception) {
+            println("[UpdateInstaller] Warning: Exception during quarantine/Gatekeeper handling: ${e.message}")
             // Don't throw - this is not critical for functionality
         }
     }
