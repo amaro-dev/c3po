@@ -345,6 +345,21 @@ class UpdatePathManager {
     }
 
     /**
+     * Estimates uncompressed app size from ZIP file
+     */
+    fun estimateAppSizeFromZip(zipFile: File): Long {
+        return if (zipFile.exists()) {
+            // ZIP files typically have better compression than DMGs for app bundles
+            // Compression ratio is usually 50-70% for .app bundles in ZIP format
+            // So uncompressed size is roughly 140-200% of ZIP size. We'll use 150% as conservative estimate.
+            (zipFile.length() * 1.5).toLong()
+        } else {
+            // Default fallback size
+            300L * 1024 * 1024 // 300MB
+        }
+    }
+
+    /**
      * Creates a backup of existing installation if needed
      */
     suspend fun createBackupIfNeeded(paths: UpdatePaths, appName: String): BackupResult {

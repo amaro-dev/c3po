@@ -41,7 +41,7 @@ class UpdateInstaller(
         kotlinx.coroutines.delay(800)
         val version = extractVersionFromFilename(installFile.name)
         val readiness =
-            pathManager.validateInstallationReadiness(version, "C3PO", pathManager.estimateAppSizeFromDmg(installFile))
+            pathManager.validateInstallationReadiness(version, "C3PO", pathManager.estimateAppSizeFromZip(installFile))
 
         when (readiness) {
             is UpdatePathManager.InstallationReadiness.Failed ->
@@ -57,7 +57,7 @@ class UpdateInstaller(
         // Add delay to simulate preparation time
         kotlinx.coroutines.delay(500)
         return when (platformDetector.getCurrentPlatform()) {
-            Platform.MACOS -> installDmgOnMacOS(installFile, onProgress)
+            Platform.MACOS -> installZipOnMacOS(installFile, onProgress)
             Platform.WINDOWS -> InstallResult.failure("Windows installation not yet implemented")
             Platform.LINUX -> InstallResult.failure("Linux installation not yet implemented")
             Platform.UNKNOWN -> InstallResult.failure("Unsupported platform for auto-installation")
@@ -65,53 +65,52 @@ class UpdateInstaller(
     }
 
     private fun extractVersionFromFilename(filename: String): String {
-        // Extract version from filename like "c3po-2.1.0.dmg"
-        val versionPattern = Regex("""c3po-(.+)\.dmg""", RegexOption.IGNORE_CASE)
+        // Extract version from filename like "c3po-2.1.0-macos.zip"
+        val versionPattern = Regex("""c3po-(.+)-macos\.zip""", RegexOption.IGNORE_CASE)
         return versionPattern.find(filename)?.groupValues?.get(1) ?: "unknown"
     }
 
-    private suspend fun installDmgOnMacOS(
-        dmgFile: File,
+    private suspend fun installZipOnMacOS(
+        zipFile: File,
         onProgress: suspend (String) -> Unit
     ): InstallResult {
         var backupFile: File? = null
+        var stagingDir: File? = null
         return try {
-            onProgress("Mounting DMG file...")
-            kotlinx.coroutines.delay(1000) // Simulate mount time
-            val mountPoint = mountDmg(dmgFile)
+            onProgress("Extracting update archive...")
+            kotlinx.coroutines.delay(1000) // Simulate extraction time
+            stagingDir = extractZipToStaging(zipFile)
 
-            try {
-                onProgress("Finding application bundle...")
-                kotlinx.coroutines.delay(500) // Simulate search time
-                val appBundle = findAppBundle(mountPoint)
-                val targetLocation = getApplicationsDirectory()
+            onProgress("Finding application bundle...")
+            kotlinx.coroutines.delay(500) // Simulate search time
+            val appBundle = findAppBundle(stagingDir)
+            val targetLocation = getApplicationsDirectory()
 
-                onProgress("Copying application to Applications folder...")
-                kotlinx.coroutines.delay(2000) // Simulate copy time
-                backupFile = copyAppBundle(appBundle, targetLocation)
+            onProgress("Installing application to Applications folder...")
+            kotlinx.coroutines.delay(2000) // Simulate copy time
+            backupFile = copyAppBundle(appBundle, targetLocation)
 
-                onProgress("Installation completed successfully")
-                
-                // Clean up backup file after successful installation
-                if (backupFile != null && backupFile.exists()) {
-                    onProgress("Cleaning up backup files...")
-                    try {
-                        if (backupFile.deleteRecursively()) {
-                            kotlinx.coroutines.delay(200) // Brief delay to show cleanup message
-                        }
-                    } catch (e: Exception) {
-                        // Log but don't fail the installation for backup cleanup issues
-                        println("[UpdateInstaller] Warning: Failed to clean up backup file: ${backupFile.absolutePath}")
+            onProgress("Removing quarantine attributes...")
+            kotlinx.coroutines.delay(500) // Simulate quarantine removal
+            removeQuarantine(File(targetLocation, appBundle.name))
+
+            onProgress("Installation completed successfully")
+
+            // Clean up backup file after successful installation
+            if (backupFile != null && backupFile.exists()) {
+                onProgress("Cleaning up backup files...")
+                try {
+                    if (backupFile.deleteRecursively()) {
+                        kotlinx.coroutines.delay(200) // Brief delay to show cleanup message
                     }
+                } catch (e: Exception) {
+                    // Log but don't fail the installation for backup cleanup issues
+                    println("[UpdateInstaller] Warning: Failed to clean up backup file: ${backupFile.absolutePath}")
                 }
-                
-                kotlinx.coroutines.delay(500) // Allow user to see completion message
-                InstallResult.success(requiresRestart = true)
-            } finally {
-                onProgress("Unmounting DMG file...")
-                kotlinx.coroutines.delay(300) // Simulate unmount time
-                unmountDmg(mountPoint)
             }
+
+            kotlinx.coroutines.delay(500) // Allow user to see completion message
+            InstallResult.success(requiresRestart = true)
         } catch (e: SecurityException) {
             InstallResult.failure("Installation permission denied. Please run as administrator or check file permissions.")
         } catch (e: IOException) {
@@ -120,56 +119,80 @@ class UpdateInstaller(
             InstallResult.failure("Installation was cancelled")
         } catch (e: Exception) {
             InstallResult.failure("Installation error: ${e.message}")
+        } finally {
+            // Clean up staging directory
+            if (stagingDir != null && stagingDir.exists()) {
+                try {
+                    stagingDir.deleteRecursively()
+                } catch (e: Exception) {
+                    println("[UpdateInstaller] Warning: Failed to clean up staging directory: ${stagingDir.absolutePath}")
+                }
+            }
         }
     }
 
-    private suspend fun mountDmg(dmgFile: File): File = withContext(Dispatchers.IO) {
-        // Remove -quiet flag to get the mount point information we need
-        val mountCommand = arrayOf("hdiutil", "attach", dmgFile.absolutePath, "-nobrowse")
-        val process = ProcessBuilder(*mountCommand)
-            .redirectErrorStream(true)
-            .start()
+    private suspend fun extractZipToStaging(zipFile: File): File = withContext(Dispatchers.IO) {
+        val stagingDir = File(System.getProperty("java.io.tmpdir"), "c3po-update-staging-${System.currentTimeMillis()}")
+        stagingDir.mkdirs()
 
-        val exitCode = process.waitFor()
-        val output = process.inputStream.bufferedReader().readText()
+        // Use Java's built-in ZIP extraction
+        java.util.zip.ZipInputStream(zipFile.inputStream().buffered()).use { zipInput ->
+            var entry = zipInput.nextEntry
+            while (entry != null) {
+                val entryFile = File(stagingDir, entry.name)
 
-        if (exitCode != 0) {
-            // Always log mount failures to help with debugging
-            println("[UpdateInstaller] hdiutil mount failed with exit code $exitCode")
-            println("[UpdateInstaller] hdiutil output: $output")
-            throw IOException("Failed to mount DMG: $output")
+                // Security check: prevent zip slip vulnerability
+                if (!entryFile.canonicalPath.startsWith(stagingDir.canonicalPath + File.separator) &&
+                    !entryFile.canonicalPath.equals(stagingDir.canonicalPath)
+                ) {
+                    throw SecurityException("Zip entry is outside target directory: ${entry.name}")
+                }
+
+                if (entry.isDirectory) {
+                    entryFile.mkdirs()
+                } else {
+                    entryFile.parentFile?.mkdirs()
+                    entryFile.outputStream().use { output ->
+                        zipInput.copyTo(output)
+                    }
+
+                    // Preserve executable permissions for macOS app bundles
+                    if (entry.name.contains("MacOS/") || entry.name.endsWith(".sh")) {
+                        entryFile.setExecutable(true, false)
+                    }
+                }
+                entry = zipInput.nextEntry
+            }
         }
 
-        // Always log the raw hdiutil output for debugging
-        println("[UpdateInstaller] hdiutil output: $output")
+        return@withContext stagingDir
+    }
 
-        // Get all potential mount points from this DMG mount operation
-        val mountPoints = output.lines()
-            .filter { line -> line.contains("/Volumes/") }
-            .mapNotNull { line ->
-                println("[UpdateInstaller] Parsing line: $line")
-                // hdiutil output format: /dev/disk2s1 \t Apple_HFS \t /Volumes/AppName
-                val parts = line.split(Regex("\\s+"))
-                if (parts.size >= 3) {
-                    // Find the index where /Volumes/ starts and join the rest
-                    val volumesIndex = parts.indexOfFirst { it.startsWith("/Volumes/") }
-                    if (volumesIndex >= 0) {
-                        val path = parts.drop(volumesIndex).joinToString(" ")
-                        println("[UpdateInstaller] Detected path: $path")
-                        if (path.startsWith("/Volumes/")) File(path) else null
-                    } else null
-                } else null
+    private suspend fun removeQuarantine(appBundle: File): Unit = withContext(Dispatchers.IO) {
+        try {
+            val removeQuarantineCommand = arrayOf(
+                "/usr/bin/xattr",
+                "-dr",
+                "com.apple.quarantine",
+                appBundle.absolutePath
+            )
+            val process = ProcessBuilder(*removeQuarantineCommand)
+                .redirectErrorStream(true)
+                .start()
+
+            val exitCode = process.waitFor()
+            val output = process.inputStream.bufferedReader().readText()
+
+            if (exitCode != 0) {
+                println("[UpdateInstaller] Warning: Failed to remove quarantine ($exitCode): $output")
+                // Don't throw exception - quarantine removal failure shouldn't stop installation
+            } else {
+                println("[UpdateInstaller] Successfully removed quarantine from: ${appBundle.absolutePath}")
             }
-
-        println("[UpdateInstaller] All detected mount points: ${mountPoints.map { it.absolutePath }}")
-
-        // Take the first valid mount point that exists
-        val mountPoint = mountPoints.firstOrNull { it.exists() }
-            ?: throw IOException("Could not find a valid mount point from hdiutil output. Detected paths: ${mountPoints.map { it.absolutePath }}, Output: $output")
-
-        println("[UpdateInstaller] Selected mount point: ${mountPoint.absolutePath}")
-
-        mountPoint
+        } catch (e: Exception) {
+            println("[UpdateInstaller] Warning: Exception during quarantine removal: ${e.message}")
+            // Don't throw - this is not critical for functionality
+        }
     }
 
     private fun findAppBundle(mountPoint: File): File {

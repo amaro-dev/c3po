@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -21,6 +22,10 @@ class UpdateChecker(
         .build()
 
     private val json = Json { ignoreUnknownKeys = true }
+    private val minisignVerifier = MinisignVerifier()
+
+    // Embedded public key for signature verification
+    private val MINISIGN_PUBLIC_KEY = "RWTi5nN2R+gQ3Qdn1La4MCFLSmgglSU3gEuJuIwmNdUslLisUeInhJ1y"
 
     suspend fun checkForUpdates(currentVersion: String, updateUrl: String): UpdateInfo? {
         if (!isValidUrl(updateUrl)) {
@@ -53,6 +58,67 @@ class UpdateChecker(
         } catch (e: Exception) {
             throw IOException("Network error while checking for updates", e)
         }
+    }
+
+    /**
+     * Downloads and verifies a ZIP update file with its signature.
+     */
+    suspend fun downloadAndVerifyUpdate(updateInfo: UpdateInfo): File {
+        val tempDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+        tempDir.mkdirs()
+
+        val zipFile = File(tempDir, "c3po-${updateInfo.version}-macos.zip")
+        val sigFile = File(tempDir, "c3po-${updateInfo.version}-macos.zip.minisig")
+
+        try {
+            // Download ZIP file
+            downloadFile(updateInfo.downloadUrl, zipFile)
+
+            // Download signature file
+            val sigUrl = updateInfo.downloadUrl.replace(".zip", ".zip.minisig")
+            downloadFile(sigUrl, sigFile)
+
+            // Verify signature
+            if (!minisignVerifier.verifyFile(zipFile, sigFile, MINISIGN_PUBLIC_KEY)) {
+                throw SecurityException("Signature verification failed for update file")
+            }
+
+            // Verify SHA-256 checksum if available
+            val checksumValue = updateInfo.checksum
+            if (!checksumValue.isNullOrBlank()) {
+                if (!verifyFileChecksum(zipFile, checksumValue)) {
+                    throw SecurityException("Checksum verification failed for update file")
+                }
+            }
+
+            return zipFile
+        } catch (e: Exception) {
+            // Cleanup on failure
+            zipFile.delete()
+            sigFile.delete()
+            throw e
+        }
+    }
+
+    private suspend fun downloadFile(url: String, targetFile: File) {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .timeout(Duration.ofMinutes(10)) // Longer timeout for file downloads
+            .GET()
+            .build()
+
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(targetFile.toPath()))
+
+        if (response.statusCode() != 200) {
+            throw IOException("Failed to download file from $url: HTTP ${response.statusCode()}")
+        }
+    }
+
+    private fun verifyFileChecksum(file: File, expectedChecksum: String): Boolean {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(file.readBytes())
+        val actualChecksum = hashBytes.joinToString("") { "%02x".format(it) }
+        return actualChecksum.equals(expectedChecksum, ignoreCase = true)
     }
 
     fun validateVersion(newVersion: String, currentVersion: String): Boolean {
@@ -109,18 +175,21 @@ class UpdateChecker(
                 throw IllegalArgumentException("No assets found in release")
             }
 
-            val dmgAsset = assets.find { asset ->
+            // Look for ZIP file instead of DMG for auto-updates
+            val zipAsset = assets.find { asset ->
                 val assetObj = asset.jsonObject
                 val name = assetObj["name"]?.jsonPrimitive?.content ?: ""
-                name.endsWith(".dmg", ignoreCase = true)
-            }?.jsonObject ?: throw IllegalArgumentException("No DMG asset found in release")
+                name.endsWith("-macos.zip", ignoreCase = true)
+            }?.jsonObject ?: throw IllegalArgumentException("No macOS ZIP asset found in release")
 
-            val downloadUrl = dmgAsset["browser_download_url"]?.jsonPrimitive?.content
-                ?: throw IllegalArgumentException("Missing download URL in DMG asset")
+            val downloadUrl = zipAsset["browser_download_url"]?.jsonPrimitive?.content
+                ?: throw IllegalArgumentException("Missing download URL in ZIP asset")
 
-            dmgAsset["size"]?.jsonPrimitive?.content?.toLongOrNull() ?: 0L
+            zipAsset["size"]?.jsonPrimitive?.content?.toLongOrNull() ?: 0L
 
-            val checksum = extractChecksumFromReleaseNotes(releaseNotes)
+            // Try to get checksum from release metadata
+            val checksum = release["zip_checksum"]?.jsonPrimitive?.content
+                ?: extractChecksumFromReleaseNotes(releaseNotes)
 
             if (!validator.compareVersions(tagName, currentVersion)) {
                 return null
