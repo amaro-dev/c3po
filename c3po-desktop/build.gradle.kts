@@ -118,6 +118,62 @@ tasks {
         description = "Creates a ZIP distribution for auto-updates (preserves security attributes)"
         
         dependsOn("createDistributable")
+
+        // Re-sign app bundle with correct Runtime Version before creating ZIP
+        doFirst {
+            val appDir = layout.buildDirectory.dir("compose/binaries/main/app/c3po.app").get().asFile
+            if (appDir.exists()) {
+                println("Re-signing app bundle with Runtime Version 11.1.0 for ZIP distribution...")
+
+                try {
+                    val reSignCommand = listOf(
+                        "/usr/bin/codesign",
+                        "--force",
+                        "--sign", "-",
+                        "--preserve-metadata=identifier,entitlements,flags",
+                        "--options", "runtime",
+                        "--runtime-version", "11.1.0",
+                        appDir.absolutePath
+                    )
+
+                    val process = ProcessBuilder(reSignCommand)
+                        .redirectErrorStream(true)
+                        .start()
+
+                    val exitCode = process.waitFor()
+                    val output = process.inputStream.bufferedReader().readText()
+
+                    if (exitCode != 0) {
+                        println("Warning: Failed to re-sign with specific runtime version ($exitCode): $output")
+
+                        // Fallback: preserve original runtime
+                        val fallbackCommand = listOf(
+                            "/usr/bin/codesign",
+                            "--force",
+                            "--sign", "-",
+                            "--preserve-metadata=identifier,entitlements,flags,runtime",
+                            appDir.absolutePath
+                        )
+
+                        val fallbackProcess = ProcessBuilder(fallbackCommand)
+                            .redirectErrorStream(true)
+                            .start()
+
+                        val fallbackExitCode = fallbackProcess.waitFor()
+                        if (fallbackExitCode == 0) {
+                            println("Successfully re-signed with fallback method (preserving original runtime)")
+                        } else {
+                            println("Warning: Fallback re-signing also failed")
+                        }
+                    } else {
+                        println("Successfully re-signed app bundle with Runtime Version 11.1.0")
+                    }
+
+                } catch (e: Exception) {
+                    println("Warning: Exception during app bundle re-signing: ${e.message}")
+                }
+            }
+        }
         
         from(layout.buildDirectory.dir("compose/binaries/main/app"))
         archiveFileName.set("c3po-${project.version}-macos.zip")

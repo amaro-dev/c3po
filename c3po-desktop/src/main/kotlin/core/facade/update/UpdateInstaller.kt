@@ -185,40 +185,44 @@ class UpdateInstaller(
 
     private suspend fun fixAppBundlePermissions(appBundle: File): Unit = withContext(Dispatchers.IO) {
         try {
-            // Fix permissions using chmod - more reliable than Java's setXXX methods
-            val chmodCommand = arrayOf(
-                "/bin/chmod",
-                "-R",
-                "755",
-                appBundle.absolutePath
-            )
-            val process = ProcessBuilder(*chmodCommand)
-                .redirectErrorStream(true)
-                .start()
+            println("[UpdateInstaller] Fixing app bundle permissions using Java File API: ${appBundle.absolutePath}")
 
-            val exitCode = process.waitFor()
-            if (exitCode == 0) {
-                println("[UpdateInstaller] Fixed permissions for app bundle: ${appBundle.absolutePath}")
+            // Use Java's native file permissions instead of external chmod commands
+            // This avoids the posix_spawn issue entirely
 
-                // Make sure the main executable is definitely executable
-                val executablePath = File(appBundle, "Contents/MacOS")
-                if (executablePath.exists()) {
-                    executablePath.listFiles()?.forEach { executable ->
-                        if (executable.isFile) {
-                            val makeExecCommand = arrayOf(
-                                "/bin/chmod",
-                                "+x",
-                                executable.absolutePath
-                            )
-                            ProcessBuilder(*makeExecCommand).start().waitFor()
+            // Set permissions on the app bundle itself
+            appBundle.setReadable(true, false)  // readable by all
+            appBundle.setWritable(true, true)   // writable by owner only
+            appBundle.setExecutable(true, false) // executable by all
+
+            // Recursively fix permissions for all files and directories
+            appBundle.walkTopDown().forEach { file ->
+                try {
+                    if (file.isDirectory) {
+                        // Directories need to be executable to be entered
+                        file.setReadable(true, false)
+                        file.setWritable(true, true)
+                        file.setExecutable(true, false)
+                    } else {
+                        // Files should be readable, owner-writable
+                        file.setReadable(true, false)
+                        file.setWritable(true, true)
+
+                        // Make executable if it's in MacOS/ directory or has .sh extension
+                        if (file.parent?.endsWith("MacOS") == true || file.name.endsWith(".sh")) {
+                            file.setExecutable(true, false)
+                            println("[UpdateInstaller] Made executable: ${file.absolutePath}")
                         }
                     }
+                } catch (e: Exception) {
+                    println("[UpdateInstaller] Warning: Failed to set permissions for ${file.absolutePath}: ${e.message}")
                 }
-            } else {
-                println("[UpdateInstaller] Warning: chmod failed with exit code $exitCode")
             }
+
+            println("[UpdateInstaller] Successfully fixed app bundle permissions using Java API")
         } catch (e: Exception) {
-            println("[UpdateInstaller] Warning: Exception while fixing permissions: ${e.message}")
+            println("[UpdateInstaller] Warning: Exception while fixing permissions with Java API: ${e.message}")
+            // Don't throw - this would break the entire update process
         }
     }
 
@@ -333,7 +337,10 @@ class UpdateInstaller(
             if (backupApp != null && backupApp.exists()) {
                 backupApp.renameTo(targetApp) // Attempt to restore backup
             }
-            throw IOException("Failed to copy app bundle from ${sourceApp.absolutePath} to ${targetApp.absolutePath}: ${e.message}", e)
+            throw IOException(
+                "Failed to copy app bundle from ${sourceApp.absolutePath} to ${targetApp.absolutePath}: ${e.message}",
+                e
+            )
         }
 
         // Verify the copy was successful
@@ -344,7 +351,7 @@ class UpdateInstaller(
             }
             throw IOException("App bundle was not copied successfully to: ${targetApp.absolutePath}")
         }
-        
+
         // Verify it's a valid app bundle (contains at least the expected structure)
         if (!targetApp.isDirectory) {
             // If verification failed and we made a backup, try to restore it
@@ -355,21 +362,17 @@ class UpdateInstaller(
             throw IOException("Copied app bundle is not a directory: ${targetApp.absolutePath}")
         }
 
+        // CRITICAL FIX: Restore executable permissions after copyRecursively
+        // copyRecursively doesn't preserve executable permissions, so fix them
+        try {
+            fixAppBundlePermissions(targetApp)
+            println("[UpdateInstaller] Fixed permissions for copied app bundle: ${targetApp.absolutePath}")
+        } catch (e: Exception) {
+            println("[UpdateInstaller] Warning: Failed to fix permissions after copy: ${e.message}")
+        }
+
         // Return the backup file so it can be cleaned up later
         return@withContext backupApp
-    }
-
-    private suspend fun unmountDmg(mountPoint: File): Unit = withContext(Dispatchers.IO) {
-        try {
-            val unmountCommand = arrayOf("hdiutil", "detach", mountPoint.absolutePath, "-quiet")
-            val process = ProcessBuilder(*unmountCommand)
-                .redirectErrorStream(true)
-                .start()
-
-            process.waitFor()
-        } catch (e: Exception) {
-            // Log but don't throw - this is cleanup
-        }
     }
 
     enum class Platform {
