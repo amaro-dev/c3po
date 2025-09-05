@@ -32,37 +32,79 @@ jobs:
       - name: Run tests (desktop)
         run: ../gradlew :c3po-desktop:test
 
-      - name: Build .dmg
-        run: ../gradlew :c3po-desktop:packageDmg -Pversion=${{ steps.version.outputs.version }}
+      - name: Build .dmg and .zip
+        run: |
+          ../gradlew :c3po-desktop:packageDmg -Pversion=${{ steps.version.outputs.version }}
+          ../gradlew :c3po-desktop:packageZipDistribution -Pversion=${{ steps.version.outputs.version }}
 
-      - name: List generated DMG files
-        run: ls -lh build/compose/binaries/main/dmg/
+      - name: List generated distribution files
+        run: |
+          ls -lh build/compose/binaries/main/dmg/
+          ls -lh build/compose/binaries/main/
 
-      - name: Calculate SHA-256 checksum
+      - name: Install minisign
+        run: brew install minisign
+
+      - name: Sign ZIP with minisign
+        env:
+          MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
+        run: |
+          echo "$MINISIGN_SECRET_KEY" > minisign.key
+          minisign -s minisign.key -Sm build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip
+          rm minisign.key
+
+      - name: Calculate SHA-256 checksums
         id: checksum
         run: |
-          checksum=$(shasum -a 256 build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg | cut -d ' ' -f 1)
-          echo "checksum=$checksum" >> $GITHUB_OUTPUT
+          dmg_checksum=$(shasum -a 256 build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg | cut -d ' ' -f 1)
+          zip_checksum=$(shasum -a 256 build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip | cut -d ' ' -f 1)
+          echo "dmg_checksum=$dmg_checksum" >> $GITHUB_OUTPUT
+          echo "zip_checksum=$zip_checksum" >> $GITHUB_OUTPUT
+          
+          # Create checksum files for release
+          echo "$zip_checksum  c3po-${{ steps.version.outputs.version }}-macos.zip" > c3po-${{ steps.version.outputs.version }}-macos.zip.sha256
 
       - name: Generate GitHub-style JSON metadata
         run: |
-          size=$(stat -f%z build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg)
+          dmg_size=$(stat -f%z build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg)
+          zip_size=$(stat -f%z build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip)
+          minisig_size=$(stat -f%z build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip.minisig)
+          sha256_size=$(stat -f%z c3po-${{ steps.version.outputs.version }}-macos.zip.sha256)
           published_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           cat <<EOF > release.json
           {
             "tag_name": "v${{ steps.version.outputs.version }}",
             "name": "C3PO ${{ steps.version.outputs.version }}",
-            "body": "Auto-generated release via GitHub Actions",
+            "body": "Auto-generated release via GitHub Actions. ZIP file is for auto-updates, DMG for manual installs.",
             "published_at": "$published_at",
             "html_url": "https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }}",
-            "checksum": "${{ steps.checksum.outputs.checksum }}",
+            "dmg_checksum": "${{ steps.checksum.outputs.dmg_checksum }}",
+            "zip_checksum": "${{ steps.checksum.outputs.zip_checksum }}",
             "assets": [
               {
                 "name": "c3po-${{ steps.version.outputs.version }}.dmg",
                 "content_type": "application/octet-stream",
-                "size": $size,
+                "size": $dmg_size,
                 "browser_download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/c3po-${{ steps.version.outputs.version }}.dmg"
+              },
+              {
+                "name": "c3po-${{ steps.version.outputs.version }}-macos.zip",
+                "content_type": "application/zip",
+                "size": $zip_size,
+                "browser_download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/c3po-${{ steps.version.outputs.version }}-macos.zip"
+              },
+              {
+                "name": "c3po-${{ steps.version.outputs.version }}-macos.zip.minisig",
+                "content_type": "application/octet-stream", 
+                "size": $minisig_size,
+                "browser_download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/c3po-${{ steps.version.outputs.version }}-macos.zip.minisig"
+              },
+              {
+                "name": "c3po-${{ steps.version.outputs.version }}-macos.zip.sha256",
+                "content_type": "text/plain",
+                "size": $sha256_size,
+                "browser_download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/c3po-${{ steps.version.outputs.version }}-macos.zip.sha256"
               }
             ]
           }
@@ -73,6 +115,9 @@ jobs:
         with:
           files: |
             c3po-desktop/build/compose/binaries/main/dmg/c3po-${{ steps.version.outputs.version }}.dmg
+            c3po-desktop/build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip
+            c3po-desktop/build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip.minisig
+            c3po-desktop/c3po-${{ steps.version.outputs.version }}-macos.zip.sha256
             release.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

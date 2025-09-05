@@ -112,6 +112,22 @@ tasks {
         }
     }
 
+    // Custom task to create ZIP distribution for auto-updates
+    register<Zip>("packageZipDistribution") {
+        group = "distribution"
+        description = "Creates a ZIP distribution for auto-updates (preserves security attributes)"
+        
+        dependsOn("createDistributable")
+        
+        from(layout.buildDirectory.dir("compose/binaries/main/app"))
+        archiveFileName.set("c3po-${project.version}-macos.zip")
+        destinationDirectory.set(layout.buildDirectory.dir("compose/binaries/main"))
+        
+        // Preserve file permissions and symbolic links
+        includeEmptyDirs = true
+        isPreserveFileTimestamps = true
+    }
+
 // Apply verification tasks from separate file
     apply(from = "verification.gradle.kts")
 
