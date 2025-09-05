@@ -50,7 +50,7 @@ jobs:
           MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
         run: |
           echo "$MINISIGN_SECRET_KEY" > minisign.key
-          minisign -s minisign.key -Sm build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip
+          echo "" | minisign -s minisign.key -Sm build/compose/binaries/main/c3po-${{ steps.version.outputs.version }}-macos.zip
           rm minisign.key
 
       - name: Calculate SHA-256 checksums
