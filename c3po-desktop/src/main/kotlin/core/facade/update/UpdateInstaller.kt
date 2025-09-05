@@ -156,74 +156,16 @@ class UpdateInstaller(
                         zipInput.copyTo(output)
                     }
 
-                    // Preserve executable permissions for macOS app bundles
-                    if (entry.name.contains("MacOS/") || entry.name.endsWith(".sh")) {
-                        entryFile.setExecutable(true, false)
-                    }
-
-                    // For all files, ensure proper permissions
-                    if (entry.name.contains(".app/")) {
-                        // Files inside app bundle should be readable
-                        entryFile.setReadable(true, false)
-                        entryFile.setWritable(true, true) // Owner writable only
-                    }
                 }
                 entry = zipInput.nextEntry
             }
         }
 
-        // After extraction, find the .app bundle and try to fix its permissions comprehensively
-        val appBundle = findAppBundle(stagingDir)
-        try {
-            fixAppBundlePermissions(appBundle)
-        } catch (e: Exception) {
-            println("[UpdateInstaller] Warning: Failed to fix app bundle permissions: ${e.message}")
-        }
+        // After extraction, find the .app bundle
+        // NOTE: Permissions are preserved from ZIP - DO NOT modify them as it breaks macOS security state
+        findAppBundle(stagingDir)
 
         return@withContext stagingDir
-    }
-
-    private suspend fun fixAppBundlePermissions(appBundle: File): Unit = withContext(Dispatchers.IO) {
-        try {
-            println("[UpdateInstaller] Fixing app bundle permissions using Java File API: ${appBundle.absolutePath}")
-
-            // Use Java's native file permissions instead of external chmod commands
-            // This avoids the posix_spawn issue entirely
-
-            // Set permissions on the app bundle itself
-            appBundle.setReadable(true, false)  // readable by all
-            appBundle.setWritable(true, true)   // writable by owner only
-            appBundle.setExecutable(true, false) // executable by all
-
-            // Recursively fix permissions for all files and directories
-            appBundle.walkTopDown().forEach { file ->
-                try {
-                    if (file.isDirectory) {
-                        // Directories need to be executable to be entered
-                        file.setReadable(true, false)
-                        file.setWritable(true, true)
-                        file.setExecutable(true, false)
-                    } else {
-                        // Files should be readable, owner-writable
-                        file.setReadable(true, false)
-                        file.setWritable(true, true)
-
-                        // Make executable if it's in MacOS/ directory or has .sh extension
-                        if (file.parent?.endsWith("MacOS") == true || file.name.endsWith(".sh")) {
-                            file.setExecutable(true, false)
-                            println("[UpdateInstaller] Made executable: ${file.absolutePath}")
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("[UpdateInstaller] Warning: Failed to set permissions for ${file.absolutePath}: ${e.message}")
-                }
-            }
-
-            println("[UpdateInstaller] Successfully fixed app bundle permissions using Java API")
-        } catch (e: Exception) {
-            println("[UpdateInstaller] Warning: Exception while fixing permissions with Java API: ${e.message}")
-            // Don't throw - this would break the entire update process
-        }
     }
 
     private suspend fun removeQuarantine(appBundle: File): Unit = withContext(Dispatchers.IO) {
@@ -362,14 +304,8 @@ class UpdateInstaller(
             throw IOException("Copied app bundle is not a directory: ${targetApp.absolutePath}")
         }
 
-        // CRITICAL FIX: Restore executable permissions after copyRecursively
-        // copyRecursively doesn't preserve executable permissions, so fix them
-        try {
-            fixAppBundlePermissions(targetApp)
-            println("[UpdateInstaller] Fixed permissions for copied app bundle: ${targetApp.absolutePath}")
-        } catch (e: Exception) {
-            println("[UpdateInstaller] Warning: Failed to fix permissions after copy: ${e.message}")
-        }
+        // NOTE: copyRecursively preserves permissions from staging (which came from ZIP)
+        // DO NOT modify permissions as it breaks macOS security state for process spawning
 
         // Return the backup file so it can be cleaned up later
         return@withContext backupApp

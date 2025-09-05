@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -58,67 +57,6 @@ class UpdateChecker(
         } catch (e: Exception) {
             throw IOException("Network error while checking for updates", e)
         }
-    }
-
-    /**
-     * Downloads and verifies a ZIP update file with its signature.
-     */
-    suspend fun downloadAndVerifyUpdate(updateInfo: UpdateInfo): File {
-        val tempDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
-        tempDir.mkdirs()
-
-        val zipFile = File(tempDir, "c3po-${updateInfo.version}-macos.zip")
-        val sigFile = File(tempDir, "c3po-${updateInfo.version}-macos.zip.minisig")
-
-        try {
-            // Download ZIP file
-            downloadFile(updateInfo.downloadUrl, zipFile)
-
-            // Download signature file
-            val sigUrl = updateInfo.downloadUrl.replace(".zip", ".zip.minisig")
-            downloadFile(sigUrl, sigFile)
-
-            // Verify signature
-            if (!minisignVerifier.verifyFile(zipFile, sigFile, MINISIGN_PUBLIC_KEY)) {
-                throw SecurityException("Signature verification failed for update file")
-            }
-
-            // Verify SHA-256 checksum if available
-            val checksumValue = updateInfo.checksum
-            if (!checksumValue.isNullOrBlank()) {
-                if (!verifyFileChecksum(zipFile, checksumValue)) {
-                    throw SecurityException("Checksum verification failed for update file")
-                }
-            }
-
-            return zipFile
-        } catch (e: Exception) {
-            // Cleanup on failure
-            zipFile.delete()
-            sigFile.delete()
-            throw e
-        }
-    }
-
-    private suspend fun downloadFile(url: String, targetFile: File) {
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .timeout(Duration.ofMinutes(10)) // Longer timeout for file downloads
-            .GET()
-            .build()
-
-        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(targetFile.toPath()))
-
-        if (response.statusCode() != 200) {
-            throw IOException("Failed to download file from $url: HTTP ${response.statusCode()}")
-        }
-    }
-
-    private fun verifyFileChecksum(file: File, expectedChecksum: String): Boolean {
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
-        val hashBytes = digest.digest(file.readBytes())
-        val actualChecksum = hashBytes.joinToString("") { "%02x".format(it) }
-        return actualChecksum.equals(expectedChecksum, ignoreCase = true)
     }
 
     fun validateVersion(newVersion: String, currentVersion: String): Boolean {

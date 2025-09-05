@@ -13,7 +13,10 @@ import ui.AndroidGreenTheme
 import ui.definitions.Dimens
 import ui.screen.NewLayout
 
-fun main() =
+fun main() {
+    // Fix for macOS hardened runtime posix_spawn failures
+    System.setProperty("jdk.lang.Process.launchMechanism", "FORK")
+    
     application {
         startKoin {
             modules(AppModule, FacadeModule)
@@ -50,4 +53,5 @@ fun main() =
             }
         }
     }
+}
 
