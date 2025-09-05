@@ -25,7 +25,7 @@ class UpdateChecker(
     private val minisignVerifier = MinisignVerifier()
 
     // Embedded public key for signature verification
-    private val MINISIGN_PUBLIC_KEY = "RWTi5nN2R+gQ3Qdn1La4MCFLSmgglSU3gEuJuIwmNdUslLisUeInhJ1y"
+    private val MINISIGN_PUBLIC_KEY = "RWQquC68AVO5kvHIJ0/4AeKwvOb/FXQuaPH3wYmVRaRuegwpniaCxEJG"
 
     suspend fun checkForUpdates(currentVersion: String, updateUrl: String): UpdateInfo? {
         if (!isValidUrl(updateUrl)) {
