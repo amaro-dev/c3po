@@ -1,5 +1,6 @@
 package core.facade.update
 
+import core.facade.update.UpdateUtils.getUpdateFileName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -13,7 +14,7 @@ class UpdatePathManager {
 
     data class UpdatePaths(
         val downloadDirectory: File,
-        val dmgFile: File,
+        val updateFile: File,
         val targetInstallDirectory: File,
         val backupDirectory: File? = null
     ) {
@@ -39,7 +40,7 @@ class UpdatePathManager {
             return """
             UpdatePaths Debug Info:
             - Download Directory: ${downloadDirectory.absolutePath} (exists: ${downloadDirectory.exists()}, writable: ${downloadDirectory.canWrite()})
-            - DMG File: ${dmgFile.absolutePath} (exists: ${dmgFile.exists()}, size: ${if (dmgFile.exists()) "${dmgFile.length() / 1024 / 1024}MB" else "N/A"})
+            - DMG File: ${updateFile.absolutePath} (exists: ${updateFile.exists()}, size: ${if (updateFile.exists()) "${updateFile.length() / 1024 / 1024}MB" else "N/A"})
             - Target Install: ${targetInstallDirectory.absolutePath} (exists: ${targetInstallDirectory.exists()}, writable: ${targetInstallDirectory.canWrite()})
             - Backup Directory: ${backupDirectory?.absolutePath ?: "None"}
             """.trimIndent()
@@ -107,7 +108,7 @@ class UpdatePathManager {
         }
 
         // Construct DMG file path with validation
-        val dmgFile = File(downloadDir, "${appName.lowercase()}-${version}.dmg")
+        val updateFile = File(downloadDir, getUpdateFileName(version))
 
         // Target installation directory (macOS Applications)
         val targetInstallDir = File("/Applications")
@@ -117,19 +118,19 @@ class UpdatePathManager {
             targetInstallDir.canWrite()
         }
 
-        return UpdatePaths(downloadDir, dmgFile, targetInstallDir, backupDir)
+        return UpdatePaths(downloadDir, updateFile, targetInstallDir, backupDir)
     }
 
     /**
      * Comprehensive disk space validation that checks multiple locations and methods
      */
     suspend fun validateDiskSpace(paths: UpdatePaths, estimatedAppSizeBytes: Long? = null): SpaceCheckResult {
-        val dmgSize = if (paths.dmgFile.exists()) paths.dmgFile.length() else 0L
+        val fileSize = if (paths.updateFile.exists()) paths.updateFile.length() else 0L
 
         // Calculate required space more intelligently
         val requiredSpace = when {
             estimatedAppSizeBytes != null -> (estimatedAppSizeBytes * 1.2).toLong() // 20% buffer
-            dmgSize > 0 -> (dmgSize * 0.8).toLong() // DMGs are typically compressed, so app is ~80% of DMG size
+            fileSize > 0 -> (fileSize * 0.8).toLong()
             else -> 300L * 1024 * 1024 // Default 300MB fallback
         }
 
@@ -141,7 +142,7 @@ class UpdatePathManager {
         }
 
         // If install location check failed, try temp directory (for temporary operations)
-        val tempRequiredSpace = if (dmgSize > 0) dmgSize + (50 * 1024 * 1024) else requiredSpace // DMG + 50MB buffer
+        val tempRequiredSpace = if (fileSize > 0) fileSize + (50 * 1024 * 1024) else requiredSpace
         val tempSpaceResult = checkSpaceAtLocation(paths.downloadDirectory, tempRequiredSpace, "Download directory")
 
         // Return most specific failure information
@@ -331,20 +332,6 @@ class UpdatePathManager {
     }
 
     /**
-     * Estimates uncompressed app size from DMG file
-     */
-    fun estimateAppSizeFromDmg(dmgFile: File): Long {
-        return if (dmgFile.exists()) {
-            // DMGs are typically compressed. For .app bundles, compression ratio is usually 60-80%
-            // So uncompressed size is roughly 70-130% of DMG size. We'll use 80% as conservative estimate.
-            (dmgFile.length() * 0.8).toLong()
-        } else {
-            // Default fallback size
-            300L * 1024 * 1024 // 300MB
-        }
-    }
-
-    /**
      * Estimates uncompressed app size from ZIP file
      */
     fun estimateAppSizeFromZip(zipFile: File): Long {
@@ -357,50 +344,6 @@ class UpdatePathManager {
             // Default fallback size
             300L * 1024 * 1024 // 300MB
         }
-    }
-
-    /**
-     * Creates a backup of existing installation if needed
-     */
-    suspend fun createBackupIfNeeded(paths: UpdatePaths, appName: String): BackupResult {
-        val existingApp = File(paths.targetInstallDirectory, "$appName.app")
-
-        if (!existingApp.exists()) {
-            return BackupResult.NotNeeded
-        }
-
-        val backupDir = paths.backupDirectory ?: return BackupResult.SkippedNoBackupDir
-
-        return withContext(Dispatchers.IO) {
-            try {
-                backupDir.mkdirs()
-                val backupName = "$appName-backup-${System.currentTimeMillis()}.app"
-                val backupLocation = File(backupDir, backupName)
-
-                val moveCommand = arrayOf("mv", existingApp.absolutePath, backupLocation.absolutePath)
-                val process = ProcessBuilder(*moveCommand)
-                    .redirectErrorStream(true)
-                    .start()
-
-                val exitCode = process.waitFor()
-                val output = process.inputStream.bufferedReader().readText()
-
-                if (exitCode == 0 && backupLocation.exists()) {
-                    BackupResult.Success(backupLocation)
-                } else {
-                    BackupResult.Failed("Backup command failed: exit code $exitCode, output: $output")
-                }
-            } catch (e: Exception) {
-                BackupResult.Failed("Backup failed: ${e.message}")
-            }
-        }
-    }
-
-    sealed class BackupResult {
-        object NotNeeded : BackupResult()
-        object SkippedNoBackupDir : BackupResult()
-        data class Success(val backupLocation: File) : BackupResult()
-        data class Failed(val reason: String) : BackupResult()
     }
 
     /**

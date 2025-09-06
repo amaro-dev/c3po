@@ -3,6 +3,7 @@ package core.middleware
 import core.facade.update.UpdateChecker
 import core.facade.update.UpdateDownloader
 import core.facade.update.UpdateInstaller
+import core.facade.update.UpdateUtils
 import core.model.Action
 import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
@@ -140,22 +141,22 @@ class UpdateMiddleware(
                     // Handle download completion
                     if (progress.progress >= 100) {
                         val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
-                        downloadedFile = File(downloadDir, "c3po-${action.updateInfo.version}.dmg")
+                        downloadedFile = File(downloadDir, UpdateUtils.getUpdateFileName(action.updateInfo.version))
 
                         // Validate downloaded file
                         val validationResult = updateDownloader.validateDownloadedFile(
-                            downloadedFile!!,
+                            downloadedFile,
                             action.updateInfo.checksum
                         )
 
                         when (validationResult) {
                             is UpdateDownloader.ValidationResult.Success -> {
-                                processor.reduce(Action.UpdateDownloadComplete(downloadedFile!!.absolutePath))
+                                processor.reduce(Action.UpdateDownloadComplete(downloadedFile.absolutePath))
                             }
 
                             is UpdateDownloader.ValidationResult.Failed -> {
                                 processor.reduce(Action.UpdateError(validationResult.message))
-                                cleanupDownloadedFile(downloadedFile!!)
+                                cleanupDownloadedFile(downloadedFile)
                                 return@collect
                             }
                         }

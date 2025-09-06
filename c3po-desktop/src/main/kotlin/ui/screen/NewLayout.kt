@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import core.App
+import core.facade.update.UpdateUtils
 import core.model.Action
 import core.model.CommandStatus
 import dev.amaro.sonic.IAction
@@ -166,7 +167,8 @@ fun NewLayout(app: App) {
             onInstallNow = {
                 // Get the downloaded file path from temp directory
                 val downloadDir = java.io.File(System.getProperty("java.io.tmpdir"), "c3po-updates")
-                val downloadedFile = java.io.File(downloadDir, "c3po-${state.updateInfo!!.version}.dmg")
+                val downloadedFile =
+                    java.io.File(downloadDir, UpdateUtils.getUpdateFileName(state.updateInfo!!.version))
                 if (downloadedFile.exists()) {
                     onAction(Action.InstallUpdate(downloadedFile.absolutePath))
                 } else {

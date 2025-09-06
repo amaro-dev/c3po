@@ -18,6 +18,14 @@ class UpdateDownloader(
     private val fileManager: UpdateFileManager,
     private val validator: UpdateValidator
 ) {
+    companion object {
+        private const val USER_AGENT_KEY = "User-Agent"
+        private const val USER_AGENT_VALUE = "C3PO-UpdateDownloader/1.0"
+        private const val MINISIGN_PUBLIC_KEY = "RWQiuKyxbd0jiAVaNZy1186PTYOFgeU5hGi4BIWaEaI8Shyek3kYHsDr"
+    }
+
+    private val minisignVerifier = MinisignVerifier()
+    
     private val httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(30))
         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -29,12 +37,12 @@ class UpdateDownloader(
         }
 
         val downloadDir = fileManager.createDownloadDirectory()
-        val downloadFile = File(downloadDir, "c3po-${updateInfo.version}.dmg")
+        val downloadFile = File(downloadDir, UpdateUtils.getUpdateFileName(updateInfo.version))
 
         val request = HttpRequest.newBuilder()
             .uri(URI.create(updateInfo.downloadUrl))
             .timeout(Duration.ofMinutes(10))
-            .header("User-Agent", "C3PO-UpdateDownloader/1.0")
+            .header(USER_AGENT_KEY, USER_AGENT_VALUE)
             .GET()
             .build()
 
@@ -69,6 +77,16 @@ class UpdateDownloader(
                                 emit(DownloadProgress(progress, totalBytesRead, contentLength))
                             }
                         }
+                    }
+
+                    // Download signature file and verify
+                    val signatureUrl = updateInfo.downloadUrl.replace(".zip", ".zip.minisig")
+                    val signatureFile = downloadSignature(signatureUrl, downloadDir)
+
+                    if (!minisignVerifier.verifyFile(downloadFile, signatureFile, MINISIGN_PUBLIC_KEY)) {
+                        fileManager.cleanupFile(downloadFile)
+                        fileManager.cleanupFile(signatureFile)
+                        throw SecurityException("Update signature verification failed")
                     }
 
                     emit(DownloadProgress(100, downloadFile.length(), contentLength))
@@ -126,6 +144,34 @@ class UpdateDownloader(
                     ValidationResult.Failed("Checksum verification failed: ${e.message}")
                 }
             }
+        }
+    }
+
+    private suspend fun downloadSignature(signatureUrl: String, downloadDir: File): File {
+        val signatureFile = File(downloadDir, "signature.minisig")
+
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(signatureUrl))
+            .timeout(Duration.ofSeconds(30))
+            .header(USER_AGENT_KEY, USER_AGENT_VALUE)
+            .GET()
+            .build()
+
+        try {
+            val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+
+            when (response.statusCode()) {
+                200 -> {
+                    signatureFile.writeText(response.body())
+                    return signatureFile
+                }
+
+                404 -> throw IOException("Signature file not found: $signatureUrl")
+                else -> throw IOException("Failed to download signature: ${response.statusCode()}")
+            }
+        } catch (e: Exception) {
+            fileManager.cleanupFile(signatureFile)
+            throw IOException("Signature download failed", e)
         }
     }
 

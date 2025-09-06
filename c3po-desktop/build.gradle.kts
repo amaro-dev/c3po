@@ -50,6 +50,9 @@ dependencies {
     // JSON serialization for GitHub API
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
+    // BouncyCastle for Ed25519 signature verification
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78")
+
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -66,7 +69,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"
             packageVersion = project.version.toString()
-            modules("java.base", "java.desktop", "java.net.http", "java.naming")
+            modules("java.base", "java.desktop", "java.net.http", "java.naming", "java.security.jgss")
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
             macOS {
                 iconFile.set(project.file("src/main/resources/icon.icns"))

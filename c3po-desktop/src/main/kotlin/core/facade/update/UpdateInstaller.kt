@@ -93,6 +93,7 @@ class UpdateInstaller(
             onProgress("Removing quarantine attributes...")
             kotlinx.coroutines.delay(500) // Simulate quarantine removal
             removeQuarantine(File(targetLocation, appBundle.name))
+            File(targetLocation, "${appBundle.name}/Contents/MacOS/c3po").setExecutable(true)
 
             onProgress("Installation completed successfully")
 

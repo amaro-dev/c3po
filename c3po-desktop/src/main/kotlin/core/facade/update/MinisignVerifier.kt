@@ -1,151 +1,220 @@
 package core.facade.update
 
+import org.bouncycastle.crypto.digests.Blake2bDigest
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
+import org.bouncycastle.crypto.signers.Ed25519Signer
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.File
 import java.nio.file.Files
-import java.security.KeyFactory
-import java.security.Signature
+import java.security.Security
 import java.util.Base64
 
 /**
- * Verifies minisign signatures using Java 17 native Ed25519 support.
+ * Verifies minisign signatures using BouncyCastle Ed25519 implementation.
  *
  * Minisign format:
- * - Public key: base64-encoded Ed25519 public key with algorithm prefix
- * - Signature file (.minisig): base64-encoded signature with metadata
- *
- * This implementation uses Java's built-in EdDSA for verification.
+ * - Public key: base64(algorithm(2) + Ed25519_key(32) + key_id(8)) = 42 bytes
+ * - Signature file (.minisig): base64(algorithm(2) + signature(64) + key_id(8)) = 74 bytes
  */
 class MinisignVerifier {
 
     companion object {
-        private const val MINISIGN_ALGORITHM_ID = "Ed"
-        private const val SIGNATURE_ALGORITHM = "Ed25519"
-        private const val PUBLIC_KEY_SIZE = 32
-        private const val SIGNATURE_SIZE = 64
+        init {
+            // Register BouncyCastle provider if not already registered
+            if (Security.getProvider("BC") == null) {
+                Security.addProvider(BouncyCastleProvider())
+            }
+        }
     }
 
-    /**
-     * Verifies a file against its minisign signature.
-     *
-     * @param filePath Path to the file to verify
-     * @param signatureFilePath Path to the .minisig signature file
-     * @param publicKeyBase64 Base64-encoded minisign public key
-     * @return true if signature is valid, false otherwise
-     * @throws Exception if verification process fails
-     */
     fun verifyFile(
         filePath: File,
         signatureFilePath: File,
-        publicKeyBase64: String
+        publicKeyString: String
     ): Boolean {
         return try {
+            println("[MinisignVerifier] Starting BouncyCastle minisign verification...")
+            
             // Parse the public key
-            val publicKey = parseMinisignPublicKey(publicKeyBase64)
+            val publicKeyBytes = parseMinisignPublicKey(publicKeyString)
 
             // Parse the signature file
-            val signatureData = parseMinisignSignature(signatureFilePath)
+            val signatureData = parseMinisignSignature(signatureFilePath.readText())
 
             // Read the file content
             val fileContent = Files.readAllBytes(filePath.toPath())
 
-            // Verify the signature
-            verifySignature(fileContent, signatureData, publicKey)
+            // Verify the signature using BouncyCastle
+            verifySignature(fileContent, signatureData, publicKeyBytes)
         } catch (e: Exception) {
-            println("[MinisignVerifier] Verification failed: ${e.message}")
+            println("[MinisignVerifier] BouncyCastle verification failed: ${e.message}")
+            e.printStackTrace()
             false
         }
     }
 
-    private fun parseMinisignPublicKey(publicKeyBase64: String): java.security.PublicKey {
-        val decoded = Base64.getDecoder().decode(publicKeyBase64.trim())
+    private fun parseMinisignPublicKey(publicKeyString: String): ByteArray {
+        println("[MinisignVerifier] Parsing public key: $publicKeyString")
 
-        if (decoded.size != 34) {
-            throw IllegalArgumentException("Invalid minisign public key size: ${decoded.size} (expected 34)")
+        // The entire string IS base64 - "RW" is part of the encoding, not a prefix
+        val decoded = try {
+            Base64.getDecoder().decode(publicKeyString)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException("Invalid minisign public key: not valid Base64", e)
         }
 
-        // Check algorithm identifier (first 2 bytes should be "Ed")
-        val algorithmId = String(decoded, 0, 2, Charsets.UTF_8)
-        if (algorithmId != MINISIGN_ALGORITHM_ID) {
-            throw IllegalArgumentException("Unsupported algorithm: $algorithmId (expected $MINISIGN_ALGORITHM_ID)")
+        println("[MinisignVerifier] Decoded key size: ${decoded.size} bytes")
+        println("[MinisignVerifier] Decoded key hex: ${decoded.joinToString("") { "%02x".format(it) }}")
+
+        // Validate size: should be 42 bytes (algorithm(2) + key_id(8) + Ed25519_key(32))
+        if (decoded.size != 42) {
+            throw IllegalArgumentException("Invalid minisign public key size: ${decoded.size} (expected 42)")
         }
 
-        // Extract the 32-byte Ed25519 public key
-        val publicKeyBytes = decoded.copyOfRange(2, 34)
+        // Validate algorithm: should be 'E' 'd' (0x45 0x64)
+        val alg0 = decoded[0].toInt() and 0xFF
+        val alg1 = decoded[1].toInt() and 0xFF
+        if (alg0 != 0x45 || alg1 != 0x64) { // "Ed"
+            val hex = "%02x%02x".format(alg0, alg1)
+            throw IllegalArgumentException("Unsupported minisign public key algorithm: 0x$hex (expected 'Ed')")
+        }
 
-        // Use X509EncodedKeySpec for raw Ed25519 key - Java 17 supports this format
-        // For Ed25519, we need to create the proper ASN.1 structure
-        val x509PublicKey = createEd25519X509Key(publicKeyBytes)
-        val keySpec = java.security.spec.X509EncodedKeySpec(x509PublicKey)
-        val keyFactory = KeyFactory.getInstance(SIGNATURE_ALGORITHM)
-        return keyFactory.generatePublic(keySpec)
+        println("[MinisignVerifier] Algorithm: ${String(byteArrayOf(decoded[0], decoded[1]))}")
+
+        // Extract Ed25519 public key: algorithm(2) + key_id(8) + Ed25519_key(32)
+        // Layout: [0..1]=algorithm, [2..9]=key_id, [10..41]=Ed25519 public key (32 bytes)
+        val publicKey = decoded.copyOfRange(10, 42)
+        println("[MinisignVerifier] Extracted public key (32 bytes): ${publicKey.joinToString("") { "%02x".format(it) }}")
+
+        return publicKey
     }
 
-    private fun createEd25519X509Key(rawKey: ByteArray): ByteArray {
-        // Ed25519 public key in X.509 format
-        // ASN.1 structure: SEQUENCE { SEQUENCE { OID }, BIT STRING }
-        // OID for Ed25519: 1.3.101.112
-        val ed25519Oid = byteArrayOf(
-            0x30, 0x2a,                           // SEQUENCE (42 bytes)
-            0x30, 0x05,                           // SEQUENCE (5 bytes) - AlgorithmIdentifier
-            0x06, 0x03, 0x2b, 0x65, 0x70,         // OID 1.3.101.112 (Ed25519)
-            0x03, 0x21, 0x00                      // BIT STRING (33 bytes: 1 unused bits byte + 32 key bytes)
-        )
-        return ed25519Oid + rawKey
+    private fun parseMinisignSignature(sigText: String): MinisignSig {
+        println("[MinisignVerifier] Parsing signature text:")
+        sigText.lineSequence().forEachIndexed { index, line ->
+            println("[MinisignVerifier] Line $index: $line")
+        }
+
+        // Skip "untrusted comment:" and get the base64 signature line
+        val base64Line = sigText.lineSequence()
+            .map { it.trim() }
+            .firstOrNull {
+                it.isNotEmpty() && !it.lowercase().startsWith("untrusted comment:") && !it.lowercase()
+                    .startsWith("trusted comment:")
+            }
+            ?: throw IllegalArgumentException("Empty minisign signature")
+
+        println("[MinisignVerifier] Selected base64 signature line: $base64Line")
+
+        val decoded = Base64.getDecoder().decode(base64Line)
+        println("[MinisignVerifier] Decoded signature bytes: ${decoded.size}")
+        println("[MinisignVerifier] Signature hex: ${decoded.joinToString("") { "%02x".format(it) }}")
+
+        return when (decoded.size) {
+            74 -> {
+                // Standard format: algorithm(2) + key_id(8) + signature(64)
+                val alg = String(byteArrayOf(decoded[0], decoded[1])) // "Ed" or "B+"
+                val keyId = decoded.copyOfRange(2, 10)  // 8 bytes key ID
+                val sig = decoded.copyOfRange(10, 74)   // 64 bytes signature
+                println(
+                    "[MinisignVerifier] Parsed: algorithm='$alg', keyId=${keyId.joinToString("") { "%02x".format(it) }}, sig=${
+                        sig.joinToString(
+                            ""
+                        ) { "%02x".format(it) }
+                    }"
+                )
+                MinisignSig(sig, keyId, alg)
+            }
+
+            72 -> {
+                // Legacy format without algorithm bytes: signature(64) + key_id(8)
+                val sig = decoded.copyOfRange(0, 64)
+                val keyId = decoded.copyOfRange(64, 72)
+                MinisignSig(sig, keyId, "Ed")
+            }
+
+            else -> throw IllegalArgumentException("Invalid minisign signature size: ${decoded.size} (expected 74 or 72)")
+        }
     }
 
-    /**
-     * Parses a minisign signature file.
-     * Format: trusted_comment + signature_line
-     * Signature line: algorithm || key_id || signature (2 + 8 + 64 = 74 bytes)
-     */
-    private fun parseMinisignSignature(signatureFile: File): ByteArray {
-        val lines = signatureFile.readLines().filter { it.isNotBlank() }
-
-        if (lines.size < 2) {
-            throw IllegalArgumentException("Invalid minisign signature file format")
-        }
-
-        // The signature is on the second line (first line is trusted comment)
-        val signatureLine = lines[1].trim()
-        val decoded = Base64.getDecoder().decode(signatureLine)
-
-        if (decoded.size != 74) {
-            throw IllegalArgumentException("Invalid signature size: ${decoded.size} (expected 74)")
-        }
-
-        // Check algorithm identifier
-        val algorithmId = String(decoded, 0, 2, Charsets.UTF_8)
-        if (algorithmId != MINISIGN_ALGORITHM_ID) {
-            throw IllegalArgumentException("Unsupported signature algorithm: $algorithmId")
-        }
-
-        // Extract the 64-byte signature (skip algorithm id + key id)
-        return decoded.copyOfRange(10, 74)
+    private fun blake2b512(data: ByteArray): ByteArray {
+        val d = Blake2bDigest(512) // 64 bytes
+        d.update(data, 0, data.size)
+        val out = ByteArray(64)
+        d.doFinal(out, 0)
+        return out
     }
 
-    /**
-     * Verifies the signature using Java's native Ed25519 implementation.
-     */
     private fun verifySignature(
         fileContent: ByteArray,
-        signatureBytes: ByteArray,
-        publicKey: java.security.PublicKey
+        minisignSig: MinisignSig,
+        publicKeyBytes: ByteArray
     ): Boolean {
-        val signature = Signature.getInstance(SIGNATURE_ALGORITHM)
-        signature.initVerify(publicKey)
-        signature.update(fileContent)
-        return signature.verify(signatureBytes)
-    }
-
-    /**
-     * Utility method to validate a minisign public key format.
-     */
-    fun isValidPublicKey(publicKeyBase64: String): Boolean {
         return try {
-            parseMinisignPublicKey(publicKeyBase64)
-            true
+            println("[MinisignVerifier] Starting signature verification...")
+            println("[MinisignVerifier] Algorithm: ${minisignSig.alg}")
+            println("[MinisignVerifier] File size: ${fileContent.size} bytes")
+            println("[MinisignVerifier] Signature size: ${minisignSig.signature64.size} bytes")
+            println("[MinisignVerifier] Public key size: ${publicKeyBytes.size} bytes")
+
+            // For large files (>1MB), minisign always uses Blake2b pre-hashing even with "Ed" algorithm
+            // This is indicated by the "hashed" comment in the trusted comment line
+            val shouldUseBlake2b = fileContent.size > 1048576 // 1MB threshold
+
+            val message = when (minisignSig.alg.uppercase()) {
+                "ED" -> {
+                    if (shouldUseBlake2b) {
+                        println("[MinisignVerifier] Using Blake2b-512 pre-hash for large file (${fileContent.size} bytes) with Ed algorithm")
+                        val hashed = blake2b512(fileContent)
+                        println("[MinisignVerifier] Blake2b hash computed: ${hashed.size} bytes")
+                        println("[MinisignVerifier] Blake2b hash hex: ${hashed.joinToString("") { "%02x".format(it) }}")
+                        hashed
+                    } else {
+                        println("[MinisignVerifier] Using raw file content for small Ed algorithm file")
+                        fileContent
+                    }
+                }
+
+                "B+" -> {
+                    // For "B+" algorithm: always use Blake2b-512 pre-hash
+                    println("[MinisignVerifier] Using Blake2b-512 pre-hash for B+ algorithm")
+                    val hashed = blake2b512(fileContent)
+                    println("[MinisignVerifier] Blake2b hash computed: ${hashed.size} bytes")
+                    hashed
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Unsupported minisign algorithm: ${minisignSig.alg}")
+                }
+            }
+
+            println("[MinisignVerifier] Message to verify: ${message.size} bytes")
+            println("[MinisignVerifier] Message hex: ${message.take(32).joinToString("") { "%02x".format(it) }}...")
+
+            // Create Ed25519 public key and signer
+            val publicKeyParams = Ed25519PublicKeyParameters(publicKeyBytes, 0)
+            val signer = Ed25519Signer()
+            signer.init(false, publicKeyParams) // false = verify mode
+
+            // Update signer with the message
+            signer.update(message, 0, message.size)
+
+            // Verify the signature
+            val result = signer.verifySignature(minisignSig.signature64)
+            println("[MinisignVerifier] Verification result: $result")
+
+            result
         } catch (e: Exception) {
+            println("[MinisignVerifier] Signature verification error: ${e.javaClass.simpleName}: ${e.message}")
+            e.printStackTrace()
             false
         }
     }
+
+    data class MinisignSig(
+        val signature64: ByteArray, // 64 bytes
+        val keyId8: ByteArray,      // 8 bytes
+        val alg: String             // "Ed" (raw) ou "B+" / "ED" (pre-hash Blake2b-512)
+    )
+
 }
