@@ -176,3 +176,36 @@ plugins/
 - APKs are temporarily extracted and auto-cleaned
 - Errors are stored in `AppState.errorMessage`
 - Device list refreshes automatically
+
+# Anti-Compromise Rules
+
+1. No Hybrid Solutions When Core Requirement Exists
+
+- Hybrid approaches mask real problems and create technical debt
+- Stick to the specified technology/approach even when it's harder
+
+2. Listen to User Pushback Immediately
+
+- Don't defend or explain - pivot immediately when approach quality is questioned
+- User criticism about methodology should override my tendency to find "working" solutions
+
+Deep Debug First Rules
+
+3. Real Production Data from Day 1
+
+- If real data for the problem is available, use it instead of synthetic test data
+- Cryptographic/security bugs only surface with real-world data formats
+- Production data reveals actual formats, encodings, and edge cases
+
+4. Systematic Debug Protocol
+
+- Step 1: Get real data that works with reference implementation
+- Step 2: Add comprehensive logging and hex dumps
+- Step 3: Compare byte-by-byte with working reference
+- Step 4: Fix one parsing issue at a time
+- Step 5: Only then attempt actual functionality
+
+5. No Guessing - Understand the Format
+
+- Understanding exact data structures prevents trial-and-error approaches
+- Don't assume anything about encoding, byte order, or field layout
