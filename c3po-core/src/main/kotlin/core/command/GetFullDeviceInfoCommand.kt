@@ -2,6 +2,7 @@ package core.command
 
 import core.model.Device
 import core.model.DeviceInfo
+import core.model.DiskStats
 import core.model.Status
 import core.model.System
 
@@ -78,7 +79,14 @@ class GetFullDeviceInfoCommand : AdbCommand<DeviceInfo> {
             batteryTemperature = 0f, // Requires separate dumpsys battery command
             chargingStatus = "Unknown", // Requires separate dumpsys battery command
             batteryVoltage = 0, // Requires separate dumpsys battery command
-            diskUsage = emptyList(), // Requires separate df command
+            diskUsage = DiskStats(
+                totalBytes = 0L,
+                usedBytes = 0L,
+                availableBytes = 0L,
+                percentageUsed = 0,
+                isAvailable = false,
+                errorMessage = "Disk usage requires separate diskstats command"
+            ), // Requires separate diskstats command
             connectionMode = connectionMode,
             connectionDetails = props["wifi.interface"]
         )

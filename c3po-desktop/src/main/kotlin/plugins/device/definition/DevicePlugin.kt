@@ -63,7 +63,7 @@ class DevicePlugin(
                     )
                     DiskUsageCard(
                         title = "Disk Usage",
-                        diskPartitions = deviceInfo.status.diskUsage,
+                        diskStats = deviceInfo.status.diskUsage,
                         onAction = onAction,
                         modifier = Modifier.weight(1f)
                     )

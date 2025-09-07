@@ -17,13 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import core.model.DiskPartition
+import core.model.DiskStats
 import ui.OnAction
 
 @Composable
 fun DiskUsageCard(
     title: String,
-    diskPartitions: List<DiskPartition>,
+    diskStats: DiskStats,
     onAction: OnAction,
     modifier: Modifier = Modifier
 ) {
@@ -45,27 +45,20 @@ fun DiskUsageCard(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            if (diskPartitions.isEmpty()) {
+            if (!diskStats.isAvailable) {
                 Text(
-                    text = "No disk usage data available",
+                    text = diskStats.errorMessage ?: "No disk usage data available",
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    diskPartitions.filter { it.mountPoint.startsWith("/") && it.total.toIntOrNull() != null }
-                        .forEach { partition ->
-                            DiskPartitionRow(partition = partition)
-                        }
-                }
+                DiskStatsRow(diskStats = diskStats)
             }
         }
     }
 }
 
 @Composable
-private fun DiskPartitionRow(partition: DiskPartition) {
+private fun DiskStatsRow(diskStats: DiskStats) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -76,12 +69,12 @@ private fun DiskPartitionRow(partition: DiskPartition) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = partition.mountPoint,
+                    text = "Total Storage",
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = partition.partition,
+                    text = "Internal Storage",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -89,17 +82,17 @@ private fun DiskPartitionRow(partition: DiskPartition) {
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${partition.percentage}%",
+                    text = "${diskStats.percentageUsed}%",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = when {
-                        partition.percentage >= 90 -> MaterialTheme.colorScheme.error
-                        partition.percentage >= 75 -> MaterialTheme.colorScheme.secondary
+                        diskStats.percentageUsed >= 90 -> MaterialTheme.colorScheme.error
+                        diskStats.percentageUsed >= 75 -> MaterialTheme.colorScheme.secondary
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                 )
                 Text(
-                    text = "${formatBytes(partition.used)}/${formatBytes(partition.total)}",
+                    text = "${formatBytes(diskStats.usedBytes)}/${formatBytes(diskStats.totalBytes)}",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -107,24 +100,24 @@ private fun DiskPartitionRow(partition: DiskPartition) {
         }
 
         LinearProgressIndicator(
-            progress = partition.percentage / 100f,
+            progress = diskStats.percentageUsed / 100f,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
             color = when {
-                partition.percentage >= 90 -> MaterialTheme.colorScheme.error
-                partition.percentage >= 75 -> MaterialTheme.colorScheme.secondary
+                diskStats.percentageUsed >= 90 -> MaterialTheme.colorScheme.error
+                diskStats.percentageUsed >= 75 -> MaterialTheme.colorScheme.secondary
                 else -> MaterialTheme.colorScheme.primary
             }
         )
     }
 }
 
-private fun formatBytes(value: String): String {
-    val kb = value.toIntOrNull() ?: return value
+private fun formatBytes(bytes: Long): String {
     return when {
-        kb >= 1024 * 1024 -> String.format("%.1f GB", kb / (1024.0 * 1024.0))
-        kb >= 1024 -> String.format("%.0f MB", kb / 1024.0)
-        else -> "$kb kB"
+        bytes >= 1024L * 1024L * 1024L -> String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))
+        bytes >= 1024L * 1024L -> String.format("%.1f MB", bytes / (1024.0 * 1024.0))
+        bytes >= 1024L -> String.format("%.0f KB", bytes / 1024.0)
+        else -> "$bytes B"
     }
 }
