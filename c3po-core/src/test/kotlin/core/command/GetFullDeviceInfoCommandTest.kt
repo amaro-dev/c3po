@@ -1,8 +1,9 @@
 package core.command
 
 import assertk.assertThat
-import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isNotNull
 import org.junit.jupiter.api.Test
 
 class GetFullDeviceInfoCommandTest {
@@ -50,7 +51,8 @@ class GetFullDeviceInfoCommandTest {
         assertThat(result.status.batteryVoltage).isEqualTo(0) // Requires separate command
         assertThat(result.status.connectionMode).isEqualTo("Wi-Fi")
         assertThat(result.status.connectionDetails).isEqualTo("wlan0")
-        assertThat(result.status.diskUsage).isEmpty() // Requires separate command
+        assertThat(result.status.diskUsage).isNotNull() // Requires separate command
+        assertThat(result.status.diskUsage.isAvailable).isFalse()
     }
 
     @Test

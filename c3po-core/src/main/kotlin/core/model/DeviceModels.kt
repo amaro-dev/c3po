@@ -30,7 +30,7 @@ data class Status(
     val batteryTemperature: Float,
     val chargingStatus: String,
     val batteryVoltage: Int,
-    val diskUsage: List<DiskPartition>,
+    val diskUsage: DiskStats,
     val connectionMode: String,
     val connectionDetails: String?
 )
@@ -41,6 +41,15 @@ data class DiskPartition(
     val total: String,
     val percentage: Int,
     val mountPoint: String
+)
+
+data class DiskStats(
+    val totalBytes: Long,
+    val usedBytes: Long,
+    val availableBytes: Long,
+    val percentageUsed: Int,
+    val isAvailable: Boolean,
+    val errorMessage: String? = null
 )
 
 data class BatteryInfo(

@@ -3,10 +3,10 @@ package plugins.device.structure
 import core.command.CommandExecutor
 import core.command.GetBatteryInfoCommand
 import core.command.GetDensityInfoCommand
+import core.command.GetDiskStatsCommand
 import core.command.GetDisplayInfoCommand
 import core.command.GetFullDeviceInfoCommand
 import core.command.GetMemoryInfoCommand
-import core.command.GetStorageInfoCommand
 import core.handle
 import core.model.Action
 import core.model.AppState
@@ -33,7 +33,7 @@ class DevicePluginMiddleware(
                         val memoryInfoResult = execute(GetMemoryInfoCommand(), state, executor)
                         val displayInfoResult = execute(GetDisplayInfoCommand(), state, executor)
                         val densityInfoResult = execute(GetDensityInfoCommand(), state, executor)
-                        val storageInfoResult = execute(GetStorageInfoCommand(), state, executor)
+                        val diskStatsResult = execute(GetDiskStatsCommand(), state, executor)
 
                         // Combine results
                         deviceInfoResult.handle(processor) { baseDeviceInfo ->
@@ -41,7 +41,7 @@ class DevicePluginMiddleware(
                                 memoryInfoResult.handle(processor) { memoryInfo ->
                                     displayInfoResult.handle(processor) { displayInfo ->
                                         densityInfoResult.handle(processor) { densityInfo ->
-                                            storageInfoResult.handle(processor) { storageInfo ->
+                                            diskStatsResult.handle(processor) { diskStats ->
                                                 val enhancedDeviceInfo = baseDeviceInfo.copy(
                                                     device = baseDeviceInfo.device.copy(
                                                         ramSize = memoryInfo,
@@ -54,7 +54,7 @@ class DevicePluginMiddleware(
                                                         batteryTemperature = batteryInfo.temperature,
                                                         chargingStatus = batteryInfo.chargingStatus,
                                                         batteryVoltage = batteryInfo.voltage,
-                                                        diskUsage = storageInfo
+                                                        diskUsage = diskStats
                                                     )
                                                 )
                                                 processor.reduce(

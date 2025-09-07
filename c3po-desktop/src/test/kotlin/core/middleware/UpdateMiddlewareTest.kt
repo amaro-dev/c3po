@@ -70,7 +70,7 @@ class UpdateMiddlewareTest {
         middleware.asyncProcess(action, testState, mockProcessor)
 
         verify { mockProcessor.reduce(Action.UpdateDownloadProgress(100)) }
-        verify { mockProcessor.reduce(match<Action.UpdateDownloadComplete> { it.filePath.contains("c3po-2.1.0.dmg") }) }
+        verify { mockProcessor.reduce(match<Action.UpdateDownloadComplete> { it.filePath.contains("c3po-2.1.0-macos.zip") }) }
     }
 
     @Test
