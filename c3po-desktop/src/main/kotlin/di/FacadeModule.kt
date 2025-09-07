@@ -2,6 +2,7 @@ package di
 
 import Settings
 import core.command.CommandExecutor
+import core.command.SystemCommandExecutor
 import core.facade.ApkSignatureExtractor
 import core.facade.SettingsRepository
 import core.facade.SettingsRepositoryImpl
@@ -37,6 +38,8 @@ val FacadeModule =
 
 
         single { CommandExecutor() }
+
+        single { SystemCommandExecutor() }
 
         factory { SignatureExtractor() }
 

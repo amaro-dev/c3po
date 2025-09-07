@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.model.Action
 import ui.overlayColor
 import ui.secondaryTextColor
 import java.awt.Desktop
@@ -58,6 +61,9 @@ fun SettingsDialog(
     initialAdbLogging: String,
     initialPerformLogging: Boolean,
     initialReduceLogging: Boolean,
+    isSearchingAdbPath: Boolean,
+    adbSearchError: String?,
+    onAction: (Action) -> Unit,
     onSave: (adbPath: String, updatesUrl: String, darkMode: Boolean, loggingEnabled: Boolean, adbLogging: String, performLogging: Boolean, reduceLogging: Boolean) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -65,6 +71,11 @@ fun SettingsDialog(
     var updatesUrl by remember { mutableStateOf(initialUpdatesUrl) }
     var darkMode by remember { mutableStateOf(initialDarkMode) }
     var showFilePicker by remember { mutableStateOf(false) }
+
+    // Update local adbPath when settings change (including from search results)
+    LaunchedEffect(initialAdbPath) {
+        adbPath = initialAdbPath
+    }
 
     // Logging configuration state
     var loggingEnabled by remember { mutableStateOf(initialLoggingEnabled) }
@@ -128,6 +139,27 @@ fun SettingsDialog(
                             modifier = Modifier.weight(1f)
                         )
 
+                        // ADB Search Button
+                        IconButton(
+                            onClick = {
+                                onAction(Action.SearchAdbPath)
+                            },
+                            enabled = !isSearchingAdbPath,
+                            modifier = Modifier
+                                .background(
+                                    if (isSearchingAdbPath) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.shapes.medium
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Search for ADB",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        // File Browser Button
                         IconButton(
                             onClick = { showFilePicker = true },
                             modifier = Modifier
@@ -150,6 +182,16 @@ fun SettingsDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondaryTextColor
                     )
+
+                    // Show error message if ADB search failed
+                    adbSearchError?.let { errorMessage ->
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
 
                 // Updates URL Section

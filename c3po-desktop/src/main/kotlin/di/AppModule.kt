@@ -45,7 +45,7 @@ val AppModule =
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),
-                SettingsMiddleware(get()),
+                SettingsMiddleware(get(), get()),
                 StatusMiddleware(get()),
                 USBMonitorMiddleware(get()),
                 UpdateMiddleware(get(), get(), get()),

@@ -91,6 +91,24 @@ class AppReducer : IReducer<AppState> {
                 is Action.SetAppVersion ->
                     currentState.copy(appVersion = action.version)
 
+                is Action.SetAdbPathSearching ->
+                    currentState.copy(
+                        isSearchingAdbPath = true,
+                        adbSearchError = null
+                    )
+
+                is Action.SetAdbPathSearchResult ->
+                    currentState.copy(
+                        isSearchingAdbPath = false,
+                        adbSearchError = null
+                    )
+
+                is Action.SetAdbPathSearchError ->
+                    currentState.copy(
+                        isSearchingAdbPath = false,
+                        adbSearchError = action.error
+                    )
+
                 is Action.ChangeFilter ->
                     currentState.copy(
                         windows =

@@ -48,6 +48,18 @@ sealed interface Action : IAction {
         val value: String,
     ) : Action
 
+    data object SearchAdbPath : Action
+
+    data object SetAdbPathSearching : Action
+
+    data class SetAdbPathSearchResult(
+        val path: String
+    ) : Action
+
+    data class SetAdbPathSearchError(
+        val error: String
+    ) : Action
+
     data object SaveSettings : Action
 
     data object SettingsNotFound : Action

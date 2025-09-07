@@ -129,6 +129,9 @@ fun NewLayout(app: App) {
             initialAdbLogging = adbLogging,
             initialPerformLogging = performLogging,
             initialReduceLogging = reduceLogging,
+            isSearchingAdbPath = state.isSearchingAdbPath,
+            adbSearchError = state.adbSearchError,
+            onAction = onAction,
             onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
                 onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
                 onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
