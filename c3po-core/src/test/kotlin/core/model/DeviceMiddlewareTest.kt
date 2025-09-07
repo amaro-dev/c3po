@@ -23,7 +23,7 @@ class DeviceMiddlewareTest {
                 mockk(relaxed = true) {
                     coEvery { go<List<AdbDevice>>(any(), any()) } returns Result.success(listOf(device))
                 }
-            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "") }
+            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "/usr/bin/adb") }
             val middleware = DeviceMiddleware(commander)
             val state = AppState(settings = settings)
             val processor: IProcessor<AppState> =
@@ -46,7 +46,7 @@ class DeviceMiddlewareTest {
                 mockk(relaxed = true) {
                     coEvery { go<List<AdbDevice>>(any(), any()) } returns Result.success(listOf(device, mockk()))
                 }
-            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "") }
+            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "/usr/bin/adb") }
             val middleware = DeviceMiddleware(commander)
             val state = AppState(settings = settings)
             val processor: IProcessor<AppState> =
@@ -66,7 +66,7 @@ class DeviceMiddlewareTest {
                 mockk(relaxed = true) {
                     coEvery { go<List<AdbDevice>>(any(), any()) } returns Result.failure(Exception())
                 }
-            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "") }
+            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "/usr/bin/adb") }
             val middleware = DeviceMiddleware(commander)
             val state = AppState(settings = settings)
             val processor: IProcessor<AppState> =
@@ -84,7 +84,8 @@ class DeviceMiddlewareTest {
         runTest {
             val commander: CommandExecutor = mockk(relaxed = true)
             val middleware = DeviceMiddleware(commander)
-            val state = AppState()
+            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "/usr/bin/adb") }
+            val state = AppState(settings = settings)
             val processor: IProcessor<AppState> =
                 mockk(relaxed = true, moreInterfaces = arrayOf(IActionScheduler::class))
 
@@ -105,6 +106,44 @@ class DeviceMiddlewareTest {
 
             middleware.asyncProcess(mockk<Action.DoNothing>(relaxed = true), state, processor)
 
+            verify(exactly = 0) {
+                processor.reduce(Action.SetCommandRunning)
+            }
+        }
+
+    @Test
+    fun `Handle CommandAction with blank ADB path triggers error`() =
+        runTest {
+            val commander: CommandExecutor = mockk(relaxed = true)
+            val middleware = DeviceMiddleware(commander)
+            val settings = Properties()  // No ADB path set
+            val state = AppState(settings = settings)
+            val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+            middleware.asyncProcess(Action.RefreshDevices, state, processor)
+
+            verify {
+                processor.reduce(Action.SetCommandError("Please configure ADB path in settings"))
+            }
+            verify(exactly = 0) {
+                processor.reduce(Action.SetCommandRunning)
+            }
+        }
+
+    @Test
+    fun `Handle CommandAction with empty ADB path triggers error`() =
+        runTest {
+            val commander: CommandExecutor = mockk(relaxed = true)
+            val middleware = DeviceMiddleware(commander)
+            val settings = Properties().apply { put(Settings.ADB_PATH_PROP, "") }
+            val state = AppState(settings = settings)
+            val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+            middleware.asyncProcess(Action.RefreshDevices, state, processor)
+
+            verify {
+                processor.reduce(Action.SetCommandError("Please configure ADB path in settings"))
+            }
             verify(exactly = 0) {
                 processor.reduce(Action.SetCommandRunning)
             }

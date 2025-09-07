@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,13 @@ fun NewLayout(app: App) {
     val settingsState = state.settingsState
 
     var showSettingsDialog by remember { mutableStateOf(false) }
+
+    // Auto-show settings dialog when ADB path is not configured
+    LaunchedEffect(settingsState, adbPath) {
+        if (settingsState == core.model.SettingsState.Initialized && adbPath.isBlank()) {
+            showSettingsDialog = true
+        }
+    }
 
     Row(Modifier.fillMaxSize()) {
         Sidebar(
@@ -143,8 +151,9 @@ fun NewLayout(app: App) {
         )
     }
 
-    // Update notification dialog - show for various update states
-    val showUpdateDialog = state.updateInfo != null && state.updateState in listOf(
+    // Update notification dialog - only show when ADB is configured and settings dialog is not showing
+    val showUpdateDialog = adbPath.isNotBlank() && !showSettingsDialog &&
+            state.updateInfo != null && state.updateState in listOf(
         core.model.UpdateState.UpdateAvailable,
         core.model.UpdateState.Downloading,
         core.model.UpdateState.DownloadComplete,

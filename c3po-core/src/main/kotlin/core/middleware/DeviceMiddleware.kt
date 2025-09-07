@@ -20,7 +20,14 @@ class DeviceMiddleware(
     ) {
         val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
 
+        // Prevent ADB commands if path is not configured
+        if (action is Action.CommandAction && adbPath.isNullOrBlank()) {
+            processor.reduce(Action.SetCommandError("Please configure ADB path in settings"))
+            return
+        }
+
         if (action is Action.CommandAction) processor.reduce(Action.SetCommandRunning)
+
         when (action) {
             is Action.RefreshDevices -> {
                 executor.go(ListDevicesCommand(), adbPath).handle(processor) { devices ->
