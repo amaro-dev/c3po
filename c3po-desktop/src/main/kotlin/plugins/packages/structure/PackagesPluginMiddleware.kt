@@ -45,12 +45,18 @@ class PackagesPluginMiddleware(
 
             is PackagesPlugin.Actions.Stop -> {
                 execute(StopAppCommand(action.packageInfo), state, executor)
+                    .onSuccess {
+                        processor.reduce(Action.SetSuccess("App '${action.packageInfo.packageName}' stopped successfully"))
+                    }
                     .handle(processor)
             }
 
             is PackagesPlugin.Actions.Uninstall -> {
                 execute(UninstallAppCommand(action.packageInfo), state, executor)
-                    .onSuccess { processor.perform(PackagesPlugin.Actions.List) }
+                    .onSuccess {
+                        processor.perform(PackagesPlugin.Actions.List)
+                        processor.reduce(Action.SetSuccess("App '${action.packageInfo.packageName}' uninstalled successfully"))
+                    }
                     .handle(processor)
             }
 
@@ -103,7 +109,11 @@ class PackagesPluginMiddleware(
             }
 
             is PackagesPlugin.Actions.ClearData -> {
-                execute(ClearDataCommand(action.packageInfo), state, executor).handle(processor)
+                execute(ClearDataCommand(action.packageInfo), state, executor)
+                    .onSuccess {
+                        processor.reduce(Action.SetSuccess("Data cleared for '${action.packageInfo.packageName}'"))
+                    }
+                    .handle(processor)
             }
 
         }

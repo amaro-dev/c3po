@@ -29,7 +29,11 @@ class ActivitiesPluginMiddleware(
             }
 
             is plugins.activities.definition.ActivitiesPlugin.Actions.Launch -> {
-                execute(StartActivityCommand(action.activityInfo, action.forDebug), state, executor).handle(processor)
+                execute(StartActivityCommand(action.activityInfo, action.forDebug), state, executor)
+                    .onSuccess {
+                        processor.reduce(Action.SetSuccess("Activity '${action.activityInfo.fullPath}' started successfully"))
+                    }
+                    .handle(processor)
             }
 
         }

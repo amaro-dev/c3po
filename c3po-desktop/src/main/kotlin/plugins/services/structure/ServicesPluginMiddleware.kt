@@ -34,6 +34,9 @@ class ServicesPluginMiddleware(
 
             is ServicesPlugin.Actions.Launch -> {
                 execute(StartServiceCommand(action.activityInfo, state.currentDevice!!), state, executor)
+                    .onSuccess {
+                        processor.reduce(Action.SetSuccess("Service '${action.activityInfo.fullPath}' started successfully"))
+                    }
                     .handle(processor)
             }
 
