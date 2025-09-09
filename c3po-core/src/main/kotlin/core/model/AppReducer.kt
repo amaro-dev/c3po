@@ -88,6 +88,16 @@ class AppReducer : IReducer<AppState> {
                         commandStatus = CommandStatus.Idle,
                     )
 
+                is Action.SetSuccess ->
+                    currentState.copy(
+                        successMessage = action.message,
+                    )
+
+                is Action.ClearSuccess ->
+                    currentState.copy(
+                        successMessage = null,
+                    )
+
                 is Action.SetAppVersion ->
                     currentState.copy(appVersion = action.version)
 

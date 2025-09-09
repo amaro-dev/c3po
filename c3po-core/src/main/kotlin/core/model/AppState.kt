@@ -11,6 +11,7 @@ data class AppState(
     val settingsState: SettingsState = SettingsState.NotInitialized,
     val commandStatus: CommandStatus = CommandStatus.Idle,
     val errorMessage: String? = null,
+    val successMessage: String? = null,
     val updateState: UpdateState = UpdateState.NoUpdate,
     val updateInfo: UpdateInfo? = null,
     val downloadProgress: Int = 0,

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
@@ -62,6 +63,7 @@ fun NewLayout(app: App) {
     val selectedPlugin = state.currentPlugin
     val showLoading = state.commandStatus == CommandStatus.Running
     val errorMessage = state.errorMessage
+    val successMessage = state.successMessage
     val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
     val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
     val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
@@ -104,7 +106,8 @@ fun NewLayout(app: App) {
                 },
                 onShowSettings = {
                     showSettingsDialog = true
-                }
+                },
+                onAction = onAction
             )
             Box(
                 Modifier
@@ -123,6 +126,10 @@ fun NewLayout(app: App) {
 
                 errorMessage?.let {
                     ErrorMessage(it) { onAction(Action.ClearError) }
+                }
+
+                successMessage?.let {
+                    SuccessMessage(it) { onAction(Action.ClearSuccess) }
                 }
             }
         }
@@ -276,7 +283,8 @@ private fun TopBar(
     appVersion: String,
     onDeviceSelected: (String) -> Unit,
     onRefreshDevices: () -> Unit,
-    onShowSettings: () -> Unit
+    onShowSettings: () -> Unit,
+    onAction: OnAction
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -330,6 +338,7 @@ private fun TopBar(
                 Icon(imageVector = Icons.Filled.Refresh, contentDescription = "Refresh")
             }
             Spacer(Modifier.weight(1f))
+
 
             // Settings gear icon
             IconButton(onClick = { onShowSettings() }) {
@@ -447,6 +456,53 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Dismiss",
                         tint = MaterialTheme.colorScheme.onError
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuccessMessage(message: String, onDismiss: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        Surface(
+            color = Color(0xFF4CAF50), // Green success background
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .padding(top = 80.dp, end = 32.dp) // Position below LoadingPill/ErrorMessage
+                .wrapContentSize()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Success",
+                    tint = Color.White, // White icon on green background
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    message,
+                    color = Color.White, // White text on green background
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.width(12.dp))
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Dismiss",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }

@@ -37,6 +37,12 @@ sealed interface Action : IAction {
 
     data object ClearError : Action
 
+    data class SetSuccess(
+        val message: String,
+    ) : Action
+
+    data object ClearSuccess : Action
+
     data class SetAppVersion(
         val version: String,
     ) : Action
