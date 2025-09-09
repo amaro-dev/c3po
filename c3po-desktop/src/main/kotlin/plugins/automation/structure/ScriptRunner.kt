@@ -66,6 +66,9 @@ class ScriptRunner(
         }
 
         update { it.copy(isRunning = false, runningStepIndex = -1, runLogs = it.runLogs + "Run completed") }
+
+        // Trigger global success message
+        processor.reduce(Action.SetSuccess("Script '${script.name}' executed successfully"))
     }
 
     private suspend fun runInstall(

@@ -50,6 +50,7 @@ import core.facade.update.UpdateUtils
 import core.model.Action
 import core.model.CommandStatus
 import dev.amaro.sonic.IAction
+import kotlinx.coroutines.delay
 import plugins.Plugin
 import ui.OnAction
 import ui.component.SettingsDialog
@@ -465,6 +466,12 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit) {
 
 @Composable
 private fun SuccessMessage(message: String, onDismiss: () -> Unit) {
+    // Auto-dismiss after 4 seconds using LaunchedEffect
+    LaunchedEffect(message) {
+        delay(4000)
+        onDismiss()
+    }
+    
     Box(
         Modifier
             .fillMaxSize(),
@@ -475,7 +482,7 @@ private fun SuccessMessage(message: String, onDismiss: () -> Unit) {
             shape = MaterialTheme.shapes.large,
             shadowElevation = 8.dp,
             modifier = Modifier
-                .padding(top = 80.dp, end = 32.dp) // Position below LoadingPill/ErrorMessage
+                .padding(top = 24.dp, end = 32.dp) // Same position as ErrorMessage
                 .wrapContentSize()
         ) {
             Row(

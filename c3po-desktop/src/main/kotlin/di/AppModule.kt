@@ -14,7 +14,6 @@ import core.middleware.LoggingMiddleware
 import core.middleware.RestartMiddleware
 import core.middleware.SettingsMiddleware
 import core.middleware.StatusMiddleware
-import core.middleware.SuccessMiddleware
 import core.middleware.USBMonitorMiddleware
 import core.middleware.UpdateMiddleware
 import core.model.Action
@@ -43,7 +42,6 @@ val AppModule =
         factory(named(MIDDLEWARE_LIST_DEPENDENCY)) {
             arrayOf(
                 LoggingMiddleware(), // Add logging as first middleware to capture all actions
-                SuccessMiddleware(get()), // Handle success message auto-dismiss
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),
