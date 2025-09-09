@@ -23,13 +23,17 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,6 +64,37 @@ import ui.component.EnhancedHeaderRow
 import ui.component.PrimaryButton
 import ui.component.SecondaryButton
 import ui.component.StandardDialog
+
+// Step execution state for visual progress
+data class StepExecutionState(
+    val isScriptRunning: Boolean,
+    val currentStepIndex: Int,
+    val failedStepIndex: Int,
+    val completedSteps: Set<Int>,
+)
+
+enum class StepStatus {
+    PENDING,  // Not yet executed
+    RUNNING,  // Currently executing
+    SUCCESS,  // Completed successfully 
+    FAILED    // Failed during execution
+}
+
+fun getStepStatus(stepIndex: Int, executionState: StepExecutionState): StepStatus {
+    return when {
+        // Failed step shows as failed
+        executionState.failedStepIndex == stepIndex -> StepStatus.FAILED
+
+        // Completed steps show as success
+        stepIndex in executionState.completedSteps -> StepStatus.SUCCESS
+
+        // Currently running step shows as running (only if script is actually running)
+        stepIndex == executionState.currentStepIndex && executionState.isScriptRunning -> StepStatus.RUNNING
+
+        // All other steps are pending
+        else -> StepStatus.PENDING
+    }
+}
 
 class AutomationPlugin(
     automationMiddleware: AutomationMiddleware,
@@ -278,29 +313,6 @@ class AutomationPlugin(
             )
         }
 
-        // Minimal run logs (if running)
-        if (state.isRunning && state.runLogs.isNotEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    EnhancedHeaderRow("Run Logs")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    state.runLogs.takeLast(50).forEach { line ->
-                        Text(
-                            text = line,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
 
         // Native folder picker for opening a script (MVP)
         if (state.showOpenScriptPicker) {
@@ -429,10 +441,24 @@ private fun ScriptCreationUI(
 
                 // Steps list
                 if (state.currentScript?.steps?.isNotEmpty() == true) {
+                    val executionState = StepExecutionState(
+                        isScriptRunning = state.isRunning,
+                        currentStepIndex = state.runningStepIndex,
+                        failedStepIndex = state.failedStepIndex,
+                        completedSteps = state.completedSteps
+                    )
                     itemsIndexed(state.currentScript.steps) { index, step ->
+                        // Extract error message for this specific step
+                        val stepErrorMessage =
+                            if (executionState.failedStepIndex == index && state.runLogs.isNotEmpty()) {
+                                state.runLogs.find { it.contains("Step ${index + 1} failed:") }
+                            } else null
+                        
                         StepItem(
                             step = step,
                             index = index,
+                            executionState = executionState,
+                            errorMessage = stepErrorMessage,
                             onRemove = { onAction(AutomationPlugin.Actions.RemoveStep(index)) },
                             onEdit = {
                                 // Only allow editing if not running and no dialogs are open
@@ -517,6 +543,8 @@ private fun AddStepDropdown(onAction: OnAction) {
 private fun StepItem(
     step: ScriptStep,
     index: Int,
+    executionState: StepExecutionState,
+    errorMessage: String? = null,
     onRemove: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -525,28 +553,60 @@ private fun StepItem(
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
             Row(
                 modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Step number badge
+                // Step status indicator
+                val stepStatus = getStepStatus(index, executionState)
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape),
+                        .background(
+                            when (stepStatus) {
+                                StepStatus.SUCCESS -> androidx.compose.ui.graphics.Color(0xFF4CAF50).copy(alpha = 0.2f)
+                                StepStatus.FAILED -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                                StepStatus.RUNNING -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                StepStatus.PENDING -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            },
+                            CircleShape
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = "${index + 1}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    when (stepStatus) {
+                        StepStatus.PENDING -> Text(
+                            text = "${index + 1}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+
+                        StepStatus.RUNNING -> CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        StepStatus.SUCCESS -> Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Completed",
+                            modifier = Modifier.size(16.dp),
+                            tint = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                        )
+
+                        StepStatus.FAILED -> Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Failed",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -578,6 +638,20 @@ private fun StepItem(
                 contentDescription = "Remove step",
                 onClick = onRemove
             )
+            }
+
+            // Show error message inline with the failed step
+            if (!errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

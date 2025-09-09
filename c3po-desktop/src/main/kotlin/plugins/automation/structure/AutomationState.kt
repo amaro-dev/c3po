@@ -17,5 +17,7 @@ data class AutomationState(
     val isRunning: Boolean = false,
     val runningStepIndex: Int = -1,
     val runLogs: List<String> = emptyList(),
+    val failedStepIndex: Int = -1, // Track which step failed (-1 means no failure)
+    val completedSteps: Set<Int> = emptySet(), // Track which steps have completed successfully
     val currentScriptFolder: String? = null,
 )

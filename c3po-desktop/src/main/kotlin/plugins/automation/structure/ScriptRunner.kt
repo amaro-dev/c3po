@@ -8,6 +8,7 @@ import core.command.InstallApkCommand
 import core.command.StartActivityCommand
 import core.command.StopAppCommand
 import core.command.UninstallAppCommand
+import core.logging.StructuredLogger
 import core.model.Action
 import core.model.ActivityInfo
 import core.model.AppPackage
@@ -17,6 +18,7 @@ import dev.amaro.sonic.IProcessor
 class ScriptRunner(
     private val pluginName: String,
 ) {
+    private val logger = StructuredLogger.getInstance()
     suspend fun run(
         script: Script,
         scriptFolder: String,
@@ -30,42 +32,52 @@ class ScriptRunner(
             processor.reduce(Action.DeliverPluginResult(pluginName, listOf(currentState)))
         }
 
-        update { it.copy(isRunning = true, runningStepIndex = 0, runLogs = emptyList()) }
+        update {
+            it.copy(
+                isRunning = true,
+                runningStepIndex = 0,
+                runLogs = emptyList(),
+                failedStepIndex = -1,
+                completedSteps = emptySet()
+            )
+        }
+
+        logger.log("automation", "script_start", "Started script: ${script.name}")
 
         script.steps.forEachIndexed { index, step ->
             update {
-                it.copy(
-                    runningStepIndex = index,
-                    runLogs = it.runLogs + "Running step \${index + 1}: \${step.type}"
-                )
+                it.copy(runningStepIndex = index)
             }
+
+            logger.log("automation", "step_start", "Step ${index + 1}: ${step.type}")
 
             val result = when (step) {
                 is ScriptStep.InstallApk -> runInstall(step, scriptFolder, state, executor)
-                is ScriptStep.RemovePackage -> runUninstall(step, state, executor).also {
-                    if (it.isSuccess) update { s -> s.copy(runLogs = s.runLogs + "Uninstall checked/executed for \${step.packageName}") }
-                }
-
-                is ScriptStep.ClearData -> runClearData(step, state, executor).also {
-                    if (it.isSuccess) update { s -> s.copy(runLogs = s.runLogs + "Clear data checked/executed for \${step.packageName}") }
-                }
-
+                is ScriptStep.RemovePackage -> runUninstall(step, state, executor)
+                is ScriptStep.ClearData -> runClearData(step, state, executor)
                 is ScriptStep.StartActivity -> runStartActivity(step, state, executor)
-                is ScriptStep.StopPackage -> runStopPackage(step, state, executor).also {
-                    if (it.isSuccess) update { s -> s.copy(runLogs = s.runLogs + "Stop package executed for \${step.packageName}") }
-                }
+                is ScriptStep.StopPackage -> runStopPackage(step, state, executor)
             }
 
             if (result.isFailure) {
-                result.exceptionOrNull()?.message ?: "Unknown error"
-                update { it.copy(isRunning = false, runLogs = it.runLogs + "Error: \$message") }
+                val message = result.exceptionOrNull()?.message ?: "Unknown error"
+                logger.log("automation", "step_failed", "Step ${index + 1} failed: $message")
+                update {
+                    it.copy(
+                        isRunning = false,
+                        failedStepIndex = index,
+                        runLogs = it.runLogs + "Step ${index + 1} failed: $message"
+                    )
+                }
                 return
             } else {
-                update { it.copy(runLogs = it.runLogs + "Step \${index + 1} completed") }
+                logger.log("automation", "step_completed", "Step ${index + 1} completed successfully")
+                update { it.copy(completedSteps = it.completedSteps + index) }
             }
         }
 
-        update { it.copy(isRunning = false, runningStepIndex = -1, runLogs = it.runLogs + "Run completed") }
+        logger.log("automation", "script_completed", "Script completed successfully")
+        update { it.copy(isRunning = false, runningStepIndex = -1) }
 
         // Trigger global success message
         processor.reduce(Action.SetSuccess("Script '${script.name}' executed successfully"))
