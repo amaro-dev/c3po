@@ -17,7 +17,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   actions: read
 
@@ -109,19 +109,11 @@ jobs:
           
           # Copy markdown files from docs/wiki to wiki root
           echo "Copying files from docs/wiki/:"
-          copied_files=0
-          for file in ../docs/wiki/*.md; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              echo "  Copying: $filename"
-              cp "$file" "./$filename" || {
-                echo "Failed to copy $filename"
-                exit 1
-              }
-              copied_files=$((copied_files + 1))
-            fi
-          done
-          echo "Copied $copied_files markdown files"
+          cp ../docs/wiki/*.md . || {
+            echo "Failed to copy markdown files"
+            exit 1
+          }
+          echo "Copied $(ls -1 *.md | wc -l) markdown files"
           
           # List what we're about to sync
           echo "Files after sync:"
