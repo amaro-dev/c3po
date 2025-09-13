@@ -110,12 +110,26 @@ jobs:
           # Copy markdown files from docs/wiki to wiki root
           echo "Copying files from docs/wiki/:"
           copied_files=0
-          for file in ../docs/wiki/*.md; do
+
+          # Use absolute path to the main repository
+          REPO_ROOT="${GITHUB_WORKSPACE}"
+          echo "Repository root: $REPO_ROOT"
+          echo "Current directory: $(pwd)"
+          echo "Looking for files in: $REPO_ROOT/docs/wiki/"
+          ls -la "$REPO_ROOT/docs/wiki/" || {
+            echo "Failed to list source directory"
+            exit 1
+          }
+
+          for file in "$REPO_ROOT/docs/wiki"/*.md; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "  Copying: $filename"
+              echo "  Copying: $filename from $file"
               cp "$file" "./$filename" || {
                 echo "Failed to copy $filename"
+                echo "Source file exists: $(test -f "$file" && echo "yes" || echo "no")"
+                echo "Target directory: $(pwd)"
+                echo "Permissions: $(ls -la "$file" 2>/dev/null || echo "cannot read permissions")"
                 exit 1
               }
               ((copied_files++))
