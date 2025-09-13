@@ -1,0 +1,231 @@
+name: Sync Wiki on Release
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test mode - simulates a release sync'
+        required: false
+        default: 'false'
+        type: boolean
+      test_version:
+        description: 'Version to use for testing (e.g., v1.0.0-test)'
+        required: false
+        default: 'v0.0.0-test'
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  actions: read
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract release information
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.test_version }}" >> $GITHUB_OUTPUT
+            echo "release_name=Manual Test Run" >> $GITHUB_OUTPUT
+            echo "is_test_mode=true" >> $GITHUB_OUTPUT
+            echo "🧪 Running in test mode with version: ${{ inputs.test_version }}"
+          else
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
+            echo "is_test_mode=false" >> $GITHUB_OUTPUT
+            echo "🚀 Running for actual release: ${{ github.event.release.tag_name }}"
+          fi
+
+      - name: Check if wiki content exists
+        id: check_content
+        run: |
+          if [ -d "docs/wiki" ] && [ "$(find docs/wiki -name '*.md' | wc -l)" -gt 0 ]; then
+            echo "has_content=true" >> $GITHUB_OUTPUT
+            echo "Found $(find docs/wiki -name '*.md' | wc -l) markdown files to sync"
+          else
+            echo "has_content=false" >> $GITHUB_OUTPUT
+            echo "No wiki content found in docs/wiki/"
+          fi
+
+      - name: Setup git configuration
+        if: steps.check_content.outputs.has_content == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check wiki repository status
+        if: steps.check_content.outputs.has_content == 'true'
+        id: wiki_check
+        run: |
+          # Check if wiki repository exists and is accessible
+          if git ls-remote --heads https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git &>/dev/null; then
+            echo "wiki_exists=true" >> $GITHUB_OUTPUT
+            echo "Wiki repository exists and is accessible"
+          else
+            echo "wiki_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Wiki repository not found. Please enable Wiki in repository settings first."
+            echo "Visit: https://github.com/${{ github.repository }}/settings"
+            exit 1
+          fi
+
+      - name: Clone wiki repository
+        if: steps.check_content.outputs.has_content == 'true' && steps.wiki_check.outputs.wiki_exists == 'true'
+        run: |
+          # Clone wiki repository with authentication
+          git clone https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki-repo
+          
+          cd wiki-repo
+          
+          # Ensure we're on the correct branch (wikis typically use master)
+          git checkout master 2>/dev/null || git checkout main 2>/dev/null || {
+            echo "Creating master branch for wiki"
+            git checkout -b master
+          }
+
+      - name: Sync wiki content
+        if: steps.check_content.outputs.has_content == 'true' && steps.wiki_check.outputs.wiki_exists == 'true'
+        run: |
+          cd wiki-repo
+          
+          # Backup existing files list for comparison
+          echo "Current wiki files:"
+          ls -la *.md 2>/dev/null || echo "No existing markdown files"
+          
+          # Clear existing content (except .git)
+          find . -name "*.md" -type f -delete
+          
+          # Copy markdown files from docs/wiki to wiki root
+          echo "Copying files from docs/wiki/:"
+          copied_files=0
+          while IFS= read -r -d '' file; do
+            filename=$(basename "$file")
+            echo "  Copying: $filename"
+            cp "$file" "./$filename"
+            ((copied_files++))
+          done < <(find ../docs/wiki -name "*.md" -type f -print0)
+          
+          echo "Copied $copied_files markdown files"
+          
+          # List what we're about to sync
+          echo "Files after sync:"
+          ls -la *.md 2>/dev/null || echo "No markdown files found after sync"
+          
+          # Check if there are any changes to commit
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes detected in wiki content"
+            echo "sync_needed=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected in wiki content"
+            echo "sync_needed=true" >> $GITHUB_ENV
+          
+            # Show what changed
+            echo "Git status:"
+            git status --porcelain
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_content.outputs.has_content == 'true' && steps.wiki_check.outputs.wiki_exists == 'true' && env.sync_needed == 'true'
+        run: |
+          cd wiki-repo
+          
+          # Stage all changes
+          git add .
+          
+          # Verify there are actually staged changes
+          if git diff --cached --quiet; then
+            echo "No changes staged for commit"
+            exit 1
+          fi
+          
+          # Create commit message with release info
+          if [ "${{ steps.release.outputs.is_test_mode }}" = "true" ]; then
+            commit_message="🧪 Test sync of wiki content (version ${{ steps.release.outputs.version }})
+          
+          This is a test run triggered manually to verify wiki synchronization.
+          
+          Commit: ${{ github.sha }}
+          Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          
+          Note: This was a manual test - no actual release was created."
+          else
+            commit_message="📚 Sync wiki content for release ${{ steps.release.outputs.version }}
+          
+          Updated wiki documentation from docs/wiki/ as part of release ${{ steps.release.outputs.release_name }}.
+          
+          Release: ${{ github.event.release.html_url }}
+          Commit: ${{ github.sha }}
+          Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          fi
+          
+          # Commit changes
+          git commit -m "$commit_message" || {
+            echo "Failed to commit changes"
+            git status
+            exit 1
+          }
+          
+          # Push to wiki repository with retry logic
+          echo "Pushing changes to wiki repository..."
+          for attempt in 1 2 3; do
+            if git push origin HEAD; then
+              echo "Successfully pushed to wiki repository"
+              break
+            else
+              echo "Push attempt $attempt failed"
+              if [ $attempt -eq 3 ]; then
+                echo "Failed to push after 3 attempts"
+                exit 1
+              fi
+              sleep 2
+            fi
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Wiki Sync Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.release.outputs.is_test_mode }}" = "true" ]; then
+            echo "- **Mode**: 🧪 Test Mode" >> $GITHUB_STEP_SUMMARY
+            echo "- **Test Version**: ${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Mode**: 🚀 Release Sync" >> $GITHUB_STEP_SUMMARY
+            echo "- **Release**: ${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_content.outputs.has_content }}" = "false" ]; then
+            echo "- **Status**: ⚠️ No wiki content found in \`docs/wiki/\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Action**: Create markdown files in \`docs/wiki/\` directory" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.wiki_check.outputs.wiki_exists }}" = "false" ]; then
+            echo "- **Status**: ❌ Wiki feature not enabled" >> $GITHUB_STEP_SUMMARY
+            echo "- **Action**: Enable Wiki in [repository settings](https://github.com/${{ github.repository }}/settings)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ env.sync_needed }}" = "false" ]; then
+            echo "- **Status**: ✅ Wiki is already up to date" >> $GITHUB_STEP_SUMMARY
+            echo "- **Files checked**: $(find docs/wiki -name '*.md' 2>/dev/null | wc -l) markdown files" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status**: ✅ Wiki successfully updated" >> $GITHUB_STEP_SUMMARY
+            echo "- **Files synced**: $(find docs/wiki -name '*.md' 2>/dev/null | wc -l) markdown files" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📖 [View the wiki](https://github.com/${{ github.repository }}/wiki)" >> $GITHUB_STEP_SUMMARY
+          echo "⚙️ [Manage wiki settings](https://github.com/${{ github.repository }}/settings)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Clean up cloned wiki repository
+          rm -rf wiki-repo
