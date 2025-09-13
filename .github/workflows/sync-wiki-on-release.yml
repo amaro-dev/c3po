@@ -110,53 +110,15 @@ jobs:
           # Copy markdown files from docs/wiki to wiki root
           echo "Copying files from docs/wiki/:"
           copied_files=0
-
-          # First, let's debug the directory structure
-          echo "=== DEBUGGING DIRECTORY STRUCTURE ==="
-          echo "Current directory: $(pwd)"
-          echo "Parent directory contents:"
-          ls -la ../ || echo "Cannot list parent directory"
-          echo "Looking for ../docs/wiki:"
-          ls -la ../docs/wiki/ 2>&1 || echo "Cannot find ../docs/wiki/"
-
-          # Test the first file manually to see exact error
-          first_file="../docs/wiki/Activities-and-Services-Management.md"
-          echo "=== TESTING FIRST FILE COPY ==="
-          echo "Testing file: $first_file"
-          echo "File exists: $(test -f "$first_file" && echo "YES" || echo "NO")"
-          if [ -f "$first_file" ]; then
-            echo "File details:"
-            ls -la "$first_file"
-            echo "Attempting copy with full error output:"
-            cp "$first_file" "./test-copy.md" 2>&1 || {
-              echo "Copy failed with exit code: $?"
-              echo "Let's try a different approach..."
-            }
-          fi
-
-          # Try the original logic but capture stderr
           for file in ../docs/wiki/*.md; do
-            echo "=== Processing: $file ==="
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               echo "  Copying: $filename"
-              echo "  Source: $file"
-              echo "  Target: ./$filename"
-
-              # Capture both stdout and stderr
-              if ! cp "$file" "./$filename" 2>&1; then
-                echo "❌ Copy failed!"
-                echo "Exit code: $?"
-                echo "Source file check: $(ls -la "$file" 2>&1)"
-                echo "Target dir check: $(ls -la . 2>&1)"
-                echo "PWD: $(pwd)"
+              cp "$file" "./$filename" || {
+                echo "Failed to copy $filename"
                 exit 1
-              else
-                echo "✅ Copy successful"
-                ((copied_files++))
-              fi
-            else
-              echo "  ❌ File does not exist: $file"
+              }
+              copied_files=$((copied_files + 1))
             fi
           done
           echo "Copied $copied_files markdown files"
