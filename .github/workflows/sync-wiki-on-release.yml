@@ -111,28 +111,52 @@ jobs:
           echo "Copying files from docs/wiki/:"
           copied_files=0
 
-          # Use absolute path to the main repository
-          REPO_ROOT="${GITHUB_WORKSPACE}"
-          echo "Repository root: $REPO_ROOT"
+          # First, let's debug the directory structure
+          echo "=== DEBUGGING DIRECTORY STRUCTURE ==="
           echo "Current directory: $(pwd)"
-          echo "Looking for files in: $REPO_ROOT/docs/wiki/"
-          ls -la "$REPO_ROOT/docs/wiki/" || {
-            echo "Failed to list source directory"
-            exit 1
-          }
+          echo "Parent directory contents:"
+          ls -la ../ || echo "Cannot list parent directory"
+          echo "Looking for ../docs/wiki:"
+          ls -la ../docs/wiki/ 2>&1 || echo "Cannot find ../docs/wiki/"
 
-          for file in "$REPO_ROOT/docs/wiki"/*.md; do
+          # Test the first file manually to see exact error
+          first_file="../docs/wiki/Activities-and-Services-Management.md"
+          echo "=== TESTING FIRST FILE COPY ==="
+          echo "Testing file: $first_file"
+          echo "File exists: $(test -f "$first_file" && echo "YES" || echo "NO")"
+          if [ -f "$first_file" ]; then
+            echo "File details:"
+            ls -la "$first_file"
+            echo "Attempting copy with full error output:"
+            cp "$first_file" "./test-copy.md" 2>&1 || {
+              echo "Copy failed with exit code: $?"
+              echo "Let's try a different approach..."
+            }
+          fi
+
+          # Try the original logic but capture stderr
+          for file in ../docs/wiki/*.md; do
+            echo "=== Processing: $file ==="
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "  Copying: $filename from $file"
-              cp "$file" "./$filename" || {
-                echo "Failed to copy $filename"
-                echo "Source file exists: $(test -f "$file" && echo "yes" || echo "no")"
-                echo "Target directory: $(pwd)"
-                echo "Permissions: $(ls -la "$file" 2>/dev/null || echo "cannot read permissions")"
+              echo "  Copying: $filename"
+              echo "  Source: $file"
+              echo "  Target: ./$filename"
+
+              # Capture both stdout and stderr
+              if ! cp "$file" "./$filename" 2>&1; then
+                echo "❌ Copy failed!"
+                echo "Exit code: $?"
+                echo "Source file check: $(ls -la "$file" 2>&1)"
+                echo "Target dir check: $(ls -la . 2>&1)"
+                echo "PWD: $(pwd)"
                 exit 1
-              }
-              ((copied_files++))
+              else
+                echo "✅ Copy successful"
+                ((copied_files++))
+              fi
+            else
+              echo "  ❌ File does not exist: $file"
             fi
           done
           echo "Copied $copied_files markdown files"
