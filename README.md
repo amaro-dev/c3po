@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Platform-macOS-blue.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Kotlin-2.0.0-purple.svg" alt="Kotlin">
   <img src="https://img.shields.io/badge/Compose-Desktop-green.svg" alt="Compose Desktop">
-  <img src="https://img.shields.io/badge/Version-3.0.0-orange.svg" alt="Version">
+  <img src="https://img.shields.io/github/v/release/amaro-dev/c3po" alt="Version">
   <img src="https://img.shields.io/badge/Java-17+-red.svg" alt="Java">
 <br/>
 <br/>
