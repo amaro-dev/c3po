@@ -1,8 +1,3 @@
----
-title: "Package Management Deep Dive"
-layout: default
----
-
 # Package Management Deep Dive
 
 The Packages plugin provides comprehensive Android application management capabilities, allowing you to view, manage,

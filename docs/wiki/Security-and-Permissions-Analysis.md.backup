@@ -1,8 +1,3 @@
----
-title: "Security and Permissions Analysis"
-layout: default
----
-
 # Security and Permissions Analysis
 
 C3PO provides essential security analysis tools through its Permissions and Signature plugins, enabling developers to

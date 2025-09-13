@@ -1,0 +1,52 @@
+# Site settings
+title: "C3PO Documentation"
+description: "Comprehensive documentation for C3PO - Android Device Explorer and Debugger"
+baseurl: "" # the subpath of your site
+url: "" # will be auto-set by GitHub Pages
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Navigation structure
+header_pages:
+  - index.md
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Collections for better organization
+collections:
+  wiki:
+    output: true
+    permalink: /wiki/:name/
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - "*.backup"
+  - "*.tmp"
+
+# Include files that start with underscore (except _Sidebar which we'll convert)
+include:
+  - _pages
+
+# Default layouts for different content types
+defaults:
+  - scope:
+      path: "wiki"
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
