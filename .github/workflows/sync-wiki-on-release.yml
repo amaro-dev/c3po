@@ -109,15 +109,25 @@ jobs:
           
           # Copy markdown files from docs/wiki to wiki root
           echo "Copying files from docs/wiki/:"
-          copied_files=0
-          while IFS= read -r -d '' file; do
-            filename=$(basename "$file")
-            echo "  Copying: $filename"
-            cp "$file" "./$filename"
-            ((copied_files++))
-          done < <(find ../docs/wiki -name "*.md" -type f -print0)
-          
-          echo "Copied $copied_files markdown files"
+          if [ -d "../docs/wiki" ]; then
+            cd ../docs/wiki
+            copied_files=0
+            for file in *.md; do
+              if [ -f "$file" ]; then
+                echo "  Copying: $file"
+                cp "$file" "../../wiki-repo/$file" || {
+                  echo "Failed to copy $file"
+                  exit 1
+                }
+                ((copied_files++))
+              fi
+            done
+            cd ../../wiki-repo
+            echo "Copied $copied_files markdown files"
+          else
+            echo "docs/wiki directory not found"
+            exit 1
+          fi
           
           # List what we're about to sync
           echo "Files after sync:"
