@@ -115,14 +115,14 @@ jobs:
             for file in *.md; do
               if [ -f "$file" ]; then
                 echo "  Copying: $file"
-                cp "$file" "../../wiki-repo/$file" || {
+                cp "$file" "../wiki-repo/$file" || {
                   echo "Failed to copy $file"
                   exit 1
                 }
                 ((copied_files++))
               fi
             done
-            cd ../../wiki-repo
+            cd ../wiki-repo
             echo "Copied $copied_files markdown files"
           else
             echo "docs/wiki directory not found"
