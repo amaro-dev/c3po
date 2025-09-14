@@ -1,0 +1,319 @@
+---
+title: "Package Management Deep Dive"
+layout: default
+---
+
+# Package Management Deep Dive
+
+The Packages plugin provides comprehensive Android application management capabilities, allowing you to view, manage,
+and analyze installed applications on connected devices.
+
+## Overview
+
+The Packages plugin allows you to:
+
+- Browse all installed applications with filtering options
+- Perform essential package operations (uninstall, stop, clear data)
+- Monitor application sleep states
+- View basic package signature information
+- Filter packages by type, state, and other criteria
+
+## Navigating Package Lists
+
+![Packages Plugin](../screenshots/Packages.png)
+*The main Packages plugin interface showing application list*
+
+### Package List Interface
+
+The package list displays applications with:
+
+- **Package Name:** Technical package identifier (com.example.app)
+- **Version Information:** Version name and code in format "1.0.0 (123)"
+- **Status Indicators:** System, Debug, or Disabled status when applicable
+- **Sleep State:** Detects if the app is in this state
+- **Action Buttons:** Available operations for each package
+
+### Filtering and Searching
+
+#### Search Functionality
+
+The search bar supports filtering by:
+
+- Package name (e.g., com.google.android.gms)
+- Partial package name matching
+- Case-insensitive text matching
+
+#### Filter Options
+
+Use the filter controls to refine the package list:
+
+**App Type Filter:**
+
+- **All:** Show both system and user apps
+- **System:** Show only pre-installed system applications
+- **User:** Show only user-installed applications
+
+**Sleep State Filter:**
+
+- **All:** Show packages regardless of sleep state
+- **Awake:** Show only active packages
+- **Asleep:** Show only packages in sleep mode
+- **Unknown:** Show packages with undetermined sleep state
+
+**Additional Filters:**
+
+- **Only Enabled:** Show only enabled packages (unchecked = show all)
+- **Only Debuggable:** Show only debuggable applications
+- **Only With Signature:** Show only packages with signature information
+
+### Package Information
+
+Each package entry shows:
+
+#### Basic Information
+
+- **Package Name:** Full application identifier
+- **Version Name:** Human-readable version string
+- **Version Code:** Internal version number
+- **Target SDK:** Android API level the app targets (when available)
+
+#### Status Indicators
+
+- **System:** Pre-installed system application
+- **Debug:** Application built in debug mode
+- **Disabled:** Application is disabled on the device
+
+#### Sleep State Information
+
+Displays current battery optimization status:
+
+- **Awake:** Application is active and unrestricted
+- **Asleep:** Application is in battery-optimized sleep mode
+- **Unknown:** Sleep state not yet determined (click to check)
+
+## Package Operations
+
+### Available Actions
+
+Each package provides the following action buttons:
+
+#### Sleep State Check
+
+- **Icon:** Eye/Help icon depending on current state
+- **Function:** Check or display current sleep state
+- **Usage:** Click to determine unknown sleep states
+
+#### Extract Signature
+
+- **Icon:** Key icon
+- **Function:** Extract and display package signature information
+- **Usage:** View signing certificates and validation details
+
+#### Stop Application
+
+- **Icon:** Stop icon
+- **Function:** Force stop the running application
+- **Usage:** Terminate app processes immediately
+
+#### Clear Data
+
+- **Icon:** Cleaning services icon
+- **Function:** Clear all application data and reset to initial state
+- **Usage:** Reset app completely (removes user data, settings, caches)
+
+#### Uninstall Package
+
+- **Icon:** Delete icon
+- **Function:** Remove the application from the device
+- **Usage:** Permanently uninstall the package
+
+### Operation Details
+
+#### Uninstalling Applications
+
+```bash
+# Via C3PO: Click uninstall button for selected package
+# Equivalent ADB command:
+adb uninstall com.example.app
+```
+
+**Important Notes:**
+
+- System applications cannot typically be uninstalled without root access
+- User data may be preserved depending on app configuration
+- Operation requires user confirmation
+
+#### Stopping Applications
+
+```bash
+# Via C3PO: Click stop button for selected package
+# Equivalent ADB command:
+adb shell am force-stop com.example.app
+```
+
+**Use Cases:**
+
+- Free up memory by stopping unused apps
+- Resolve app misbehavior or crashes
+- Stop background processes consuming resources
+
+#### Clearing Application Data
+
+```bash
+# Via C3PO: Click clear data button for selected package
+# Equivalent ADB command:
+adb shell pm clear com.example.app
+```
+
+**Effects:**
+
+- Removes all app data, settings, and caches
+- Resets application to first-launch state
+- Cannot be undone - use with caution
+- Useful for troubleshooting app issues
+
+## Understanding Sleep States
+
+### Android App Standby
+
+Android uses App Standby to optimize battery life by limiting background activity for unused applications.
+Apps in this state cannot receive any broadcast messages
+
+#### Sleep State Categories
+
+- **Awake:** Application is actively used and unrestricted
+- **Asleep:** Application is in battery optimization mode with limited background activity
+- **Unknown:** Sleep state not yet determined - click to check current status
+
+#### Checking Sleep States
+
+```bash
+# Via C3PO: Click the eye/help icon next to any package
+# Manual check via ADB:
+adb shell dumpsys usagestats | grep com.example.app
+```
+
+**Usage Tips:**
+
+- Unknown states are common for newly detected packages
+- Sleep states may change based on user interaction patterns
+- System apps typically remain awake regardless of usage
+
+## Signature Information
+
+### Package Signing Details
+
+When available, C3PO displays basic signing information:
+
+#### Signature Display
+
+- **Certificate Fingerprints:** SHA-256, SHA-1, and MD5 hashes
+- **Signer Information:** Certificate subject details
+- **Debug Status:** Whether app is signed with debug certificate
+
+#### Signature Analysis
+
+Click the key icon to extract signature information:
+
+- Displays signing certificate details
+- Shows certificate fingerprints for verification
+- Indicates debug vs. release signing status
+
+```bash
+# Manual signature checking via ADB:
+adb shell pm path com.example.app
+# Then extract and analyze the APK file
+```
+
+## Best Practices
+
+### Effective Package Management
+
+1. **Use Filters Wisely**
+    - Hide system apps when focusing on user-installed applications
+    - Use sleep state filters to identify battery-optimized apps
+    - Filter by signature status for security analysis
+
+2. **Safe Operations**
+    - Always confirm before uninstalling applications
+    - Use "Clear Data" cautiously as it cannot be undone
+    - Stop applications before performing maintenance operations
+
+3. **Performance Optimization**
+    - Clear search filters when switching devices
+    - Check sleep states to understand battery optimization
+    - Monitor which apps are running vs. stopped
+
+### Security Considerations
+
+1. **Signature Verification**
+    - Check signatures for unfamiliar applications
+    - Verify debug vs. release signing status
+    - Use signature information to identify app authenticity
+
+2. **System App Safety**
+    - Avoid modifying critical system applications
+    - Be cautious with system app data clearing
+    - Understand that system apps may not be uninstallable
+
+## Command Line Integration
+
+C3PO package operations correspond to standard ADB commands:
+
+```bash
+# List installed packages
+adb shell pm list packages
+
+# Get basic package information
+adb shell dumpsys package com.example.app
+
+# Package operations
+adb uninstall com.example.app                    # Uninstall
+adb shell am force-stop com.example.app          # Stop
+adb shell pm clear com.example.app               # Clear data
+
+# Check sleep state
+adb shell dumpsys usagestats | grep com.example.app
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Operation failed" errors
+
+- **Cause:** Insufficient permissions or system restrictions
+- **Solution:** Verify USB debugging is enabled and device is properly authorized
+
+#### System apps cannot be uninstalled
+
+- **Cause:** System applications are protected by Android security
+- **Solution:** Only user-installed applications can typically be uninstalled
+
+#### Sleep state shows as "Unknown"
+
+- **Cause:** Sleep state not yet determined by system
+- **Solution:** Click the help icon to check current state
+
+### Performance Tips
+
+1. **Efficient Browsing**
+    - Use type filters to reduce list size
+    - Clear search terms when switching focus
+    - Sort alphabetically for easier navigation
+
+2. **Batch Operations**
+    - Filter to relevant packages before performing operations
+    - Handle similar operations together for efficiency
+
+3. **Resource Management**
+    - Monitor system response during operations
+    - Allow time for operations to complete before additional actions
+
+---
+
+**Related Guides:**
+
+- [Security and Permissions Analysis](Security-and-Permissions-Analysis.md)
+- [Activities and Services Management](Activities-and-Services-Management.md)
+- [Device Information and Monitoring](Device-Information-and-Monitoring.md)
