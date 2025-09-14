@@ -232,6 +232,53 @@ You can change the ADB location anytime after initial setup:
     - Change path using any of the three methods
     - Save changes
 
+## macOS Permission Setup
+
+### File Access Permissions (macOS Only)
+
+For file dialogs to work properly in C3PO (such as selecting APK files or opening script folders), you'll need to grant
+file access permissions on macOS:
+
+#### Quick Setup
+
+1. **Open System Preferences** (or **System Settings** on macOS 13+)
+2. Go to **Security & Privacy** → **Privacy**
+3. Select **"Files and Folders"** from the left sidebar
+4. Look for **C3PO** in the applications list
+5. Check the boxes for:
+    - ✅ **Documents Folder**
+    - ✅ **Downloads Folder**
+    - ✅ **Desktop Folder**
+
+#### If C3PO Doesn't Appear in the List
+
+Sometimes C3PO won't appear in the Files and Folders list until you've tried using a file dialog first:
+
+1. **Launch C3PO** and complete ADB setup
+2. **Try using a file dialog** (e.g., open Automation plugin and try "Open Script")
+3. **Go back to System Preferences** and look for C3PO in the list
+4. **Grant permissions** as described above
+
+#### Alternative: Full Disk Access
+
+If the above doesn't work, you can grant broader permissions:
+
+1. In **Security & Privacy** → **Privacy**
+2. Select **"Full Disk Access"**
+3. Click the **"+"** button
+4. Navigate to and select the **C3PO application**
+
+#### Verify Permissions
+
+After granting permissions:
+
+1. **Restart C3PO** completely
+2. **Open Settings** in C3PO
+3. **Look for "File Permissions"** section
+4. **Click "Check Status"** to verify access is working
+
+**Note:** This setup is only needed on macOS. Other operating systems don't require this step.
+
 ## Connecting Your First Device
 
 ### Step 1: Prepare Your Android Device

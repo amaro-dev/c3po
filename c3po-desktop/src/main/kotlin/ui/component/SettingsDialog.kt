@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Search
@@ -31,7 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import core.facade.PermissionChecker
 import core.model.Action
 import ui.overlayColor
 import ui.secondaryTextColor
@@ -65,7 +69,8 @@ fun SettingsDialog(
     adbSearchError: String?,
     onAction: (Action) -> Unit,
     onSave: (adbPath: String, updatesUrl: String, darkMode: Boolean, loggingEnabled: Boolean, adbLogging: String, performLogging: Boolean, reduceLogging: Boolean) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onCheckPermissions: () -> Unit = {}
 ) {
     var adbPath by remember { mutableStateOf(initialAdbPath) }
     var updatesUrl by remember { mutableStateOf(initialUpdatesUrl) }
@@ -237,6 +242,55 @@ fun SettingsDialog(
                         checked = darkMode,
                         onCheckedChange = { darkMode = it }
                     )
+                }
+
+                // File Permissions Section (macOS only)
+                if (PermissionChecker.isMacOS()) {
+                    val permissionStatus = remember { PermissionChecker.getPermissionStatus() }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "File Permissions",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Icon(
+                                    imageVector = if (permissionStatus.needsAttention) Icons.Filled.Error else Icons.Filled.CheckCircle,
+                                    contentDescription = if (permissionStatus.needsAttention) "Permission issues detected" else "Permissions OK",
+                                    tint = if (permissionStatus.needsAttention) MaterialTheme.colorScheme.error else Color(
+                                        0xFF4CAF50
+                                    ),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            Text(
+                                text = if (permissionStatus.needsAttention) {
+                                    "Some file dialogs may not work properly"
+                                } else {
+                                    "File access permissions are configured"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondaryTextColor
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = onCheckPermissions
+                        ) {
+                            Text(if (permissionStatus.needsAttention) "Fix Issues" else "Check Status")
+                        }
+                    }
                 }
 
                 // Logging Configuration Section

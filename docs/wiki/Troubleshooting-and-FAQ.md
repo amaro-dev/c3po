@@ -215,6 +215,69 @@ When reporting issues, include:
 - Device model and Android version
 - Steps to reproduce
 
+## File Dialog Issues on macOS
+
+### File Dialogs Not Appearing
+
+**Symptoms:**
+
+- Clicking "Open Script" or "Select APK" buttons does nothing
+- File selection dialogs don't appear
+- No error messages shown
+
+**Cause:** macOS security restrictions prevent the app from accessing file system dialogs without proper permissions.
+
+**Solution:**
+
+1. **Grant File Access Permissions:**
+    - Open **System Preferences** (or **System Settings** on macOS 13+)
+    - Go to **Security & Privacy** → **Privacy**
+    - Select **"Files and Folders"** from the left sidebar
+    - Find **C3PO** in the list and check the boxes for:
+        - ✅ Documents Folder
+        - ✅ Downloads Folder
+        - ✅ Desktop Folder
+
+2. **Alternative: Full Disk Access** (if above doesn't work):
+    - In the same **Privacy** section, select **"Full Disk Access"**
+    - Click the **"+"** button and add the C3PO application
+    - Or add **Java** if you're running from command line
+
+3. **Check Permission Status:**
+    - Open C3PO Settings
+    - Look for the **"File Permissions"** section
+    - Click **"Check Status"** to see current access levels
+    - Follow the displayed instructions if issues are detected
+
+4. **Restart Application:**
+    - Close C3PO completely
+    - Reopen the application for permissions to take effect
+
+**Technical Details:**
+
+- C3PO uses native macOS file dialogs for security compliance
+- macOS Catalina+ requires explicit permission grants for file system access
+- Permissions are tied to the specific application bundle or Java executable
+
+### File Dialog Appears But Can't Access Folders
+
+**Problem:** Dialog appears but shows "Permission denied" or can't browse certain folders.
+
+**Solutions:**
+
+1. Grant permissions as described above
+2. Try browsing to a different folder first (like Desktop)
+3. Use the manual file path input when the dialog offers it
+
+### File Paths with Spaces
+
+**Problem:** Selected file paths with spaces cause errors.
+
+**Solution:** This is handled automatically by the application, but if issues persist:
+
+- Avoid file paths with special characters when possible
+- Use the file dialog rather than typing paths manually
+
 ## Getting Additional Help
 
 **Still experiencing issues?**

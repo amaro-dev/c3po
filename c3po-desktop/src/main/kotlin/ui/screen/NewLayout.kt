@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import core.App
+import core.facade.PermissionChecker
 import core.facade.update.UpdateUtils
 import core.model.Action
 import core.model.CommandStatus
@@ -53,7 +55,9 @@ import dev.amaro.sonic.IAction
 import kotlinx.coroutines.delay
 import plugins.Plugin
 import ui.OnAction
+import ui.component.DialogAction
 import ui.component.SettingsDialog
+import ui.component.StandardDialog
 import ui.secondaryTextColor
 
 @Composable
@@ -75,6 +79,7 @@ fun NewLayout(app: App) {
     val settingsState = state.settingsState
 
     var showSettingsDialog by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     // Auto-show settings dialog when ADB path is not configured
     LaunchedEffect(settingsState, adbPath) {
@@ -158,8 +163,71 @@ fun NewLayout(app: App) {
                 onAction(Action.ChangeSettingsProperty(Settings.LOGGING_REDUCE_PROP, newReduceLogging.toString()))
                 showSettingsDialog = false
             },
-            onCancel = { showSettingsDialog = false }
+            onCancel = { showSettingsDialog = false },
+            onCheckPermissions = { showPermissionDialog = true }
         )
+    }
+
+    // Permission Status Dialog (separate modal on top of Settings)
+    if (showPermissionDialog) {
+        val permissionStatus = remember { PermissionChecker.getPermissionStatus() }
+
+        StandardDialog(
+            title = "File Permission Status",
+            onDismiss = { showPermissionDialog = false },
+            primaryAction = DialogAction(
+                text = "OK",
+                onClick = { showPermissionDialog = false },
+                isPrimary = true
+            )
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Current Status:",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                listOf(
+                    "Documents" to permissionStatus.hasDocumentsAccess,
+                    "Downloads" to permissionStatus.hasDownloadsAccess,
+                    "Desktop" to permissionStatus.hasDesktopAccess
+                ).forEach { (folderName, hasAccess) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (hasAccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
+                            contentDescription = null,
+                            tint = if (hasAccess) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "$folderName folder: ${if (hasAccess) "Accessible" else "No access"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                if (permissionStatus.needsAttention) {
+                    Text(
+                        text = PermissionChecker.getPermissionInstructions(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
+                } else {
+                    Text(
+                        text = "All required file permissions are properly configured. File dialogs should work correctly.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
     }
 
     // Update notification dialog - only show when ADB is configured and settings dialog is not showing

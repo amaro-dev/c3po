@@ -168,6 +168,27 @@ Script execution follows these patterns:
 - **Activity Launch:** Confirm activity names and package state
 - **Permission Errors:** Some operations may require additional device permissions
 
+#### File Dialog Issues (macOS)
+
+**Problem:** Clicking "Open Script" or "Select APK" buttons does nothing.
+
+**Cause:** macOS security restrictions prevent file system access without proper permissions.
+
+**Quick Fix:**
+
+1. Go to **System Preferences** → **Security & Privacy** → **Privacy** → **Files and Folders**
+2. Find **C3PO** in the list and enable folder access permissions
+3. Restart C3PO
+
+**Alternative:** Use C3PO's built-in permission checker:
+
+1. Open **Settings** in C3PO
+2. Find **"File Permissions"** section
+3. Click **"Check Status"** for detailed instructions
+
+**Detailed Solution:** See the [File Dialog Issues section](Troubleshooting-and-FAQ.html#file-dialog-issues-on-macos) in
+the Troubleshooting guide.
+
 ### Getting Help
 
 - **Execution Logs:** Check the log output for specific error messages

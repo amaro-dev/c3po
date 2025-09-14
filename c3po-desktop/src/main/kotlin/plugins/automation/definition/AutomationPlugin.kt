@@ -61,6 +61,9 @@ import ui.component.CustomActionButton
 import ui.component.CustomTextField
 import ui.component.DialogAction
 import ui.component.EnhancedHeaderRow
+import ui.component.FilePickerDialog
+import ui.component.FilePickerFilter
+import ui.component.FilePickerMode
 import ui.component.PrimaryButton
 import ui.component.SecondaryButton
 import ui.component.StandardDialog
@@ -304,9 +307,12 @@ class AutomationPlugin(
         }
 
         if (state.showApkPicker) {
-            ApkPickerDialog(
-                onApkSelected = { apkPath ->
-                    val stepIndex = state.editingStepIndex ?: return@ApkPickerDialog
+            FilePickerDialog(
+                title = "Select APK File",
+                mode = FilePickerMode.FILE,
+                filter = FilePickerFilter("APK Files", listOf("apk")),
+                onFileSelected = { apkPath ->
+                    val stepIndex = state.editingStepIndex ?: return@FilePickerDialog
                     onAction(Actions.ConfigureInstallApk(stepIndex, apkPath))
                 },
                 onDismiss = { onAction(Actions.CancelStepEdit) }
@@ -314,7 +320,7 @@ class AutomationPlugin(
         }
 
 
-        // Native folder picker for opening a script (MVP)
+        // Folder picker for opening a script
         if (state.showOpenScriptPicker) {
             val initialDir = try {
                 val base =
@@ -323,9 +329,11 @@ class AutomationPlugin(
             } catch (_: Exception) {
                 java.io.File("./scripts").absolutePath
             }
-            NativeFolderPicker(
+            FilePickerDialog(
+                title = "Select Script Folder",
+                mode = FilePickerMode.DIRECTORY,
                 initialDirectory = initialDir,
-                onFolderChosen = { folder -> onAction(Actions.ScriptFolderChosen(folder)) },
+                onFileSelected = { folder -> onAction(Actions.ScriptFolderChosen(folder)) },
                 onDismiss = { onAction(Actions.CancelStepEdit) }
             )
         }
@@ -785,157 +793,7 @@ private fun ActivitySelectorDialog(
     }
 }
 
-@Composable
-private fun ApkPickerDialog(
-    onApkSelected: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var filePath by remember { mutableStateOf("") }
 
-    // File picker launcher
-    LaunchedEffect(Unit) {
-        try {
-            val fileDialog = java.awt.FileDialog(null as java.awt.Frame?, "Select APK File", java.awt.FileDialog.LOAD)
-            fileDialog.setFilenameFilter { _, name ->
-                name.lowercase().endsWith(".apk")
-            }
-            fileDialog.isVisible = true
-
-            val selectedFile = fileDialog.file
-            val selectedDir = fileDialog.directory
-
-            if (selectedFile != null && selectedDir != null) {
-                filePath = "$selectedDir$selectedFile"
-            } else {
-                // User cancelled the dialog
-                onDismiss()
-            }
-        } catch (e: Exception) {
-            // Fallback to manual input if file dialog fails
-            filePath = ""
-        }
-    }
-
-    if (filePath.isNotEmpty()) {
-        // Show confirmation dialog with selected file
-        StandardDialog(
-            title = "Confirm APK Selection",
-            onDismiss = onDismiss,
-            primaryAction = DialogAction(
-                text = "Use This File",
-                onClick = { onApkSelected(filePath) },
-                isPrimary = true
-            ),
-            secondaryAction = DialogAction(
-                text = "Cancel",
-                onClick = onDismiss
-            )
-        ) {
-            Text(
-                text = "Selected APK file:",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = filePath,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "The file will be copied to the script folder.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-        }
-    } else {
-        // Fallback manual input dialog
-        StandardDialog(
-            title = "Select APK File",
-            onDismiss = onDismiss,
-            primaryAction = DialogAction(
-                text = "Select",
-                onClick = {
-                    if (filePath.isNotBlank()) {
-                        onApkSelected(filePath)
-                    }
-                },
-                enabled = filePath.isNotBlank(),
-                isPrimary = true
-            ),
-            secondaryAction = DialogAction(
-                text = "Cancel",
-                onClick = onDismiss
-            )
-        ) {
-            Text(
-                text = "File picker unavailable. Please enter the path manually:",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            CustomTextField(
-                value = filePath,
-                onValueChange = { filePath = it },
-                placeholder = "/path/to/your/app.apk",
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-private fun NativeFolderPicker(
-    initialDirectory: String,
-    onFolderChosen: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    LaunchedEffect(Unit) {
-        try {
-            // Temporarily enable directory selection on macOS
-            val key = "apple.awt.fileDialogForDirectories"
-            val previous = try {
-                System.getProperty(key)
-            } catch (_: Exception) {
-                null
-            }
-            try {
-                try {
-                    System.setProperty(key, "true")
-                } catch (_: Exception) {
-                }
-
-                val chooser =
-                    java.awt.FileDialog(null as java.awt.Frame?, "Select Script Folder", java.awt.FileDialog.LOAD)
-                chooser.isMultipleMode = false
-                chooser.directory = initialDirectory
-                chooser.isVisible = true
-
-                val selectedPath = if (chooser.file != null) {
-                    java.io.File(chooser.directory, chooser.file).absolutePath
-                } else {
-                    null
-                }
-
-                if (selectedPath != null) onFolderChosen(selectedPath) else onDismiss()
-            } finally {
-                try {
-                    if (previous == null) System.clearProperty(key) else System.setProperty(key, previous)
-                } catch (_: Exception) {
-                }
-            }
-        } catch (e: Exception) {
-            onDismiss()
-        }
-    }
-}
 
 private fun getStepDisplayName(step: ScriptStep): String =
     when (step) {
