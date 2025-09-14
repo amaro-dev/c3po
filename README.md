@@ -48,7 +48,7 @@ deep insights into app internals, system components, and device management throu
 ### Option 1: Download Pre-built Release (Recommended)
 
 1. **Download the latest release:**
-    - Visit the [Releases page](../../releases)
+    - Visit the [Releases page](https://github.com/amaro-dev/c3po/releases)
     - Download the latest `c3po-X.X.X-macos.dmg` file
 
 2. **Install the application:**
@@ -74,7 +74,7 @@ deep insights into app internals, system components, and device management throu
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/c3po.git
+git clone https://github.com/amaro-dev/c3po.git
 cd c3po
 
 # Build the application
@@ -259,15 +259,13 @@ C3PO offers comprehensive Android device management through a powerful plugin-ba
 
 For comprehensive walkthroughs with screenshots and examples:
 
-- 🚀 **[Getting Started Guide](docs/wiki/Getting-Started-Guide.md)** - First-time setup walkthrough
-- 📦 **[Package Management Deep Dive](docs/wiki/Package-Management-Deep-Dive.md)** - Complete app management guide
-- 📋 **[Activities & Services Management](docs/wiki/Activities-and-Services-Management.md)** - Component lifecycle
-  control
-- 🔐 **[Security & Permissions Analysis](docs/wiki/Security-and-Permissions-Analysis.md)** - Security auditing tools
-- 📊 **[Device Information & Monitoring](docs/wiki/Device-Information-and-Monitoring.md)** - Hardware specs and
-  performance
-- 🤖 **[Automation & Scripting](docs/wiki/Automation-and-Scripting.md)** - Custom workflows and batch operations
-- ❓ **[Troubleshooting & FAQ](docs/wiki/Troubleshooting-and-FAQ.md)** - Common issues and solutions
+- 🚀 **[Getting Started Guide](https://amaro-dev.github.io/c3po/wiki/Getting-Started-Guide.html)** - First-time setup walkthrough
+- 📦 **[Package Management Deep Dive](https://amaro-dev.github.io/c3po/wiki/Package-Management-Deep-Dive.html)** - Complete app management guide
+- 📋 **[Activities & Services Management](https://amaro-dev.github.io/c3po/wiki/Activities-and-Services-Management.html)** - Component lifecycle control
+- 🔐 **[Security & Permissions Analysis](https://amaro-dev.github.io/c3po/wiki/Security-and-Permissions-Analysis.html)** - Security auditing tools
+- 📊 **[Device Information & Monitoring](https://amaro-dev.github.io/c3po/wiki/Device-Information-and-Monitoring.html)** - Hardware specs and performance
+- 🤖 **[Automation & Scripting](https://amaro-dev.github.io/c3po/wiki/Automation-and-Scripting.html)** - Custom workflows and batch operations
+- ❓ **[Troubleshooting & FAQ](https://amaro-dev.github.io/c3po/wiki/Troubleshooting-and-FAQ.html)** - Common issues and solutions
 
 ## Troubleshooting
 
@@ -371,9 +369,9 @@ given to the author and derivative works are distributed under the same license.
 
 ### Getting Help
 
-- **GitHub Issues:** [Report bugs or request features](../../issues)
-- **GitHub Discussions:** [Ask questions and get support](../../discussions)
-- **Wiki:** [Comprehensive documentation](../../wiki)
+- **GitHub Issues:** [Report bugs or request features](https://github.com/amaro-dev/c3po/issues)
+- **GitHub Discussions:** [Ask questions and get support](https://github.com/amaro-dev/c3po/discussions)
+- **Documentation:** [Comprehensive documentation](https://amaro-dev.github.io/c3po/)
 
 ### Buy Me a Beer 🍺
 
