@@ -7,7 +7,7 @@ url: "" # will be auto-set by GitHub Pages
 # Build settings
 markdown: kramdown
 highlighter: rouge
-theme: jekyll-theme-cayman
+remote_theme: pages-themes/cayman@v0.2.0
 
 # Navigation structure
 header_pages:
@@ -15,6 +15,7 @@ header_pages:
 
 # Plugins
 plugins:
+  - jekyll-remote-theme
   - jekyll-feed
   - jekyll-sitemap
 
