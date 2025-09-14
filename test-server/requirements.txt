@@ -1,5 +1,0 @@
-# C3PO Auto-Update Mock Server Dependencies
-# Install with: pip install -r requirements.txt
-
-Flask==3.0.0
-Werkzeug==3.0.1
