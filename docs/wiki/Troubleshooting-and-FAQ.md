@@ -5,8 +5,7 @@ layout: default
 
 # Troubleshooting and FAQ
 
-Quick solutions for common C3PO issues and answers to frequently asked questions. For detailed setup instructions, see
-the [Getting Started Guide](Getting-Started-Guide.md).
+Quick solutions for common C3PO issues and answers to frequently asked questions. For detailed setup instructions, see the [Getting Started Guide](Getting-Started-Guide.html).
 
 ## Quick Error Reference
 
@@ -25,7 +24,7 @@ the [Getting Started Guide](Getting-Started-Guide.md).
 | Problem                   | Solution                                                                       |
 |---------------------------|--------------------------------------------------------------------------------|
 | No devices shown          | Verify ADB path in Settings → Test Connection                                  |
-| "ADB not configured"      | See [Getting Started Guide](Getting-Started-Guide.md#configuring-adb-location) |
+| "ADB not configured"      | See [Getting Started Guide](Getting-Started-Guide.html#configuring-adb-location) |
 | Connection keeps dropping | Try different USB cable/port                                                   |
 | Plugins show no data      | Check device authorization status                                              |
 
@@ -179,7 +178,7 @@ A: Check device storage, reduce running apps, restart C3PO, close unused plugins
 A: Feature availability depends on Android version, device manufacturer, and authorization level.
 
 **Q: Can I automate C3PO operations?**  
-A: Use the [Automation plugin](Automation-and-Scripting.md) for scripting common tasks.
+A: Use the [Automation plugin](Automation-and-Scripting.html) for scripting common tasks.
 
 ## Plugin-Specific Issues
 
@@ -192,9 +191,9 @@ A: Use the [Automation plugin](Automation-and-Scripting.md) for scripting common
 
 **For detailed plugin troubleshooting:** See individual feature guides
 
-- [Package Management Issues](Package-Management-Deep-Dive.md)
-- [Activities and Services Issues](Activities-and-Services-Management.md)
-- [Permissions and Security Issues](Security-and-Permissions-Analysis.md)
+- [Package Management Issues](Package-Management-Deep-Dive.html)
+- [Activities and Services Issues](Activities-and-Services-Management.html)
+- [Permissions and Security Issues](Security-and-Permissions-Analysis.html)
 
 ## Debug Information
 
@@ -221,7 +220,7 @@ When reporting issues, include:
 **Still experiencing issues?**
 
 1. **Check existing solutions:**
-    - [Getting Started Guide](Getting-Started-Guide.md) - Setup and configuration
+    - [Getting Started Guide](Getting-Started-Guide.html) - Setup and configuration
     - Feature-specific guides for detailed troubleshooting
 
 2. **Report new issues:**

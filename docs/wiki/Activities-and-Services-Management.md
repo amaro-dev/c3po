@@ -255,6 +255,6 @@ The Activities and Services plugins provide:
 
 **Related Guides:**
 
-- [Package Management Deep Dive](Package-Management-Deep-Dive.md)
-- [Security and Permissions Analysis](Security-and-Permissions-Analysis.md)
-- [Device Information and Monitoring](Device-Information-and-Monitoring.md)
+- [Package Management Deep Dive](Package-Management-Deep-Dive.html)
+- [Security and Permissions Analysis](Security-and-Permissions-Analysis.html)
+- [Device Information and Monitoring](Device-Information-and-Monitoring.html)

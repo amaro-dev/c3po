@@ -134,6 +134,6 @@ Visual indicators showing APK signature scheme support:
 
 **Related Guides:**
 
-- [Getting Started Guide](Getting-Started-Guide.md)
-- [Package Management Deep Dive](Package-Management-Deep-Dive.md)
-- [Activities and Services Management](Activities-and-Services-Management.md)
+- [Getting Started Guide](Getting-Started-Guide.html)
+- [Package Management Deep Dive](Package-Management-Deep-Dive.html)
+- [Activities and Services Management](Activities-and-Services-Management.html)

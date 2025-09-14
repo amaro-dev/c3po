@@ -314,6 +314,6 @@ adb shell dumpsys usagestats | grep com.example.app
 
 **Related Guides:**
 
-- [Security and Permissions Analysis](Security-and-Permissions-Analysis.md)
-- [Activities and Services Management](Activities-and-Services-Management.md)
-- [Device Information and Monitoring](Device-Information-and-Monitoring.md)
+- [Security and Permissions Analysis](Security-and-Permissions-Analysis.html)
+- [Activities and Services Management](Activities-and-Services-Management.html)
+- [Device Information and Monitoring](Device-Information-and-Monitoring.html)

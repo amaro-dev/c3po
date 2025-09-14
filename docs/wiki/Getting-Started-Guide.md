@@ -5,8 +5,7 @@ layout: default
 
 # Getting Started Guide
 
-This comprehensive guide will walk you through setting up C3PO from installation to connecting your first Android
-device.
+This comprehensive guide walks you through setting up C3PO, from installation to connecting your first Android device. Follow each section in order for the smoothest experience.
 
 ## Prerequisites Check
 
@@ -14,11 +13,11 @@ Before installing C3PO, ensure your system meets the requirements:
 
 ### System Requirements
 
-- **macOS:** 10.14 Mojave or later
-- **Architecture:** Apple Silicon (M1/M2/M3)
-- **Memory:** Minimum 512MB RAM available
-- **Storage:** 150MB free space
-- **Java:** Version 17 or later (will be bundled with app)
+- **macOS**: 10.14 Mojave or later
+- **Architecture**: Apple Silicon (M1/M2/M3)
+- **Memory**: Minimum 512MB RAM available
+- **Storage**: 150MB free space
+- **Java**: Version 17 or later (bundled with the app)
 
 ### Check Your System
 
@@ -39,7 +38,7 @@ df -h /Applications
 ### Method 1: Pre-built Release (Recommended)
 
 1. **Download:**
-    - Visit [GitHub Releases](../../releases)
+    - Visit [GitHub Releases](https://github.com/amaro-dev/c3po/releases)
     - Download `c3po-X.X.X-macos.dmg`
     - Choose the latest stable version
 
@@ -132,11 +131,10 @@ If you know exactly where ADB is installed:
    ```bash
    # Homebrew on Apple Silicon
    /opt/homebrew/bin/adb
-   
-   
+
    # Android SDK (default location)
    ~/Library/Android/sdk/platform-tools/adb
-   
+
    # Manual installation
    /usr/local/platform-tools/adb
    ```
@@ -153,13 +151,11 @@ For a visual approach to finding ADB:
 
 ### ADB Verification Process
 
-Once you've set the ADB path, C3PO will:
+Once you've set the ADB path, C3PO will automatically:
 
-1. **Test ADB Execution:**
-
-2. **Display Connection Status:**
-
-3. **Go to the Device Plugin:**
+1. **Test ADB Execution** - Verify the ADB executable runs correctly
+2. **Display Connection Status** - Show whether ADB is working properly
+3. **Navigate to Device Plugin** - Open the main device interface if successful
 
 ### Troubleshooting ADB Setup
 
@@ -363,16 +359,16 @@ Available plugins in sidebar:
 Once you're comfortable with basic operations:
 
 1. **Read Feature Guides:**
-    - [Package Management Deep Dive](Package-Management-Deep-Dive.md)
-    - [Activities and Services Management](Activities-and-Services-Management.md)
-    - [Security and Permissions Analysis](Security-and-Permissions-Analysis.md)
+    - [Package Management Deep Dive](Package-Management-Deep-Dive.html)
+    - [Activities and Services Management](Activities-and-Services-Management.html)
+    - [Security and Permissions Analysis](Security-and-Permissions-Analysis.html)
 
 2. **Explore Advanced Features:**
-    - [Device Information and Monitoring](Device-Information-and-Monitoring.md)
-    - [Automation and Scripting](Automation-and-Scripting.md)
+    - [Device Information and Monitoring](Device-Information-and-Monitoring.html)
+    - [Automation and Scripting](Automation-and-Scripting.html)
 
 3. **Troubleshooting:**
-    - [Troubleshooting and FAQ](Troubleshooting-and-FAQ.md)
+    - [Troubleshooting and FAQ](Troubleshooting-and-FAQ.html)
 
-**Next:** Continue to [Package Management Deep Dive](Package-Management-Deep-Dive.md) to learn about comprehensive app
+**Next:** Continue to [Package Management Deep Dive](Package-Management-Deep-Dive.html) to learn about comprehensive app
 management features.

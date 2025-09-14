@@ -178,7 +178,7 @@ Script execution follows these patterns:
 
 **Related Guides:**
 
-- [Getting Started Guide](Getting-Started-Guide.md)
-- [Package Management Deep Dive](Package-Management-Deep-Dive.md)
-- [Activities and Services Management](Activities-and-Services-Management.md)
-- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.md)
+- [Getting Started Guide](Getting-Started-Guide.html)
+- [Package Management Deep Dive](Package-Management-Deep-Dive.html)
+- [Activities and Services Management](Activities-and-Services-Management.html)
+- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.html)

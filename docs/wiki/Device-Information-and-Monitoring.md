@@ -131,6 +131,6 @@ The Status card displays current device state:
 
 **Related Guides:**
 
-- [Getting Started Guide](Getting-Started-Guide.md)
-- [Package Management Deep Dive](Package-Management-Deep-Dive.md)
-- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.md)
+- [Getting Started Guide](Getting-Started-Guide.html)
+- [Package Management Deep Dive](Package-Management-Deep-Dive.html)
+- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.html)
