@@ -1,7 +1,8 @@
 package core.facade
 
 import core.command.CommandExecutor
-import core.command.ExtractApkCommand
+import core.command.ExtractSpecificApkCommand
+import core.command.GetPackageApkPathCommand
 import core.model.AndroidPackageReport
 import core.model.AppPackage
 import java.io.File
@@ -35,26 +36,57 @@ class ApkSignatureExtractor(
         device: core.model.AdbDevice?
     ): Result<AndroidPackageReport> {
         return try {
-            // Step 1: Extract APK from device to temp folder
-            val extractResult = commandExecutor.go(ExtractApkCommand(packageInfo, tempDir), adbPath, device)
+            // Step 1: Get actual APK path using pm path
+            val getPathResult = commandExecutor.go(
+                GetPackageApkPathCommand(packageInfo.packageName),
+                adbPath,
+                device
+            )
 
-            extractResult.fold(
-                onSuccess = { apkPath ->
-                    // Step 2: Analyze signature of the extracted APK
-                    val analysisResult = signatureExtractor.getCertificateFingerprint(apkPath)
+            getPathResult.fold(
+                onSuccess = { apkPaths ->
+                    // Use the first APK path (main APK, not splits)
+                    val primaryApkPath = apkPaths.first()
 
-                    // Step 3: Clean up the APK file after analysis
-                    cleanupApkFile(apkPath)
+                    // Step 2: Extract APK to temp folder
+                    val localPath = createLocalApkPath(packageInfo)
+                    val extractResult = commandExecutor.go(
+                        ExtractSpecificApkCommand(primaryApkPath, localPath),
+                        adbPath,
+                        device
+                    )
 
-                    analysisResult
+                    extractResult.fold(
+                        onSuccess = { extractedPath ->
+                            // Step 3: Analyze signature
+                            val analysisResult = signatureExtractor.getCertificateFingerprint(extractedPath)
+
+                            // Step 4: Clean up
+                            cleanupApkFile(extractedPath)
+
+                            analysisResult
+                        },
+                        onFailure = { exception ->
+                            Result.failure(RuntimeException("APK extraction failed: ${exception.message}", exception))
+                        }
+                    )
                 },
                 onFailure = { exception ->
-                    Result.failure(RuntimeException("APK extraction failed: ${exception.message}", exception))
+                    Result.failure(RuntimeException("Failed to resolve APK path: ${exception.message}", exception))
                 }
             )
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private fun createLocalApkPath(packageInfo: AppPackage): String {
+        if (!tempDir.exists()) {
+            tempDir.mkdirs()
+        }
+
+        val filename = "${packageInfo.packageName}_${packageInfo.versionName ?: "unknown"}.apk"
+        return File(tempDir, filename).absolutePath
     }
 
     /**
