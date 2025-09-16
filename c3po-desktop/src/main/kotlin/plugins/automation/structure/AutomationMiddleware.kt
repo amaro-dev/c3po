@@ -77,7 +77,12 @@ class AutomationMiddleware(
                         currentScriptFolder = scriptFolder,
                     )
                     processor.deliver(pluginName, newState)
-                } catch (_: Exception) {
+
+                    // Show success message for script save
+                    processor.reduce(Action.SetSuccess("Script '${currentScript.name}' saved successfully"))
+                } catch (e: Exception) {
+                    // Show error message for script save failure
+                    processor.reduce(Action.SetCommandError("Failed to save script: ${e.message}"))
                 }
             }
 
@@ -241,20 +246,32 @@ class AutomationMiddleware(
             is AutomationPlugin.Actions.ConfigureInstallApk -> {
                 val currentState = getCurrentState(state)
                 val currentScript = currentState.currentScript ?: return
-                val updatedSteps = currentScript.steps.mapIndexed { index, step ->
-                    if (index == action.index) {
-                        ScriptStep.InstallApk(apkPath = action.apkPath)
-                    } else {
-                        step
+
+                try {
+                    // Copy APK to script folder and get relative path
+                    val relativePath = scriptStorage.copyApkToScriptFolder(action.apkPath, currentScript.name)
+
+                    val updatedSteps = currentScript.steps.mapIndexed { index, step ->
+                        if (index == action.index) {
+                            ScriptStep.InstallApk(apkPath = relativePath)
+                        } else {
+                            step
+                        }
                     }
+                    val updatedScript = currentScript.copy(steps = updatedSteps)
+                    val newState = currentState.copy(
+                        currentScript = updatedScript,
+                        editingStepIndex = null,
+                        showApkPicker = false
+                    )
+                    processor.deliver(pluginName, newState)
+
+                    // Show success message for APK copy
+                    processor.reduce(Action.SetSuccess("APK copied to script folder successfully"))
+                } catch (e: Exception) {
+                    // Show error if copying fails
+                    processor.reduce(Action.SetCommandError("Failed to copy APK: ${e.message}"))
                 }
-                val updatedScript = currentScript.copy(steps = updatedSteps)
-                val newState = currentState.copy(
-                    currentScript = updatedScript,
-                    editingStepIndex = null,
-                    showApkPicker = false
-                )
-                processor.deliver(pluginName, newState)
             }
 
             is AutomationPlugin.Actions.ConfigureRemovePackage -> {

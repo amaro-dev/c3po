@@ -90,10 +90,10 @@ class ScriptRunner(
         executor: CommandExecutor,
     ): Result<Unit> {
         val apkPath = java.io.File(scriptFolder, step.apkPath.removePrefix("./")).absolutePath
-        if (!java.io.File(apkPath)
-                .exists()
-        ) return Result.failure(IllegalArgumentException("APK not found: \${step.apkPath}"))
-        val cmd = InstallApkCommand("-r \$apkPath")
+        if (!java.io.File(apkPath).exists()) {
+            return Result.failure(IllegalArgumentException("APK not found: ${step.apkPath}"))
+        }
+        val cmd = InstallApkCommand("-r $apkPath")
         return executor.go(cmd, state.settings.getProperty(Settings.ADB_PATH_PROP), state.currentDevice).map { }
     }
 
