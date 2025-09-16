@@ -84,7 +84,8 @@ class UpdateMiddlewareTest {
         middleware.asyncProcess(action, testState, mockProcessor)
 
         verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
-        verify { mockProcessor.reduce(Action.RestartApplication) }
+        // Verify automatic restart is no longer triggered
+        verify(exactly = 0) { mockProcessor.reduce(Action.RestartApplication) }
     }
 
     @Test
@@ -270,7 +271,8 @@ class UpdateMiddlewareTest {
         verify { mockProcessor.reduce(Action.UpdateInstallProgress("Copying files...")) }
         verify { mockProcessor.reduce(Action.UpdateInstallProgress("Installation completed successfully")) }
         verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
-        verify { mockProcessor.reduce(Action.RestartApplication) }
+        // Verify automatic restart is no longer triggered
+        verify(exactly = 0) { mockProcessor.reduce(Action.RestartApplication) }
     }
 
     @Test

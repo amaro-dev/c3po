@@ -1,49 +1,51 @@
 package core.middleware
 
+import core.logging.StructuredLogger
 import core.model.Action
 import core.model.AppState
+import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
-import dev.amaro.sonic.IMiddleware
 import dev.amaro.sonic.IProcessor
 import kotlin.system.exitProcess
 
-class RestartMiddleware : IMiddleware<AppState> {
+class RestartMiddleware : AsyncMiddlewareBase<AppState>() {
 
-    override fun process(action: IAction, state: AppState, processor: IProcessor<AppState>) {
+    private val logger = StructuredLogger.getInstance()
+
+    override suspend fun asyncProcess(action: IAction, state: AppState, processor: IProcessor<AppState>) {
         when (action) {
             is Action.RestartApplication -> {
-                handleRestartApplication()
+                logger.log("restart", "RequestUserRestart", "Attempting to restart application")
+                attemptRestart(processor)
             }
         }
     }
 
-    private fun handleRestartApplication() {
-        // Launch restart in a separate thread to avoid blocking the middleware
-        Thread {
-            try {
-                Thread.sleep(1000) // Give UI time to show completion message
+    private fun attemptRestart(processor: IProcessor<AppState>) {
+        try {
+            val userDir = System.getProperty("user.dir")
+            logger.log("restart", "Debug", "Current working directory: $userDir")
 
-                // Get current JAR path
-                val jarPath = System.getProperty("java.class.path")
+            // For development: restart gradle task
+            // For production: open app bundle
+            val restartCommand = if (userDir?.contains("c3po") == true) {
+                // Development mode - restart gradle
+                val projectRoot = if (userDir.endsWith("c3po-desktop")) {
+                    userDir.substringBeforeLast("/c3po-desktop")
+                } else userDir
 
-                // Create restart command
-                val javaCommand = System.getProperty("java.home") + "/bin/java"
-                val command = listOf(javaCommand, "-jar", jarPath)
-
-                // Start new instance
-                ProcessBuilder(command)
-                    .directory(java.io.File(System.getProperty("user.dir")))
-                    .start()
-
-                // Exit current instance
-                exitProcess(0)
-
-            } catch (e: Exception) {
-                // Fallback: just exit and let user manually restart
-                println("Failed to restart automatically: ${e.message}")
-                println("Please restart the application manually.")
-                exitProcess(0)
+                "cd '$projectRoot/c3po-desktop' && ../gradlew run"
+            } else {
+                // Production mode - open app bundle
+                "open -n /Applications/c3po.app"
             }
-        }.start()
+
+            ProcessBuilder("bash", "-c", restartCommand).start()
+            exitProcess(0)
+
+        } catch (e: Exception) {
+            processor.reduce(Action.UpdateError("Installation complete. Please restart the application manually."))
+            logger.log("restart", "Failed", "Restart failed: ${e.message}")
+        }
     }
 }

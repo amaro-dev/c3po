@@ -50,9 +50,6 @@ class UpdateMiddleware(
                 handleInstallUpdate(action, processor)
             }
 
-            else -> {
-                // Not an update action, ignore
-            }
         }
     }
 
@@ -216,12 +213,8 @@ class UpdateMiddleware(
 
                 processor.reduce(Action.UpdateInstallComplete)
 
-                // If installation requires restart, initiate graceful shutdown
-                if (installResult.requiresRestart) {
-                    // Give UI time to show success message
-                    kotlinx.coroutines.delay(2000)
-                    processor.reduce(Action.RestartApplication)
-                }
+                // Automatically initiate restart after successful installation
+                processor.perform(Action.RestartApplication)
             } else {
                 val message = installResult.message ?: "Installation failed"
                 processor.reduce(Action.UpdateError(message))
