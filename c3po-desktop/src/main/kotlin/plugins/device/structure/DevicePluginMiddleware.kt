@@ -9,6 +9,7 @@ import core.command.GetFullDeviceInfoCommand
 import core.command.GetMemoryInfoCommand
 import core.command.PullFileCommand
 import core.command.RemoveDeviceFileCommand
+import core.command.RestartDeviceCommand
 import core.facade.ScreenshotFileManager
 import core.handle
 import core.model.Action
@@ -83,6 +84,11 @@ class DevicePluginMiddleware(
                 }
             }
 
+            is Action.ConfirmRestartDevice,
+            is Action.DismissRestartConfirmation -> {
+                processor.reduce(action)
+            }
+
             is Action.TakeScreenshot -> {
                 if (state.currentDevice != null) {
                     try {
@@ -139,6 +145,25 @@ class DevicePluginMiddleware(
                 } else {
                     processor.reduce(Action.SetCommandError("No device connected for screenshot"))
                     // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
+                    processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                }
+            }
+
+            is Action.RestartDevice -> {
+                if (state.currentDevice != null) {
+                    processor.reduce(Action.DismissRestartConfirmation)
+                    val restartCommand = RestartDeviceCommand()
+                    execute(restartCommand, state, executor)
+                        .onSuccess { result ->
+                            processor.reduce(Action.SetSuccess(result))
+                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                        }
+                        .onFailure { error ->
+                            processor.reduce(Action.SetCommandError("Device restart failed: ${error.message}"))
+                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                        }
+                } else {
+                    processor.reduce(Action.SetCommandError("No device connected for restart"))
                     processor.reduce(Action.SetCommandCompleted) // Clear loading state
                 }
             }

@@ -38,6 +38,9 @@ class DevicePlugin(
     override fun isResponsibleFor(action: IAction): Boolean {
         return when (action) {
             is core.model.Action.TakeScreenshot -> true
+            is core.model.Action.RestartDevice -> true
+            is core.model.Action.ConfirmRestartDevice -> true
+            is core.model.Action.DismissRestartConfirmation -> true
             else -> false
         }
     }
@@ -72,19 +75,13 @@ class DevicePlugin(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        DeviceActionPanel(onAction = onAction)
+
                         DiskUsageCard(
                             title = "Disk Usage",
                             diskStats = deviceInfo.status.diskUsage,
                             onAction = onAction
                         )
-
-                        // Action button positioned below Disk Usage panel
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            DeviceActionPanel(onAction = onAction)
-                        }
                     }
                 }
 

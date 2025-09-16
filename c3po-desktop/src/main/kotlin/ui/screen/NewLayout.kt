@@ -288,6 +288,28 @@ fun NewLayout(app: App) {
             }
         )
     }
+
+    // Restart confirmation dialog
+    if (state.showRestartConfirmation) {
+        StandardDialog(
+            title = "Restart Device",
+            onDismiss = { onAction(Action.DismissRestartConfirmation) },
+            primaryAction = DialogAction(
+                text = "Restart",
+                onClick = { onAction(Action.RestartDevice) },
+                isPrimary = true
+            ),
+            secondaryAction = DialogAction(
+                text = "Cancel",
+                onClick = { onAction(Action.DismissRestartConfirmation) }
+            )
+        ) {
+            Text(
+                text = "Are you sure you want to restart the device? This will temporarily disconnect the device and interrupt any running operations.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
 }
 
 

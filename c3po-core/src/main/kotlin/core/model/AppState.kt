@@ -19,6 +19,7 @@ data class AppState(
     val appVersion: String = "unknown",
     val isSearchingAdbPath: Boolean = false,
     val adbSearchError: String? = null,
+    val showRestartConfirmation: Boolean = false,
 ) {
     val hasDeviceSet: Boolean
         get() = currentDevice != null

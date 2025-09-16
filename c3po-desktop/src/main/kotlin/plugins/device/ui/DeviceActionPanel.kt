@@ -2,10 +2,16 @@ package plugins.device.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,43 +27,53 @@ import core.model.Action
 import ui.OnAction
 
 /**
- * Compact device action buttons designed to fit near the Disk Usage panel.
- * Uses icons with text labels below, no card wrapper for minimal footprint.
+ * Device action panel containing action buttons for device operations.
+ * Follows the same card-based design pattern as other panels.
  */
 @Composable
 fun DeviceActionPanel(
     onAction: OnAction,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        DeviceActionButton(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Take Screenshot",
-                    modifier = Modifier.size(20.dp)
-                )
-            },
-            label = "Screenshot",
-            onClick = { onAction(Action.TakeScreenshot) }
+    Card(
+        modifier = modifier.padding(4.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
         )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start)
+            ) {
+                DeviceActionButton(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Take Screenshot",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    label = "Screenshot",
+                    onClick = { onAction(Action.TakeScreenshot) }
+                )
 
-        // Future action buttons will be added here
-        // DeviceActionButton(
-        //     icon = {
-        //         Icon(
-        //             imageVector = Icons.Default.Refresh,
-        //             contentDescription = "Refresh",
-        //             modifier = Modifier.size(20.dp)
-        //         )
-        //     },
-        //     label = "Refresh",
-        //     onClick = { onAction(Action.RefreshDevice) }
-        // )
+                DeviceActionButton(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.RestartAlt,
+                            contentDescription = "Restart Device",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    label = "Restart",
+                    onClick = { onAction(Action.ConfirmRestartDevice) }
+                )
+            }
+        }
     }
 }
 

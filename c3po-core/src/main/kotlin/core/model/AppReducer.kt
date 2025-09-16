@@ -239,6 +239,15 @@ class AppReducer : IReducer<AppState> {
                     currentState
                 }
 
+                // Device restart confirmation dialog actions
+                is Action.ConfirmRestartDevice -> {
+                    currentState.copy(showRestartConfirmation = true)
+                }
+
+                is Action.DismissRestartConfirmation -> {
+                    currentState.copy(showRestartConfirmation = false)
+                }
+
                 else -> currentState
             }
         return state
