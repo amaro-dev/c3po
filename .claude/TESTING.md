@@ -20,6 +20,45 @@
 
 ## What to do (and not to do)
 
+### Avoid JUnit assertions. Use AssertK instead
+
+**Do this**:
+
+```
+assertThat(someString).isEqualTo("correct value")
+assertThat(someBoolean).isTrue()
+assertThat(someObject).isNotNull()
+```
+
+**Don't do this**:
+
+```
+assertEquals("correct value", someString)
+assertTrue(someBoolean)
+assertNotNull(someObject)
+```
+
+### Avoid try/catch to test failures
+
+**Do this**
+
+```
+assertFailure {
+    command.parse(errorOutput)
+}.messageContains("Restart failed: Permission denied")
+```
+
+**Don't do this**
+
+```
+try {
+    command.parse(errorOutput)
+    assertThat(false).isTrue() // Should not reach here
+} catch (e: RuntimeException) {
+    assertThat(e.message!!).contains("Restart failed: Permission denied")
+}
+```
+
 ### Avoid multiple assertions over the same object in a test
 
 **Do this**
