@@ -24,6 +24,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,21 +74,48 @@ fun SettingsDialog(
     onCancel: () -> Unit,
     onCheckPermissions: () -> Unit = {}
 ) {
-    var adbPath by remember { mutableStateOf(initialAdbPath) }
-    var updatesUrl by remember { mutableStateOf(initialUpdatesUrl) }
-    var darkMode by remember { mutableStateOf(initialDarkMode) }
-    var showFilePicker by remember { mutableStateOf(false) }
-
-    // Update local adbPath when settings change (including from search results)
-    LaunchedEffect(initialAdbPath) {
-        adbPath = initialAdbPath
+    // Robust state management that handles local changes and external updates
+    val stateManager = remember {
+        SettingsStateManager(
+            SettingsState(
+                adbPath = initialAdbPath,
+                updatesUrl = initialUpdatesUrl,
+                darkMode = initialDarkMode,
+                loggingEnabled = initialLoggingEnabled,
+                adbLogging = initialAdbLogging,
+                performLogging = initialPerformLogging,
+                reduceLogging = initialReduceLogging
+            )
+        )
     }
 
-    // Logging configuration state
-    var loggingEnabled by remember { mutableStateOf(initialLoggingEnabled) }
-    var adbLogging by remember { mutableStateOf(initialAdbLogging) }
-    var performLogging by remember { mutableStateOf(initialPerformLogging) }
-    var reduceLogging by remember { mutableStateOf(initialReduceLogging) }
+    // Handle external updates (like ADB search results)
+    LaunchedEffect(
+        initialAdbPath,
+        initialUpdatesUrl,
+        initialDarkMode,
+        initialLoggingEnabled,
+        initialAdbLogging,
+        initialPerformLogging,
+        initialReduceLogging
+    ) {
+        val newExternalState = SettingsState(
+            adbPath = initialAdbPath,
+            updatesUrl = initialUpdatesUrl,
+            darkMode = initialDarkMode,
+            loggingEnabled = initialLoggingEnabled,
+            adbLogging = initialAdbLogging,
+            performLogging = initialPerformLogging,
+            reduceLogging = initialReduceLogging
+        )
+        stateManager.mergeExternalUpdate(newExternalState)
+    }
+
+    // Current state from the state manager
+    val currentSettings by stateManager.currentState
+
+    var showFilePicker by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf(0) }
     var showAdbDropdown by remember { mutableStateOf(false) }
 
     // Function to open logs folder in system file manager
@@ -127,317 +156,350 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // ADB Path Section
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // Tab Row
+                TabRow(
+                    selectedTabIndex = selectedTab
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CustomTextField(
-                            value = adbPath,
-                            onValueChange = { adbPath = it },
-                            placeholder = "/path/to/adb",
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        // ADB Search Button
-                        IconButton(
-                            onClick = {
-                                onAction(Action.SearchAdbPath)
-                            },
-                            enabled = !isSearchingAdbPath,
-                            modifier = Modifier
-                                .background(
-                                    if (isSearchingAdbPath) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.shapes.medium
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = "Search for ADB",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        // File Browser Button
-                        IconButton(
-                            onClick = { showFilePicker = true },
-                            modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.shapes.medium
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.FolderOpen,
-                                contentDescription = "Browse",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "Select the Android Debug Bridge (adb) executable on your system",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondaryTextColor
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("Core") }
                     )
-
-                    // Show error message if ADB search failed
-                    adbSearchError?.let { errorMessage ->
-                        Text(
-                            text = errorMessage,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
-
-                // Updates URL Section
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    CustomTextField(
-                        value = updatesUrl,
-                        onValueChange = { updatesUrl = it },
-                        placeholder = "https://api.github.com/repos/...",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text(
-                        text = "URL endpoint for checking application updates",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondaryTextColor
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text("Advanced") }
                     )
                 }
 
-                // Dark Mode Section
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                // Tab Content
+                if (selectedTab == 0) {
+                    // Core Tab Content
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        Text(
-                            text = "Dark Mode",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Use dark theme for the application interface",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondaryTextColor
-                        )
-                    }
-                    Switch(
-                        checked = darkMode,
-                        onCheckedChange = { darkMode = it }
-                    )
-                }
-
-                // File Permissions Section (macOS only)
-                if (PermissionChecker.isMacOS()) {
-                    val permissionStatus = remember { PermissionChecker.getPermissionStatus() }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                        // ADB Path Section
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CustomTextField(
+                                    value = currentSettings.adbPath,
+                                    onValueChange = { stateManager.updateAdbPath(it) },
+                                    placeholder = "/path/to/adb",
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // ADB Search Button
+                                IconButton(
+                                    onClick = {
+                                        onAction(Action.SearchAdbPath)
+                                    },
+                                    enabled = !isSearchingAdbPath,
+                                    modifier = Modifier
+                                        .background(
+                                            if (isSearchingAdbPath) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.shapes.medium
+                                        )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = "Search for ADB",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+
+                                // File Browser Button
+                                IconButton(
+                                    onClick = { showFilePicker = true },
+                                    modifier = Modifier
+                                        .background(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.shapes.medium
+                                        )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.FolderOpen,
+                                        contentDescription = "Browse",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = "Select the Android Debug Bridge (adb) executable on your system",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondaryTextColor
+                            )
+
+                            // Show error message if ADB search failed
+                            adbSearchError?.let { errorMessage ->
+                                Text(
+                                    text = errorMessage,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+
+                        // Updates URL Section
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CustomTextField(
+                                value = currentSettings.updatesUrl,
+                                onValueChange = { stateManager.updateUpdatesUrl(it) },
+                                placeholder = "https://api.github.com/repos/...",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Text(
+                                text = "URL endpoint for checking application updates",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondaryTextColor
+                            )
+                        }
+
+                        // Dark Mode Section
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = "File Permissions",
+                                    text = "Dark Mode",
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Icon(
-                                    imageVector = if (permissionStatus.needsAttention) Icons.Filled.Error else Icons.Filled.CheckCircle,
-                                    contentDescription = if (permissionStatus.needsAttention) "Permission issues detected" else "Permissions OK",
-                                    tint = if (permissionStatus.needsAttention) MaterialTheme.colorScheme.error else Color(
-                                        0xFF4CAF50
-                                    ),
-                                    modifier = Modifier.size(16.dp)
+                                Text(
+                                    text = "Use dark theme for the application interface",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondaryTextColor
                                 )
                             }
-                            Text(
-                                text = if (permissionStatus.needsAttention) {
-                                    "Some file dialogs may not work properly"
-                                } else {
-                                    "File access permissions are configured"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondaryTextColor
+                            Switch(
+                                checked = currentSettings.darkMode,
+                                onCheckedChange = { stateManager.updateDarkMode(it) }
                             )
                         }
 
-                        OutlinedButton(
-                            onClick = onCheckPermissions
-                        ) {
-                            Text(if (permissionStatus.needsAttention) "Fix Issues" else "Check Status")
-                        }
-                    }
-                }
+                        // File Permissions Section (macOS only)
+                        if (PermissionChecker.isMacOS()) {
+                            val permissionStatus = remember { PermissionChecker.getPermissionStatus() }
 
-                // Logging Configuration Section
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Master logging toggle
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "Enable Logging",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Capture structured logs for debugging and issue reporting",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondaryTextColor
-                            )
-                        }
-                        Switch(
-                            checked = loggingEnabled,
-                            onCheckedChange = { loggingEnabled = it }
-                        )
-                    }
-
-                    // Logging options (only visible when logging is enabled)
-                    if (loggingEnabled) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // ADB Logging dropdown
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = "ADB Commands",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-
-                                Box {
-                                    OutlinedButton(
-                                        onClick = { showAdbDropdown = true }
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         Text(
-                                            text = when (adbLogging) {
-                                                "off" -> "Off"
-                                                "errors" -> "Errors Only"
-                                                "full" -> "Full Results"
-                                                else -> "Off"
+                                            text = "File Permissions",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Icon(
+                                            imageVector = if (permissionStatus.needsAttention) Icons.Filled.Error else Icons.Filled.CheckCircle,
+                                            contentDescription = if (permissionStatus.needsAttention) "Permission issues detected" else "Permissions OK",
+                                            tint = if (permissionStatus.needsAttention) MaterialTheme.colorScheme.error else Color(
+                                                0xFF4CAF50
+                                            ),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = if (permissionStatus.needsAttention) {
+                                            "Some file dialogs may not work properly"
+                                        } else {
+                                            "File access permissions are configured"
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondaryTextColor
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = onCheckPermissions
+                                ) {
+                                    Text(if (permissionStatus.needsAttention) "Fix Issues" else "Check Status")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (selectedTab == 1) {
+                    // Advanced Tab Content
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        // Logging Configuration Section
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Master logging toggle
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = "Enable Logging",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Capture structured logs for debugging and issue reporting",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondaryTextColor
+                                    )
+                                }
+                                Switch(
+                                    checked = currentSettings.loggingEnabled,
+                                    onCheckedChange = { stateManager.updateLoggingEnabled(it) }
+                                )
+                            }
+
+                            // Logging options (only visible when logging is enabled)
+                            if (currentSettings.loggingEnabled) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // ADB Logging dropdown
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "ADB Commands",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        Box {
+                                            OutlinedButton(
+                                                onClick = { showAdbDropdown = true }
+                                            ) {
+                                                Text(
+                                                    text = when (currentSettings.adbLogging) {
+                                                        "off" -> "Off"
+                                                        "errors" -> "Errors Only"
+                                                        "full" -> "Full Results"
+                                                        else -> "Off"
+                                                    }
+                                                )
                                             }
+
+                                            DropdownMenu(
+                                                expanded = showAdbDropdown,
+                                                onDismissRequest = { showAdbDropdown = false }
+                                            ) {
+                                                DropdownMenuItem(
+                                                    text = { Text("Off") },
+                                                    onClick = {
+                                                        stateManager.updateAdbLogging("off")
+                                                        showAdbDropdown = false
+                                                    }
+                                                )
+                                                DropdownMenuItem(
+                                                    text = { Text("Errors Only") },
+                                                    onClick = {
+                                                        stateManager.updateAdbLogging("errors")
+                                                        showAdbDropdown = false
+                                                    }
+                                                )
+                                                DropdownMenuItem(
+                                                    text = { Text("Full Results") },
+                                                    onClick = {
+                                                        stateManager.updateAdbLogging("full")
+                                                        showAdbDropdown = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Action Perform logging toggle
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Action Dispatch",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Switch(
+                                            checked = currentSettings.performLogging,
+                                            onCheckedChange = { stateManager.updatePerformLogging(it) }
                                         )
                                     }
 
-                                    DropdownMenu(
-                                        expanded = showAdbDropdown,
-                                        onDismissRequest = { showAdbDropdown = false }
+                                    // State Reduce logging toggle
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Off") },
-                                            onClick = {
-                                                adbLogging = "off"
-                                                showAdbDropdown = false
-                                            }
+                                        Text(
+                                            text = "State Changes",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
-                                        DropdownMenuItem(
-                                            text = { Text("Errors Only") },
-                                            onClick = {
-                                                adbLogging = "errors"
-                                                showAdbDropdown = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text("Full Results") },
-                                            onClick = {
-                                                adbLogging = "full"
-                                                showAdbDropdown = false
-                                            }
+                                        Switch(
+                                            checked = currentSettings.reduceLogging,
+                                            onCheckedChange = { stateManager.updateReduceLogging(it) }
                                         )
                                     }
                                 }
                             }
 
-                            // Action Perform logging toggle
+                            // Open logs folder button
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.End
                             ) {
-                                Text(
-                                    text = "Action Dispatch",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Switch(
-                                    checked = performLogging,
-                                    onCheckedChange = { performLogging = it }
-                                )
+                                OutlinedButton(
+                                    onClick = { openLogsFolder() }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.OpenInNew,
+                                        contentDescription = "Open Logs Folder",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = " Open Logs Folder",
+                                        modifier = Modifier.padding(start = 4.dp)
+                                    )
+                                }
                             }
-
-                            // State Reduce logging toggle
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "State Changes",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Switch(
-                                    checked = reduceLogging,
-                                    onCheckedChange = { reduceLogging = it }
-                                )
-                            }
-                        }
-                    }
-
-                    // Open logs folder button
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        OutlinedButton(
-                            onClick = { openLogsFolder() }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.OpenInNew,
-                                contentDescription = "Open Logs Folder",
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = " Open Logs Folder",
-                                modifier = Modifier.padding(start = 4.dp)
-                            )
                         }
                     }
                 }
@@ -455,14 +517,15 @@ fun SettingsDialog(
                     PrimaryButton(
                         text = "Save",
                         onClick = {
+                            val current = stateManager.getCurrentValues()
                             onSave(
-                                adbPath,
-                                updatesUrl,
-                                darkMode,
-                                loggingEnabled,
-                                adbLogging,
-                                performLogging,
-                                reduceLogging
+                                current.adbPath,
+                                current.updatesUrl,
+                                current.darkMode,
+                                current.loggingEnabled,
+                                current.adbLogging,
+                                current.performLogging,
+                                current.reduceLogging
                             )
                         }
                     )
@@ -477,7 +540,7 @@ fun SettingsDialog(
             title = "Select ADB Executable",
             mode = FilePickerMode.FILE,
             onFileSelected = { path ->
-                adbPath = path
+                stateManager.updateAdbPath(path)
                 showFilePicker = false
             },
             onDismiss = { showFilePicker = false }
