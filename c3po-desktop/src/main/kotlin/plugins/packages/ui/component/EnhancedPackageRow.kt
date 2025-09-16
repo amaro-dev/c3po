@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.FileCopy
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import core.model.Action
 import core.model.AppPackage
 import core.model.SleepState
 import plugins.packages.definition.PackagesPlugin
@@ -88,6 +90,13 @@ fun EnhancedPackageRow(
 
                 // Action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Copy button
+                    CustomActionButton(
+                        icon = Icons.Outlined.FileCopy,
+                        contentDescription = "Copy package name",
+                        onClick = { onAction(Action.CopyText(packageInfo.packageName)) }
+                    )
+
                     // Sleep state button
                     val sleepIcon = when (packageInfo.sleepState) {
                         SleepState.Unknown -> Icons.Filled.HelpOutline
