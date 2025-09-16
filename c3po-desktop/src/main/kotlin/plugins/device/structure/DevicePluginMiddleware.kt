@@ -7,6 +7,9 @@ import core.command.GetDiskStatsCommand
 import core.command.GetDisplayInfoCommand
 import core.command.GetFullDeviceInfoCommand
 import core.command.GetMemoryInfoCommand
+import core.command.PullFileCommand
+import core.command.RemoveDeviceFileCommand
+import core.facade.ScreenshotFileManager
 import core.handle
 import core.model.Action
 import core.model.AppState
@@ -77,6 +80,66 @@ class DevicePluginMiddleware(
                     }
                 } else {
                     processor.reduce(Action.DeliverPluginResult(pluginName, emptyList<Any>()))
+                }
+            }
+
+            is Action.TakeScreenshot -> {
+                if (state.currentDevice != null) {
+                    try {
+                        // Step 1: Take screenshot on device
+                        val screenshotCommand = ScreenshotFileManager.createScreenshotCommand()
+                        execute(screenshotCommand, state, executor)
+                            .onSuccess { devicePath ->
+                                // Step 2: Pull screenshot to local file
+                                val localFile = ScreenshotFileManager.createScreenshotFile()
+                                val pullCommand = PullFileCommand(devicePath, localFile)
+                                execute(pullCommand, state, executor)
+                                    .onSuccess { localPath ->
+                                        // Step 3: Clean up device file
+                                        val removeCommand = RemoveDeviceFileCommand(devicePath)
+                                        execute(removeCommand, state, executor)
+                                            .onSuccess {
+                                                // Try to open the screenshot in the default image viewer
+                                                ScreenshotFileManager.openScreenshotInViewer(localPath)
+                                                    .onSuccess {
+                                                        processor.reduce(Action.SetSuccess("Screenshot saved and opened: $localPath"))
+                                                    }
+                                                    .onFailure { error ->
+                                                        processor.reduce(Action.SetSuccess("Screenshot saved to: $localPath"))
+                                                        // Still consider it successful even if opening fails
+                                                    }
+
+                                                processor.reduce(Action.ScreenshotCaptured(localPath))
+                                                processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                                            }
+                                            .onFailure { error ->
+                                                // Screenshot saved but cleanup failed - still success
+                                                processor.reduce(Action.SetSuccess("Screenshot saved to: $localPath (cleanup failed)"))
+                                                processor.reduce(Action.ScreenshotCaptured(localPath))
+                                                // TODO: I think there's no need to reduce the CommandCompleted when success is already informed
+                                                processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                                            }
+                                    }
+                                    .onFailure { error ->
+                                        processor.reduce(Action.SetCommandError("Failed to pull screenshot: ${error.message}"))
+                                        // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
+                                        processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                                    }
+                            }
+                            .onFailure { error ->
+                                processor.reduce(Action.SetCommandError("Failed to capture screenshot: ${error.message}"))
+                                // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
+                                processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                            }
+                    } catch (e: Exception) {
+                        processor.reduce(Action.SetCommandError("Screenshot error: ${e.message}"))
+                        // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
+                        processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                    }
+                } else {
+                    processor.reduce(Action.SetCommandError("No device connected for screenshot"))
+                    // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
+                    processor.reduce(Action.SetCommandCompleted) // Clear loading state
                 }
             }
         }

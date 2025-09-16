@@ -21,6 +21,7 @@ import core.model.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.device.structure.DevicePluginMiddleware
+import plugins.device.ui.DeviceActionPanel
 import plugins.device.ui.DeviceInfoCard
 import plugins.device.ui.DiskUsageCard
 import plugins.device.ui.toDisplayItems
@@ -34,7 +35,12 @@ class DevicePlugin(
     override val icon: ImageVector = Icons.Filled.Smartphone
     override val middleware: IMiddleware<AppState> = DevicePluginMiddleware(id, executor)
 
-    override fun isResponsibleFor(action: IAction): Boolean = false
+    override fun isResponsibleFor(action: IAction): Boolean {
+        return when (action) {
+            is core.model.Action.TakeScreenshot -> true
+            else -> false
+        }
+    }
 
     @Composable
     override fun present(result: WindowResult<DeviceInfo>, onAction: OnAction) {
@@ -61,12 +67,25 @@ class DevicePlugin(
                         onAction = onAction,
                         modifier = Modifier.weight(1f)
                     )
-                    DiskUsageCard(
-                        title = "Disk Usage",
-                        diskStats = deviceInfo.status.diskUsage,
-                        onAction = onAction,
-                        modifier = Modifier.weight(1f)
-                    )
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        DiskUsageCard(
+                            title = "Disk Usage",
+                            diskStats = deviceInfo.status.diskUsage,
+                            onAction = onAction
+                        )
+
+                        // Action button positioned below Disk Usage panel
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            DeviceActionPanel(onAction = onAction)
+                        }
+                    }
                 }
 
                 // Bottom row: System and Status cards

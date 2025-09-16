@@ -166,4 +166,11 @@ sealed interface Action : IAction {
 
     data object RestartApplication : Action
 
+    // Screenshot-related actions
+    data object TakeScreenshot : CommandAction
+
+    data class ScreenshotCaptured(
+        val filePath: String,
+    ) : Action
+
 }
