@@ -6,6 +6,9 @@ This document defines architectural and coding strategies used in the C3PO proje
 
 ## Refactoring Rules
 
+For architecture, action/middleware/reducer patterns, and the feature design checklist, follow the root `AGENTS.md`. The
+rules below complement those conventions with execution discipline.
+
 - Always refactor existing code in place — do not create duplicate or "Improved" versions
 - Changes should be incremental and reversible
 - Use sealed classes and scoped actions for MVI flow

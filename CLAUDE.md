@@ -2,23 +2,11 @@
 
 This file provides focused guidance to Claude Code when working with this repository.
 
-## Project Summary
+## Where to Find Architecture & Conventions
 
-C3PO is a Kotlin + Jetpack Compose Desktop tool for exploring and debugging connected Android devices via ADB. It
-features a plugin-based architecture, Redux-style state management, and a multi-module structure.
-
-## Codebase Highlights
-
-- **State Management**: Centralized `AppState`, `Action` sealed classes, middleware interceptors, and reducers. State is
-  observed via `app.listen().collectAsState()`.
-- **Plugin Architecture**: Each plugin defines its own `Plugin<T>` implementation, middleware, and UI. Plugins are
-  registered via DI in `AppModule.kt`.
-- **Command Pattern**: ADB operations are encapsulated in command classes and executed through `CommandExecutor`.
-- **UI Layer**: Built with Material3 theming, custom components, and modular layout (`sidebar`, `topbar`, `content`).
-- **Modules**:
-    - `c3po-core`: shared business logic
-    - `c3po-desktop`: Compose Desktop UI
-    - `c3po-plugin`: Android Studio plugin (optional)
+For the canonical, tool-agnostic engineering guide (architecture, plugin conventions, ADB command pattern, logging, and
+the full Feature Design Checklist), see `AGENTS.md` at the repository root. Use that as the source of truth for how to
+structure actions, middlewares, reducers, and plugins in this codebase.
 
 ## Interaction Notes
 
@@ -31,6 +19,12 @@ features a plugin-based architecture, Redux-style state management, and a multi-
 - Be critical as well, user is not perfect and don't know everything
 - Be precise and concrete. Don't assume things
 - Before answering, walk the user through your thought process step by step
+
+## Documentation
+
+- When implementing user-facing changes, update end-user docs under `docs/` (GitHub Pages source):
+    - Edit or add pages in `docs/wiki/` and keep `docs/index.md` links current.
+    - Keep user docs separate from engineering guidance (see `AGENTS.md`).
 
 ## Execution Style
 

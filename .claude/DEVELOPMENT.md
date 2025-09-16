@@ -56,29 +56,9 @@ This document provides guidance for developers contributing to the C3PO Android 
 
 ## Architecture Overview
 
-### State Management
-
-- **AppState**: Global state container
-- **Action**: Sealed classes representing events
-- **Middleware**: Executes side effects (e.g., ADB)
-- **Reducer**: Updates state based on actions
-
-### Plugin System
-
-- Implements `Plugin<T>` interface
-- Includes `middleware`, Compose UI, and action handling
-- Registered in `di/AppModule.kt` (`PLUGIN_LIST_DEPENDENCY`)
-
-### Command Pattern
-
-- ADB commands are implemented via `AdbCommand` and `CommandExecutor`
-- Examples: `ListPackagesCommand`, `StartActivityCommand`, `ExtractApkCommand`
-
-### Dependency Injection
-
-- Uses **Koin**
-- Modules declared in `di/`
-- Supports named bindings for plugin collections
+For a complete description of the app architecture (MVI flow, actions/reducer, middlewares, plugin windows, ADB command
+pattern, and conventions), see the root `AGENTS.md`. This document focuses on local setup and everyday developer
+commands.
 
 ---
 

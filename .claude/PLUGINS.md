@@ -6,15 +6,10 @@ This document describes how to create, register, and maintain plugins in the C3P
 
 ## What is a Plugin?
 
-Each plugin in C3PO is a self-contained unit of functionality that adds new inspection, debugging, or interaction
-capabilities for connected Android devices.
+See `AGENTS.md` for the canonical architecture and conventions (plugin responsibilities, `Plugin<T>` contract,
+`Action.CommandAction`, `DeliverPluginResult`, filter persistence, and DI registration in `AppModule.kt`).
 
-Plugins include:
-
-- A unique `Plugin<T>` implementation
-- A plugin-specific middleware for ADB command handling
-- A Compose-based UI for rendering results and user interaction
-- Optional models, actions, and dependency injection setup
+This document focuses on practical scaffolding and examples to build plugin UIs and middlewares efficiently.
 
 ---
 

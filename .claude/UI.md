@@ -3,6 +3,9 @@
 This document defines the UI standards and guidelines for C3PO to ensure consistency, maintainability, and a cohesive
 user experience across all plugins and components.
 
+Note: For architecture patterns (MVI flow, actions/reducers, middlewares, plugin windows, and dispatch choices), see
+`AGENTS.md`.
+
 ## Core Design Principles
 
 - **Consistency**: All UI elements should follow established patterns
