@@ -21,6 +21,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,6 +67,11 @@ class ActivitiesPlugin(
             val forDebug: Boolean = false,
         ) : Actions,
             CommandAction
+
+        data class SetLauncher(
+            val activityInfo: ActivityInfo,
+        ) : Actions,
+            CommandAction
     }
 
     override val name: String = "Activities"
@@ -86,6 +92,7 @@ class ActivitiesPlugin(
 
         var launchableFilter by remember { mutableStateOf(false) }
         var debuggableFilter by remember { mutableStateOf(false) }
+        var launcherFilter by remember { mutableStateOf(false) }
 
         Column(modifier = Modifier.fillMaxSize()) {
             // Custom search bar with filters
@@ -94,8 +101,10 @@ class ActivitiesPlugin(
                 onSearchChange = { onAction(Action.ChangeFilter(id, it)) },
                 launchableChecked = launchableFilter,
                 debuggableChecked = debuggableFilter,
+                launcherChecked = launcherFilter,
                 onLaunchableChange = { launchableFilter = it },
-                onDebuggableChange = { debuggableFilter = it }
+                onDebuggableChange = { debuggableFilter = it },
+                onLauncherChange = { launcherFilter = it }
             )
 
             // Activities list
@@ -104,6 +113,7 @@ class ActivitiesPlugin(
                 filter = filter,
                 launchableFilter = launchableFilter,
                 debuggableFilter = debuggableFilter,
+                launcherFilter = launcherFilter,
                 onAction = onAction
             )
         }
@@ -116,8 +126,10 @@ private fun EnhancedSearchBar(
     onSearchChange: (String) -> Unit,
     launchableChecked: Boolean,
     debuggableChecked: Boolean,
+    launcherChecked: Boolean,
     onLaunchableChange: (Boolean) -> Unit,
-    onDebuggableChange: (Boolean) -> Unit
+    onDebuggableChange: (Boolean) -> Unit,
+    onLauncherChange: (Boolean) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -164,7 +176,7 @@ private fun EnhancedSearchBar(
                 )
             }
 
-            // Debuggable checkbox  
+            // Debuggable checkbox
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.selectable(
@@ -187,6 +199,30 @@ private fun EnhancedSearchBar(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Launcher checkbox
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.selectable(
+                    selected = launcherChecked,
+                    onClick = { onLauncherChange(!launcherChecked) }
+                )
+            ) {
+                Checkbox(
+                    checked = launcherChecked,
+                    onCheckedChange = onLauncherChange,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.onBackground,
+                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+                Text(
+                    "Launcher",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -197,6 +233,7 @@ private fun ActivitiesScrollableList(
     filter: String,
     launchableFilter: Boolean,
     debuggableFilter: Boolean,
+    launcherFilter: Boolean,
     onAction: OnAction
 ) {
     Card(
@@ -224,8 +261,9 @@ private fun ActivitiesScrollableList(
                         // These filters can be implemented when ActivityInfo model is extended
                         val matchesLaunchable = !launchableFilter || true
                         val matchesDebuggable = !debuggableFilter || true
+                        val matchesLauncher = !launcherFilter || activityInfo.isLauncherCapable
 
-                        matchesSearch && matchesLaunchable && matchesDebuggable
+                        matchesSearch && matchesLaunchable && matchesDebuggable && matchesLauncher
                     }
                     .groupBy { it.packageName }
                     .flatMap { group ->
@@ -310,6 +348,15 @@ private fun EnhancedActivityRow(
                     contentDescription = "Debug",
                     onClick = { onAction(ActivitiesPlugin.Actions.Launch(activityInfo, true)) }
                 )
+
+                // Set as Launcher button - only show for launcher-capable activities
+                if (activityInfo.isLauncherCapable) {
+                    CustomActionButton(
+                        icon = MaterialIcons.Filled.Home,
+                        contentDescription = "Set as Launcher",
+                        onClick = { onAction(ActivitiesPlugin.Actions.SetLauncher(activityInfo)) }
+                    )
+                }
 
                 CustomActionButton(
                     icon = MaterialIcons.Filled.ContentCopy,

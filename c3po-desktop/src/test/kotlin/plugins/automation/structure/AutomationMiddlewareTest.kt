@@ -137,8 +137,14 @@ class AutomationMiddlewareTest {
         // When
         middleware.asyncProcess(AutomationPlugin.Actions.SaveScript, testState, mockProcessor)
 
-        // Then - Should not crash, but also shouldn't deliver any state changes
-        verify(exactly = 0) { mockProcessor.reduce(any()) }
+        // Then - Should show error message but not deliver state changes
+        verify(exactly = 1) {
+            mockProcessor.reduce(
+                match<Action.SetCommandError> { action ->
+                    action.message == "Failed to save script: Save failed"
+                }
+            )
+        }
         verify { mockScriptStorage.saveScript(testScript) }
     }
 

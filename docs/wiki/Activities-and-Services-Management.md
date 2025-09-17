@@ -75,6 +75,16 @@ adb shell am start -n com.example.app/.MainActivity
 adb shell am start -D -n com.example.app/.MainActivity
 ```
 
+##### Set as Launcher
+
+🏠 Set the activity as the device's default launcher (available only for launcher-capable activities)
+
+```bash
+# Via C3PO: Click home button for launcher-capable activity
+# Equivalent ADB command:
+adb shell pm set-home-activity com.example.launcher/.MainActivity
+```
+
 ##### Copy Command
 
 📋 Copy the ADB command to clipboard
@@ -93,6 +103,7 @@ The search bar allows filtering by:
 
 - **Launchable Only:** Show only activities that can be launched directly
 - **Debuggable Only:** Show only activities from debuggable applications
+- **Launcher Only:** Show only activities that can be set as the device's default launcher
 
 These filters help narrow down the list to relevant activities for your current task.
 
@@ -109,6 +120,13 @@ These filters help narrow down the list to relevant activities for your current 
 - Quickly access specific app screens during development
 - Test activity launch behavior
 - Verify activity declarations and accessibility
+
+#### Launcher Management
+
+- Filter and identify launcher applications installed on the device
+- Switch between different launcher apps for testing
+- Set custom launchers for development and testing scenarios
+- Test launcher functionality and home screen behavior
 
 ## Services Plugin
 
@@ -226,6 +244,12 @@ adb shell am start -D -n com.example.app/.MainActivity
 
 # Start service
 adb shell am startservice com.example.app/.MyService
+
+# Query launcher activities
+adb shell "cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.HOME --brief --user 0"
+
+# Set default launcher
+adb shell pm set-home-activity com.example.launcher/.MainActivity
 
 # Send custom intent
 adb shell am start -a android.intent.action.VIEW -d "content://example"

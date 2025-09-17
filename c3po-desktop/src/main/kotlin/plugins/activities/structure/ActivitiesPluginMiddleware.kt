@@ -2,6 +2,7 @@ package plugins.activities.structure
 
 import core.command.CommandExecutor
 import core.command.ListActivitiesCommand
+import core.command.SetLauncherCommand
 import core.command.StartActivityCommand
 import core.handle
 import core.model.Action
@@ -32,6 +33,14 @@ class ActivitiesPluginMiddleware(
                 execute(StartActivityCommand(action.activityInfo, action.forDebug), state, executor)
                     .onSuccess {
                         processor.reduce(Action.SetSuccess("Activity '${action.activityInfo.fullPath}' started successfully"))
+                    }
+                    .handle(processor)
+            }
+
+            is plugins.activities.definition.ActivitiesPlugin.Actions.SetLauncher -> {
+                execute(SetLauncherCommand(action.activityInfo), state, executor)
+                    .onSuccess {
+                        processor.reduce(Action.SetSuccess("Launcher set to '${action.activityInfo.fullPath}' successfully"))
                     }
                     .handle(processor)
             }
