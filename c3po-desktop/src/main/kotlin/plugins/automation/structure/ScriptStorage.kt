@@ -142,23 +142,7 @@ class ScriptStorage {
     }
 
     fun copyApkToScriptFolder(apkPath: String, scriptName: String): String {
-        val sourceFile = File(apkPath)
-        if (!sourceFile.exists()) {
-            throw IllegalArgumentException("APK file does not exist: $apkPath")
-        }
-
-        val scriptFolder = File(scriptsFolder, scriptName)
-        if (!scriptFolder.exists()) {
-            scriptFolder.mkdirs()
-        }
-
-        val fileName = sourceFile.name
-        val targetFile = File(scriptFolder, fileName)
-
-        // Copy file
-        sourceFile.copyTo(targetFile, overwrite = true)
-
-        // Return relative path
-        return "./$fileName"
+        val scriptFolder = File(scriptsFolder, scriptName).absolutePath
+        return ApkPathResolver.copyApkToScriptFolder(apkPath, scriptFolder)
     }
 }

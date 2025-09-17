@@ -4,7 +4,6 @@ import Settings
 import core.command.CheckAppInstalledCommand
 import core.command.ClearDataCommand
 import core.command.CommandExecutor
-import core.command.InstallApkCommand
 import core.command.StartActivityCommand
 import core.command.StopAppCommand
 import core.command.UninstallAppCommand
@@ -65,6 +64,7 @@ class ScriptRunner(
                 update {
                     it.copy(
                         isRunning = false,
+                        runningStepIndex = -1,
                         failedStepIndex = index,
                         runLogs = it.runLogs + "Step ${index + 1} failed: $message"
                     )
@@ -77,7 +77,15 @@ class ScriptRunner(
         }
 
         logger.log("automation", "script_completed", "Script completed successfully")
-        update { it.copy(isRunning = false, runningStepIndex = -1) }
+        update {
+            it.copy(
+                isRunning = false,
+                runningStepIndex = -1,
+                failedStepIndex = -1,
+                completedSteps = emptySet(),
+                runLogs = emptyList()
+            )
+        }
 
         // Trigger global success message
         processor.reduce(Action.SetSuccess("Script '${script.name}' executed successfully"))
@@ -89,12 +97,13 @@ class ScriptRunner(
         state: AppState,
         executor: CommandExecutor,
     ): Result<Unit> {
-        val apkPath = java.io.File(scriptFolder, step.apkPath.removePrefix("./")).absolutePath
-        if (!java.io.File(apkPath).exists()) {
-            return Result.failure(IllegalArgumentException("APK not found: ${step.apkPath}"))
+        return try {
+            val absolutePath = ApkPathResolver.validateAndResolve(scriptFolder, step.apkPath)
+            val cmd = ApkPathResolver.createInstallCommand(absolutePath)
+            executor.go(cmd, state.settings.getProperty(Settings.ADB_PATH_PROP), state.currentDevice).map { }
+        } catch (e: IllegalArgumentException) {
+            Result.failure(e)
         }
-        val cmd = InstallApkCommand("-r $apkPath")
-        return executor.go(cmd, state.settings.getProperty(Settings.ADB_PATH_PROP), state.currentDevice).map { }
     }
 
     private suspend fun runUninstall(

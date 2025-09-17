@@ -105,12 +105,26 @@ class AutomationMiddleware(
             }
 
             is Action.StartPlugin -> {
-                // Only initialize if we don't have state already
                 val currentState = getCurrentState(state)
+
+                // Always reset execution state when plugin starts, but preserve other state
+                val resetState = currentState.copy(
+                    isRunning = false,
+                    runningStepIndex = -1,
+                    failedStepIndex = -1,
+                    completedSteps = emptySet(),
+                    runLogs = emptyList(),
+                    // Clear any open dialogs
+                    editingStepIndex = null,
+                    showPackageSelector = false,
+                    showActivitySelector = false,
+                    showApkPicker = false,
+                    showOpenScriptPicker = false
+                )
+
+                // Load initial data only if we don't have packages and activities already
                 if (currentState.availablePackages.isEmpty() && currentState.availableActivities.isEmpty()) {
-                    // Load initial state
-                    val initialState = AutomationState()
-                    processor.deliver(pluginName, initialState)
+                    processor.deliver(pluginName, resetState)
 
                     // Preload packages and activities together to avoid state conflicts
                     var packagesLoaded: List<core.model.AppPackage>? = null
@@ -147,8 +161,10 @@ class AutomationMiddleware(
                                 processor.reduce(Action.DeliverPluginResult(pluginName, listOf(updatedState)))
                             }
                         }
+                } else {
+                    // If we already have packages/activities, just deliver the reset state
+                    processor.deliver(pluginName, resetState)
                 }
-                // If we already have state, don't overwrite it
             }
 
             is AutomationPlugin.Actions.CreateNewScript -> {
@@ -186,7 +202,10 @@ class AutomationMiddleware(
 
                 val updatedSteps = currentScript.steps.filterIndexed { index, _ -> index != action.index }
                 val updatedScript = currentScript.copy(steps = updatedSteps)
-                val newState = currentState.copy(currentScript = updatedScript)
+
+                // Adjust execution state indices after step removal
+                val stateWithAdjustedIndices = adjustExecutionStateAfterStepRemoval(currentState, action.index)
+                val newState = stateWithAdjustedIndices.copy(currentScript = updatedScript)
 
                 processor.deliver(pluginName, newState)
             }
@@ -370,6 +389,43 @@ class AutomationMiddleware(
     private fun getCurrentState(appState: AppState): AutomationState =
         appState.windows[pluginName]?.result?.firstOrNull() as? AutomationState
             ?: AutomationState()
+
+    /**
+     * Adjusts execution state indices after a step is removed.
+     * Handles proper adjustment of runningStepIndex, failedStepIndex, and completedSteps.
+     */
+    private fun adjustExecutionStateAfterStepRemoval(
+        currentState: AutomationState,
+        removedStepIndex: Int
+    ): AutomationState {
+        val adjustedRunningStepIndex = when {
+            currentState.runningStepIndex > removedStepIndex -> currentState.runningStepIndex - 1
+            else -> currentState.runningStepIndex
+        }
+
+        val adjustedFailedStepIndex = when {
+            currentState.failedStepIndex == removedStepIndex -> -1 // Clear failure if deleted step was the failed one
+            currentState.failedStepIndex > removedStepIndex -> currentState.failedStepIndex - 1
+            else -> currentState.failedStepIndex
+        }
+
+        val adjustedCompletedSteps = currentState.completedSteps
+            .filter { it != removedStepIndex } // Remove the deleted step if it was completed
+            .map { completedIndex ->
+                if (completedIndex > removedStepIndex) {
+                    completedIndex - 1 // Decrement indices that come after the deleted step
+                } else {
+                    completedIndex
+                }
+            }
+            .toSet()
+
+        return currentState.copy(
+            runningStepIndex = adjustedRunningStepIndex,
+            failedStepIndex = adjustedFailedStepIndex,
+            completedSteps = adjustedCompletedSteps
+        )
+    }
 
     private fun createDefaultStep(stepType: ScriptStepType): ScriptStep =
         when (stepType) {
