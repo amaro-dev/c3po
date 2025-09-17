@@ -17,11 +17,11 @@ Welcome to the comprehensive documentation for **C3PO** - a powerful Kotlin + Je
 
 Explore C3PO's powerful features for Android development and debugging:
 
-| Plugin | Description |
-|--------|-------------|
-| [**📊 Device Information**](wiki/Device-Information-and-Monitoring.html) | System info, hardware details, and real-time monitoring |
-| [**📦 Package Management**](wiki/Package-Management-Deep-Dive.html) | Install, uninstall, and analyze APK packages |
-| [**⚙️ Activities & Services**](wiki/Activities-and-Services-Management.html) | Control app components and background services |
+| Plugin                                                                       | Description                                                             |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [**📊 Device Information**](wiki/Device-Information-and-Monitoring.html)     | System info, hardware details, device control, and real-time monitoring |
+| [**📦 Package Management**](wiki/Package-Management-Deep-Dive.html)          | Install, uninstall, copy, and analyze APK packages                      |
+| [**⚙️ Activities & Services**](wiki/Activities-and-Services-Management.html) | Control app components and background services                          |
 
 ## 🔧 Advanced Topics
 

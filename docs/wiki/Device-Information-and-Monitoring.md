@@ -104,6 +104,34 @@ The System card shows essential OS information:
     - Build timestamp
     - Developer keys information
 
+## Device Actions
+
+### Device Control Operations
+
+The Device plugin provides convenient action buttons for direct device control:
+
+#### Screenshot Capture
+
+Take an instant screenshot of your connected device's current screen. Click the screenshot button to capture what's
+currently displayed on the device. Screenshots are automatically saved to your local machine for immediate use.
+
+**Key Features:**
+
+- Instant screen capture with one click
+- Automatic local storage and cleanup
+- Perfect for documentation, bug reports, or testing workflows
+
+#### Device Restart
+
+Restarts your connected Android device when needed. Click the restart button to safely reboot the device - you'll be
+asked to confirm before the restart proceeds.
+
+**Key Features:**
+
+- Safe remote device restart
+- Confirmation dialog prevents accidental restarts
+- Automatic reconnection when device comes back online
+
 ## Device Status
 
 ### Real-Time Status Monitoring

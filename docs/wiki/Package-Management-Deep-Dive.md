@@ -121,6 +121,12 @@ Each package provides the following action buttons:
 - **Function:** Clear all application data and reset to initial state
 - **Usage:** Reset app completely (removes user data, settings, caches)
 
+#### Copy Package Information
+
+- **Icon:** Copy icon
+- **Function:** Copy package name or information to clipboard
+- **Usage:** Quickly copy package details for documentation or scripting
+
 #### Uninstall Package
 
 - **Icon:** Delete icon
@@ -128,6 +134,18 @@ Each package provides the following action buttons:
 - **Usage:** Permanently uninstall the package
 
 ### Operation Details
+
+#### Copying Package Information
+
+The copy function provides quick access to package details for use in documentation, scripts, or other tools. Simply
+click the copy icon next to any package to copy its name to your clipboard.
+
+**Use Cases:**
+
+- Copy package names for script automation
+- Document installed applications
+- Share package identifiers with team members
+- Quick reference for development work
 
 #### Uninstalling Applications
 
