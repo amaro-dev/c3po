@@ -1,12 +1,13 @@
 package core.command
 
 import assertk.all
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.endsWith
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
-import assertk.assertions.isTrue
+import assertk.assertions.messageContains
 import assertk.assertions.startsWith
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -62,12 +63,9 @@ class TakeScreenshotCommandTest {
 
         val errorOutput = "Permission denied"
 
-        try {
+        assertFailure {
             command.parse(errorOutput)
-            assertThat(false).isTrue() // Should not reach here
-        } catch (e: RuntimeException) {
-            assertThat(e.message!!).contains("Screenshot failed: Permission denied")
-        }
+        }.messageContains("Screenshot failed: Permission denied")
     }
 
     @Test

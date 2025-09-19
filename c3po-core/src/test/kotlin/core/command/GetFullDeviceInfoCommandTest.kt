@@ -1,5 +1,6 @@
 package core.command
 
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -27,32 +28,34 @@ class GetFullDeviceInfoCommandTest {
 
         val result = command.parse(realAdbOutput)
 
-        // Verify Device info (from getprop only)
-        assertThat(result.device.model).isEqualTo("Pixel 6")
-        assertThat(result.device.brand).isEqualTo("Google")
-        assertThat(result.device.processor.trim()).isEqualTo("tensor")
-        assertThat(result.device.architecture.trim()).isEqualTo("arm64-v8a")
-        assertThat(result.device.serialNumber).isEqualTo("1A2B3C4D5E6F")
-        assertThat(result.device.ramSize).isEqualTo("Unknown") // Requires separate command
-        assertThat(result.device.screenSize).isEqualTo("Unknown") // Requires separate command
-        assertThat(result.device.screenResolution).isEqualTo("Unknown DPI") // Requires separate command
+        assertThat(result).all {
+            // Device info (from getprop only)
+            transform { it.device.model }.isEqualTo("Pixel 6")
+            transform { it.device.brand }.isEqualTo("Google")
+            transform { it.device.processor.trim() }.isEqualTo("tensor")
+            transform { it.device.architecture.trim() }.isEqualTo("arm64-v8a")
+            transform { it.device.serialNumber }.isEqualTo("1A2B3C4D5E6F")
+            transform { it.device.ramSize }.isEqualTo("Unknown")
+            transform { it.device.screenSize }.isEqualTo("Unknown")
+            transform { it.device.screenResolution }.isEqualTo("Unknown DPI")
 
-        // Verify System info
-        assertThat(result.system.androidVersion).isEqualTo("14")
-        assertThat(result.system.securityPatch).isEqualTo("2024-01-01")
-        assertThat(result.system.build).isEqualTo("UQ1A.240105.004")
-        assertThat(result.system.firmware).isEqualTo("google/oriole/oriole:14/UQ1A.240105.004/11206848:user/release-keys")
+            // System info
+            transform { it.system.androidVersion }.isEqualTo("14")
+            transform { it.system.securityPatch }.isEqualTo("2024-01-01")
+            transform { it.system.build }.isEqualTo("UQ1A.240105.004")
+            transform { it.system.firmware }.isEqualTo("google/oriole/oriole:14/UQ1A.240105.004/11206848:user/release-keys")
 
-        // Verify Status info (basic from getprop)
-        assertThat(result.status.batteryLevel).isEqualTo(0) // Requires separate command
-        assertThat(result.status.batteryHealth).isEqualTo("Unknown") // Requires separate command
-        assertThat(result.status.batteryTemperature).isEqualTo(0f) // Requires separate command
-        assertThat(result.status.chargingStatus).isEqualTo("Unknown") // Requires separate command
-        assertThat(result.status.batteryVoltage).isEqualTo(0) // Requires separate command
-        assertThat(result.status.connectionMode).isEqualTo("Wi-Fi")
-        assertThat(result.status.connectionDetails).isEqualTo("wlan0")
-        assertThat(result.status.diskUsage).isNotNull() // Requires separate command
-        assertThat(result.status.diskUsage.isAvailable).isFalse()
+            // Status info (basic from getprop)
+            transform { it.status.batteryLevel }.isEqualTo(0)
+            transform { it.status.batteryHealth }.isEqualTo("Unknown")
+            transform { it.status.batteryTemperature }.isEqualTo(0f)
+            transform { it.status.chargingStatus }.isEqualTo("Unknown")
+            transform { it.status.batteryVoltage }.isEqualTo(0)
+            transform { it.status.connectionMode }.isEqualTo("Wi-Fi")
+            transform { it.status.connectionDetails }.isEqualTo("wlan0")
+            transform { it.status.diskUsage }.isNotNull()
+            transform { it.status.diskUsage.isAvailable }.isFalse()
+        }
     }
 
     @Test
@@ -72,8 +75,10 @@ class GetFullDeviceInfoCommandTest {
 
         val result = command.parse(mobileOutput)
 
-        assertThat(result.status.connectionMode).isEqualTo("Mobile")
-        assertThat(result.status.connectionDetails).isEqualTo(null)
+        assertThat(result).all {
+            transform { it.status.connectionMode }.isEqualTo("Mobile")
+            transform { it.status.connectionDetails }.isEqualTo(null)
+        }
     }
 
     @Test
@@ -92,8 +97,10 @@ class GetFullDeviceInfoCommandTest {
 
         val result = command.parse(unknownOutput)
 
-        assertThat(result.status.connectionMode).isEqualTo("Unknown")
-        assertThat(result.status.connectionDetails).isEqualTo(null)
+        assertThat(result).all {
+            transform { it.status.connectionMode }.isEqualTo("Unknown")
+            transform { it.status.connectionDetails }.isEqualTo(null)
+        }
     }
 
     @Test
@@ -106,11 +113,13 @@ class GetFullDeviceInfoCommandTest {
         val result = command.parse(minimalOutput)
 
         // Should provide defaults for missing data
-        assertThat(result.device.model).isEqualTo("Unknown")
-        assertThat(result.device.brand).isEqualTo("Unknown")
-        assertThat(result.device.processor).isEqualTo("Unknown")
-        assertThat(result.system.androidVersion).isEqualTo("Unknown")
-        assertThat(result.status.connectionMode).isEqualTo("Unknown")
+        assertThat(result).all {
+            transform { it.device.model }.isEqualTo("Unknown")
+            transform { it.device.brand }.isEqualTo("Unknown")
+            transform { it.device.processor }.isEqualTo("Unknown")
+            transform { it.system.androidVersion }.isEqualTo("Unknown")
+            transform { it.status.connectionMode }.isEqualTo("Unknown")
+        }
     }
 
     @Test
@@ -124,9 +133,11 @@ class GetFullDeviceInfoCommandTest {
 
         val result = command.parse(emptyValuesOutput)
 
-        assertThat(result.device.model).isEqualTo("Test Device")
-        assertThat(result.device.brand).isEqualTo("Unknown")
-        assertThat(result.device.processor).isEqualTo("Unknown")
-        assertThat(result.system.androidVersion).isEqualTo("Unknown")
+        assertThat(result).all {
+            transform { it.device.model }.isEqualTo("Test Device")
+            transform { it.device.brand }.isEqualTo("Unknown")
+            transform { it.device.processor }.isEqualTo("Unknown")
+            transform { it.system.androidVersion }.isEqualTo("Unknown")
+        }
     }
 }

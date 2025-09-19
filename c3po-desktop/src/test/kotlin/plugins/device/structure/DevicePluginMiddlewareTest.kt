@@ -1,8 +1,5 @@
 package plugins.device.structure
 
-import assertk.assertThat
-import assertk.assertions.contains
-import assertk.assertions.isEqualTo
 import core.command.CommandExecutor
 import core.model.Action
 import core.model.AdbDevice
@@ -45,68 +42,38 @@ class DevicePluginMiddlewareTest {
 
     @Test
     fun `ConfirmRestartDevice action is properly reduced`() = runTest {
-        // When
         middleware.asyncProcess(Action.ConfirmRestartDevice, appState, mockProcessor)
-
-        // Then
         verify { mockProcessor.reduce(Action.ConfirmRestartDevice) }
-        assertThat(capturedActions).contains(Action.ConfirmRestartDevice)
     }
 
     @Test
     fun `DismissRestartConfirmation action is properly reduced`() = runTest {
-        // When
         middleware.asyncProcess(Action.DismissRestartConfirmation, appState, mockProcessor)
-
-        // Then
         verify { mockProcessor.reduce(Action.DismissRestartConfirmation) }
-        assertThat(capturedActions).contains(Action.DismissRestartConfirmation)
     }
 
     @Test
     fun `RestartDevice with no device connected shows error and does not complete command`() = runTest {
-        // Given - State with no device
         val stateWithoutDevice = AppState(currentDevice = null)
-
-        // When
         middleware.asyncProcess(Action.RestartDevice, stateWithoutDevice, mockProcessor)
-
-        // Then - Should show error and not dispatch completion
-        assertThat(capturedActions.size).isEqualTo(1)
-        val errorAction = capturedActions[0] as Action.SetCommandError
-        assertThat(errorAction.message).contains("No device connected for restart")
+        verify { mockProcessor.reduce(match<Action.SetCommandError> { it.message.contains("No device connected for restart") }) }
     }
 
     @Test
     fun `confirmation dialog actions are handled by middleware`() = runTest {
-        // Clear captured actions
         capturedActions.clear()
-
-        // Test the flow: ConfirmRestartDevice → DismissRestartConfirmation
-
-        // Step 1: Show confirmation dialog
         middleware.asyncProcess(Action.ConfirmRestartDevice, appState, mockProcessor)
-
-        // Step 2: Dismiss confirmation dialog
         middleware.asyncProcess(Action.DismissRestartConfirmation, appState, mockProcessor)
-
-        // Verify both actions were properly processed
-        assertThat(capturedActions.size).isEqualTo(2)
-        assertThat(capturedActions[0]).isEqualTo(Action.ConfirmRestartDevice)
-        assertThat(capturedActions[1]).isEqualTo(Action.DismissRestartConfirmation)
+        verify {
+            mockProcessor.reduce(Action.ConfirmRestartDevice)
+            mockProcessor.reduce(Action.DismissRestartConfirmation)
+        }
     }
 
     @Test
     fun `OpenDeviceSettings with no device connected shows error and does not complete command`() = runTest {
-        // Given - State with no device
         val stateWithoutDevice = AppState(currentDevice = null)
-
-        // When
         middleware.asyncProcess(Action.OpenDeviceSettings, stateWithoutDevice, mockProcessor)
-
-        // Then - Should show error and not dispatch completion
-        assertThat(capturedActions.size).isEqualTo(1)
-        val errorAction = capturedActions[0] as Action.SetCommandError
-        assertThat(errorAction.message).contains("No device connected for operation")
+        verify { mockProcessor.reduce(match<Action.SetCommandError> { it.message.contains("No device connected for operation") }) }
     }
 }

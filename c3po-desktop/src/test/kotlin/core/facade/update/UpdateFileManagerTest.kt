@@ -1,5 +1,6 @@
 package core.facade.update
 
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
@@ -15,10 +16,12 @@ class UpdateFileManagerTest {
     fun `createDownloadDirectory - creates directory successfully`() {
         val downloadDir = fileManager.createDownloadDirectory()
 
-        assertThat(downloadDir.exists()).isTrue()
-        assertThat(downloadDir.isDirectory).isTrue()
-        assertThat(downloadDir.canWrite()).isTrue()
-        assertThat(downloadDir.name).isEqualTo("c3po-updates")
+        assertThat(downloadDir).all {
+            transform { it.exists() }.isTrue()
+            transform { it.isDirectory }.isTrue()
+            transform { it.canWrite() }.isTrue()
+            transform { it.name }.isEqualTo("c3po-updates")
+        }
     }
 
     @Test
@@ -123,9 +126,11 @@ class UpdateFileManagerTest {
 
         val message = insufficient.formatMessage()
 
-        assertThat(message.contains("Insufficient disk space")).isTrue()
-        assertThat(message.contains("Required: 500MB")).isTrue()
-        assertThat(message.contains("Available: 100MB")).isTrue()
+        assertThat(message).all {
+            transform { it.contains("Insufficient disk space") }.isTrue()
+            transform { it.contains("Required: 500MB") }.isTrue()
+            transform { it.contains("Available: 100MB") }.isTrue()
+        }
     }
 
     @Test
@@ -156,8 +161,10 @@ class UpdateFileManagerTest {
 
         fileManager.ensureParentDirectoryExists(testFile)
 
-        assertThat(subDir.exists()).isTrue()
-        assertThat(subDir.isDirectory).isTrue()
+        assertThat(subDir).all {
+            transform { it.exists() }.isTrue()
+            transform { it.isDirectory }.isTrue()
+        }
     }
 
     @Test
@@ -171,6 +178,8 @@ class UpdateFileManagerTest {
         // Should not throw exception
         fileManager.ensureParentDirectoryExists(testFile)
 
-        assertThat(subDir.exists()).isTrue()
+        assertThat(subDir).all {
+            transform { it.exists() }.isTrue()
+        }
     }
 }

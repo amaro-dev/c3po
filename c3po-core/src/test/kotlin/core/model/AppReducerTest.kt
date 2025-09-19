@@ -23,9 +23,11 @@ class AppReducerTest {
 
         val result = reducer.reduce(action, initialState)
 
-        assertThat(result.updateState).isEqualTo(UpdateState.Downloading)
-        assertThat(result.updateInfo).isEqualTo(updateInfo)
-        assertThat(result.downloadProgress).isEqualTo(0)
+        assertThat(result).all {
+            prop(AppState::updateState).isEqualTo(UpdateState.Downloading)
+            prop(AppState::updateInfo).isEqualTo(updateInfo)
+            prop(AppState::downloadProgress).isEqualTo(0)
+        }
     }
 
     @Test
@@ -38,8 +40,10 @@ class AppReducerTest {
 
         val result = reducer.reduce(action, stateWithDownload)
 
-        assertThat(result.downloadProgress).isEqualTo(50)
-        assertThat(result.updateState).isEqualTo(UpdateState.Downloading)
+        assertThat(result).all {
+            prop(AppState::downloadProgress).isEqualTo(50)
+            prop(AppState::updateState).isEqualTo(UpdateState.Downloading)
+        }
     }
 
     @Test
@@ -52,8 +56,10 @@ class AppReducerTest {
 
         val result = reducer.reduce(action, stateWithDownload)
 
-        assertThat(result.updateState).isEqualTo(UpdateState.DownloadComplete)
-        assertThat(result.downloadProgress).isEqualTo(100)
+        assertThat(result).all {
+            prop(AppState::updateState).isEqualTo(UpdateState.DownloadComplete)
+            prop(AppState::downloadProgress).isEqualTo(100)
+        }
     }
 
     @Test
@@ -78,8 +84,10 @@ class AppReducerTest {
 
         val result = reducer.reduce(action, stateWithInstall)
 
-        assertThat(result.updateState).isEqualTo(UpdateState.NoUpdate)
-        assertThat(result.updateInfo).isNull()
+        assertThat(result).all {
+            prop(AppState::updateState).isEqualTo(UpdateState.NoUpdate)
+            prop(AppState::updateInfo).isNull()
+        }
     }
 
     @Test
@@ -91,8 +99,10 @@ class AppReducerTest {
 
         val result = reducer.reduce(action, stateWithDownload)
 
-        assertThat(result.updateState).isEqualTo(UpdateState.Error)
-        assertThat(result.errorMessage).isEqualTo("Network error occurred")
+        assertThat(result).all {
+            prop(AppState::updateState).isEqualTo(UpdateState.Error)
+            prop(AppState::errorMessage).isEqualTo("Network error occurred")
+        }
     }
 
     @Test

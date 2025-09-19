@@ -1,16 +1,19 @@
 package core.facade.update
 
+import assertk.all
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
+import assertk.assertions.messageContains
+import assertk.assertions.prop
 import core.model.UpdateInfo
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.io.IOException
 
 class UpdateCheckerTest {
@@ -47,9 +50,9 @@ class UpdateCheckerTest {
     fun `validateVersion - handles validator exception`() {
         every { mockValidator.compareVersions("invalid", "2.0.1") } throws IllegalArgumentException("Invalid version")
 
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             updateChecker.validateVersion("invalid", "2.0.1")
-        }
+        }.messageContains("Version validation failed")
     }
 
     @Test
@@ -91,9 +94,9 @@ class UpdateCheckerTest {
             throw IOException("Persistent error")
         }
 
-        assertThrows<IOException> {
-            updateChecker.withRetry(3, 10L, operation)
-        }
+        assertFailure {
+            runBlocking { updateChecker.withRetry(3, 10L, operation) }
+        }.messageContains("Persistent error")
 
         assertThat(attempts).isEqualTo(3)
     }
@@ -102,9 +105,9 @@ class UpdateCheckerTest {
     fun `checkForUpdates - invalid URL throws exception`() = runBlocking {
         every { mockValidator.compareVersions(any(), any()) } returns true
 
-        assertThrows<IllegalArgumentException> {
-            updateChecker.checkForUpdates("2.0.1", "invalid-url")
-        }
+        assertFailure {
+            runBlocking { updateChecker.checkForUpdates("2.0.1", "invalid-url") }
+        }.messageContains("Invalid")
     }
 
     @Test
@@ -156,9 +159,11 @@ class UpdateCheckerTest {
 
         // Test that the UpdateInfo can be created and has valid URL structure
         val uri = java.net.URI(updateInfo.downloadUrl)
-        assertThat(uri.scheme).isEqualTo("https")
-        assertThat(uri.host).isEqualTo("github.com")
-        assertThat(uri.path).isEqualTo("/amaro-dev/c3po/releases/download/v2.1.0/c3po-2.1.0.dmg")
+        assertThat(uri).all {
+            prop(java.net.URI::getScheme).isEqualTo("https")
+            prop(java.net.URI::getHost).isEqualTo("github.com")
+            prop(java.net.URI::getPath).isEqualTo("/amaro-dev/c3po/releases/download/v2.1.0/c3po-2.1.0.dmg")
+        }
     }
 
     @Test

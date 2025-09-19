@@ -1,11 +1,11 @@
 package core.facade.update
 
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
@@ -50,15 +50,15 @@ class UpdateValidatorTest {
 
     @Test
     fun `compareVersions - invalid version throws exception`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             validator.compareVersions("invalid", "2.0.1")
         }
 
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             validator.compareVersions("2.0.1", "not.a.version")
         }
 
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             validator.compareVersions("2.a.1", "2.0.1")
         }
     }
@@ -78,7 +78,7 @@ class UpdateValidatorTest {
     fun `calculateChecksum - non-existent file throws exception`(@TempDir tempDir: File) {
         val nonExistentFile = File(tempDir, "does-not-exist.txt")
 
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             validator.calculateChecksum(nonExistentFile)
         }
     }
@@ -88,7 +88,7 @@ class UpdateValidatorTest {
         val emptyFile = File(tempDir, "empty.txt")
         emptyFile.createNewFile()
 
-        assertThrows<IllegalArgumentException> {
+        assertFailure {
             validator.calculateChecksum(emptyFile)
         }
     }

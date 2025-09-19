@@ -1,11 +1,8 @@
 package core.command
 
-import assertk.all
 import assertk.assertFailure
 import assertk.assertThat
-import assertk.assertions.contains
 import assertk.assertions.isEqualTo
-import assertk.assertions.isTrue
 import assertk.assertions.messageContains
 import org.junit.jupiter.api.Test
 
@@ -47,12 +44,9 @@ class RestartDeviceCommandTest {
 
         val errorOutput = "device not found"
 
-        try {
+        assertFailure {
             command.parse(errorOutput)
-            assertThat(false).isTrue() // Should not reach here
-        } catch (e: RuntimeException) {
-            assertThat(e.message!!).contains("Restart failed: No device connected")
-        }
+        }.messageContains("Restart failed: No device connected")
     }
 
     @Test
@@ -61,12 +55,9 @@ class RestartDeviceCommandTest {
 
         val errorOutput = "no devices/emulators found"
 
-        try {
+        assertFailure {
             command.parse(errorOutput)
-            assertThat(false).isTrue() // Should not reach here
-        } catch (e: RuntimeException) {
-            assertThat(e.message!!).contains("Restart failed: No device connected")
-        }
+        }.messageContains("Restart failed: No device connected")
     }
 
     @Test
@@ -75,14 +66,11 @@ class RestartDeviceCommandTest {
 
         val errorOutput = "failed to restart device"
 
-        try {
+        assertFailure {
             command.parse(errorOutput)
-            assertThat(false).isTrue() // Should not reach here
-        } catch (e: RuntimeException) {
-            assertThat(e.message!!).all {
-                contains("Restart failed:")
-                contains("failed to restart device")
-            }
-        }
+        }.messageContains("Restart failed:")
+        assertFailure {
+            command.parse(errorOutput)
+        }.messageContains("failed to restart device")
     }
 }

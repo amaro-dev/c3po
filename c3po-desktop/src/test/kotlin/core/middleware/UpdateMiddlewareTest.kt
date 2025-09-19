@@ -69,8 +69,10 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify { mockProcessor.reduce(Action.UpdateDownloadProgress(100)) }
-        verify { mockProcessor.reduce(match<Action.UpdateDownloadComplete> { it.filePath.contains("c3po-2.1.0-macos.zip") }) }
+        verify {
+            mockProcessor.reduce(Action.UpdateDownloadProgress(100))
+            mockProcessor.reduce(match<Action.UpdateDownloadComplete> { it.filePath.contains("c3po-2.1.0-macos.zip") })
+        }
     }
 
     @Test
@@ -83,7 +85,9 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
+        verify {
+            mockProcessor.reduce(Action.UpdateInstallComplete)
+        }
         // Verify automatic restart is no longer triggered
         verify(exactly = 0) { mockProcessor.reduce(Action.RestartApplication) }
     }
@@ -171,7 +175,9 @@ class UpdateMiddlewareTest {
 
         verify {
             mockProcessor.reduce(match<Action.UpdateError> {
-                it.message.contains("Invalid version") && it.message.contains("not newer")
+                it.message.contains("Invalid version") && it.message.contains(
+                    "not newer"
+                )
             })
         }
     }
@@ -190,8 +196,10 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify { mockProcessor.reduce(Action.UpdateDownloadProgress(100)) }
-        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message == "Validation failed" }) }
+        verify {
+            mockProcessor.reduce(Action.UpdateDownloadProgress(100))
+            mockProcessor.reduce(match<Action.UpdateError> { it.message == "Validation failed" })
+        }
     }
 
     @Test
@@ -204,11 +212,7 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify {
-            mockProcessor.reduce(match<Action.UpdateError> {
-                it.message.contains("Network error during download")
-            })
-        }
+        verify { mockProcessor.reduce(match<Action.UpdateError> { it.message.contains("Network error during download") }) }
     }
 
     @Test
@@ -246,7 +250,9 @@ class UpdateMiddlewareTest {
 
         verify {
             mockProcessor.reduce(match<Action.UpdateError> {
-                it.message.contains("Installation error") && it.message.contains("Unexpected error")
+                it.message.contains("Installation error") && it.message.contains(
+                    "Unexpected error"
+                )
             })
         }
     }
@@ -266,11 +272,13 @@ class UpdateMiddlewareTest {
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
-        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Validating installation file...")) }
-        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Starting installation process...")) }
-        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Copying files...")) }
-        verify { mockProcessor.reduce(Action.UpdateInstallProgress("Installation completed successfully")) }
-        verify { mockProcessor.reduce(Action.UpdateInstallComplete) }
+        verify {
+            mockProcessor.reduce(Action.UpdateInstallProgress("Validating installation file..."))
+            mockProcessor.reduce(Action.UpdateInstallProgress("Starting installation process..."))
+            mockProcessor.reduce(Action.UpdateInstallProgress("Copying files..."))
+            mockProcessor.reduce(Action.UpdateInstallProgress("Installation completed successfully"))
+            mockProcessor.reduce(Action.UpdateInstallComplete)
+        }
         // Verify automatic restart is no longer triggered
         verify(exactly = 0) { mockProcessor.reduce(Action.RestartApplication) }
     }

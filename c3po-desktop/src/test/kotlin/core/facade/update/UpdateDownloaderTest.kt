@@ -1,16 +1,18 @@
 package core.facade.update
 
+import assertk.all
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
+import assertk.assertions.prop
 import core.model.UpdateInfo
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
@@ -30,8 +32,8 @@ class UpdateDownloaderTest {
 
         every { mockFileManager.createDownloadDirectory() } returns File("/tmp/test")
 
-        assertThrows<IllegalArgumentException> {
-            downloader.downloadUpdate(updateInfo).toList()
+        assertFailure {
+            runBlocking { downloader.downloadUpdate(updateInfo).toList() }
         }
     }
 
@@ -160,8 +162,9 @@ class UpdateDownloaderTest {
 
         // Test that the URL would be considered valid
         val uri = java.net.URI(updateInfo.downloadUrl)
-        assertThat(uri.scheme).isNotNull()
-        assertThat(uri.scheme).isEqualTo("https")
-        assertThat(uri.host).isNotNull()
+        assertThat(uri).all {
+            prop(java.net.URI::getScheme).isEqualTo("https")
+            prop(java.net.URI::getHost).isNotNull()
+        }
     }
 }

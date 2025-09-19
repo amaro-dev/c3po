@@ -1,5 +1,6 @@
 package core.command
 
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -21,12 +22,14 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(diskstatsOutput)
 
-        assertThat(result.isAvailable).isTrue()
-        assertThat(result.totalBytes).isEqualTo(67108864000L)
-        assertThat(result.availableBytes).isEqualTo(45837607424L) // Data-Free + System-Free
-        assertThat(result.usedBytes).isEqualTo(21271256576L) // Total - Available
-        assertThat(result.percentageUsed).isEqualTo(31) // ~31%
-        assertThat(result.errorMessage).isEqualTo(null)
+        assertThat(result).all {
+            transform { it.isAvailable }.isTrue()
+            transform { it.totalBytes }.isEqualTo(67108864000L)
+            transform { it.availableBytes }.isEqualTo(45837607424L)
+            transform { it.usedBytes }.isEqualTo(21271256576L)
+            transform { it.percentageUsed }.isEqualTo(31)
+            transform { it.errorMessage }.isEqualTo(null)
+        }
     }
 
     @Test
@@ -40,11 +43,13 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(diskstatsOutput)
 
-        assertThat(result.isAvailable).isTrue()
-        assertThat(result.totalBytes).isEqualTo(128000000000L)
-        assertThat(result.usedBytes).isEqualTo(96000000000L)
-        assertThat(result.availableBytes).isEqualTo(32000000000L)
-        assertThat(result.percentageUsed).isEqualTo(75) // 75%
+        assertThat(result).all {
+            transform { it.isAvailable }.isTrue()
+            transform { it.totalBytes }.isEqualTo(128000000000L)
+            transform { it.usedBytes }.isEqualTo(96000000000L)
+            transform { it.availableBytes }.isEqualTo(32000000000L)
+            transform { it.percentageUsed }.isEqualTo(75)
+        }
     }
 
     @Test
@@ -53,12 +58,14 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(errorOutput)
 
-        assertThat(result.isAvailable).isFalse()
-        assertThat(result.totalBytes).isEqualTo(0L)
-        assertThat(result.usedBytes).isEqualTo(0L)
-        assertThat(result.availableBytes).isEqualTo(0L)
-        assertThat(result.percentageUsed).isEqualTo(0)
-        assertThat(result.errorMessage).isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        assertThat(result).all {
+            transform { it.isAvailable }.isFalse()
+            transform { it.totalBytes }.isEqualTo(0L)
+            transform { it.usedBytes }.isEqualTo(0L)
+            transform { it.availableBytes }.isEqualTo(0L)
+            transform { it.percentageUsed }.isEqualTo(0)
+            transform { it.errorMessage }.isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        }
     }
 
     @Test
@@ -67,8 +74,10 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(errorOutput)
 
-        assertThat(result.isAvailable).isFalse()
-        assertThat(result.errorMessage).isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        assertThat(result).all {
+            transform { it.isAvailable }.isFalse()
+            transform { it.errorMessage }.isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        }
     }
 
     @Test
@@ -77,8 +86,10 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(errorOutput)
 
-        assertThat(result.isAvailable).isFalse()
-        assertThat(result.errorMessage).isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        assertThat(result).all {
+            transform { it.isAvailable }.isFalse()
+            transform { it.errorMessage }.isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        }
     }
 
     @Test
@@ -87,8 +98,10 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(emptyOutput)
 
-        assertThat(result.isAvailable).isFalse()
-        assertThat(result.errorMessage).isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        assertThat(result).all {
+            transform { it.isAvailable }.isFalse()
+            transform { it.errorMessage }.isEqualTo("Detailed disk stats are unavailable on this device (the `diskstats` dumpsys service was not found).")
+        }
     }
 
     @Test
@@ -101,8 +114,10 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(unparsableOutput)
 
-        assertThat(result.isAvailable).isFalse()
-        assertThat(result.errorMessage).isEqualTo("No disk usage data found in diskstats output")
+        assertThat(result).all {
+            transform { it.isAvailable }.isFalse()
+            transform { it.errorMessage }.isEqualTo("No disk usage data found in diskstats output")
+        }
     }
 
     @Test
@@ -113,11 +128,13 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(complexOutput)
 
-        assertThat(result.isAvailable).isTrue()
-        assertThat(result.totalBytes).isEqualTo(134217728000L)
-        assertThat(result.availableBytes).isEqualTo(67108864000L)
-        assertThat(result.usedBytes).isEqualTo(67108864000L) // 134217728000 - 67108864000
-        assertThat(result.percentageUsed).isEqualTo(50) // 50%
+        assertThat(result).all {
+            transform { it.isAvailable }.isTrue()
+            transform { it.totalBytes }.isEqualTo(134217728000L)
+            transform { it.availableBytes }.isEqualTo(67108864000L)
+            transform { it.usedBytes }.isEqualTo(67108864000L)
+            transform { it.percentageUsed }.isEqualTo(50)
+        }
     }
 
     @Test
@@ -134,15 +151,14 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(realDiskstatsOutput)
 
-        assertThat(result.isAvailable).isTrue()
-        // Total should be Data partition total: 6082144K
-        assertThat(result.totalBytes).isEqualTo(6228115456L) // 6082144K * 1024  
-        // Available should be Data partition free: 5108980K
-        assertThat(result.availableBytes).isEqualTo(5231595520L) // 5108980K * 1024
-        // Used should be total - available
-        assertThat(result.usedBytes).isEqualTo(996519936L)
-        assertThat(result.percentageUsed).isEqualTo(16) // 996519936/6228115456 = ~16%
-        assertThat(result.errorMessage).isEqualTo(null)
+        assertThat(result).all {
+            transform { it.isAvailable }.isTrue()
+            transform { it.totalBytes }.isEqualTo(6228115456L)
+            transform { it.availableBytes }.isEqualTo(5231595520L)
+            transform { it.usedBytes }.isEqualTo(996519936L)
+            transform { it.percentageUsed }.isEqualTo(16)
+            transform { it.errorMessage }.isEqualTo(null)
+        }
     }
 
     @Test
@@ -155,10 +171,12 @@ class GetDiskStatsCommandTest {
 
         val result = command.parse(variousFormats)
 
-        assertThat(result.isAvailable).isTrue()
-        assertThat(result.totalBytes).isEqualTo(50000000000L)
-        assertThat(result.availableBytes).isEqualTo(15000000000L) // System Free
-        assertThat(result.usedBytes).isEqualTo(35000000000L) // Total - Available  
-        assertThat(result.percentageUsed).isEqualTo(70) // 70%
+        assertThat(result).all {
+            transform { it.isAvailable }.isTrue()
+            transform { it.totalBytes }.isEqualTo(50000000000L)
+            transform { it.availableBytes }.isEqualTo(15000000000L)
+            transform { it.usedBytes }.isEqualTo(35000000000L)
+            transform { it.percentageUsed }.isEqualTo(70)
+        }
     }
 }
