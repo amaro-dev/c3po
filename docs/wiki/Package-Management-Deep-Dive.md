@@ -64,7 +64,6 @@ Use the filter controls to refine the package list:
 
 - **Only Enabled:** Show only enabled packages (unchecked = show all)
 - **Only Debuggable:** Show only debuggable applications
-- **Only With Signature:** Show only packages with signature information
 
 ### Package Information
 

@@ -14,6 +14,8 @@ import core.model.AppState
 import core.update
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import plugins.PluginMiddleware
 import plugins.packages.definition.PackagesPlugin
 
@@ -22,6 +24,8 @@ class PackagesPluginMiddleware(
     private val executor: CommandExecutor,
     private val apkSignatureExtractor: core.facade.ApkSignatureExtractor,
 ) : PluginMiddleware(pluginName) {
+    // Limit concurrent sleep-state checks to reduce device load and status churn
+    private val sleepStateLimiter = Semaphore(permits = 5)
     override suspend fun asyncProcess(
         action: IAction,
         state: AppState,
@@ -92,13 +96,15 @@ class PackagesPluginMiddleware(
             }
 
             is PackagesPlugin.Actions.CheckAsleep -> {
-                execute(GetPackageSleepStateCommand(action.packageInfo.packageName), state, executor)
-                    .handle(processor) { sleepState ->
-                        // Update individual package sleep state without race conditions
-                        processor.reduce(
-                            Action.UpdatePackageSleepState(pluginName, action.packageInfo.packageName, sleepState)
-                        )
-                    }
+                sleepStateLimiter.withPermit {
+                    execute(GetPackageSleepStateCommand(action.packageInfo.packageName), state, executor)
+                        .handle(processor) { sleepState ->
+                            // Update individual package sleep state without race conditions
+                            processor.reduce(
+                                Action.UpdatePackageSleepState(pluginName, action.packageInfo.packageName, sleepState)
+                            )
+                        }
+                }
             }
 
             is PackagesPlugin.Actions.LoadAllSleepStates -> {

@@ -65,7 +65,7 @@ class PackagesPlugin(
 
         data class CheckAsleep(
             val packageInfo: AppPackage,
-        ) : Actions
+        ) : Actions, CommandAction
 
         data object LoadAllSleepStates : Actions
     }
@@ -155,11 +155,6 @@ class PackagesPlugin(
                         label = "Only Debuggable",
                         checked = currentFilters.showOnlyDebuggable,
                         onCheckedChange = { updateFilters(currentFilters.copy(showOnlyDebuggable = it)) }
-                    )
-                    CompactFilterCheckbox(
-                        label = "Only With Signature",
-                        checked = currentFilters.showOnlyWithSignature,
-                        onCheckedChange = { updateFilters(currentFilters.copy(showOnlyWithSignature = it)) }
                     )
                 }
             }

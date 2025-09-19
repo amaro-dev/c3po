@@ -26,7 +26,6 @@ fun filterPackages(
         // Filter options: when checked, show only items that match, when unchecked show all
         val matchesEnabledFilter = if (filterState.showOnlyEnabled) pkg.isEnabled else true
         val matchesDebuggableFilter = if (filterState.showOnlyDebuggable) pkg.isDebuggable else true
-        val matchesSignatureFilter = if (filterState.showOnlyWithSignature) pkg.signerInfo != null else true
 
         // Sleep state filtering
         val matchesSleepStateFilter = when (filterState.sleepStateFilter) {
@@ -41,7 +40,6 @@ fun filterPackages(
                 matchesAppType &&
                 matchesEnabledFilter &&
                 matchesDebuggableFilter &&
-                matchesSignatureFilter &&
                 matchesSleepStateFilter
     }
 }
