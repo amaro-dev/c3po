@@ -3,9 +3,10 @@ package core.model
 import Settings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import core.command.SystemCommandExecutor
+import core.facade.AdbFinder
 import core.facade.SettingsRepository
 import core.middleware.SettingsMiddleware
+import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import io.mockk.CapturingSlot
 import io.mockk.coEvery
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test
 import java.util.Properties
 
 class SettingsMiddlewareTest {
-    val commandExecutor: SystemCommandExecutor = mockk(relaxed = true)
+    val adbFinder: AdbFinder = mockk(relaxed = true)
 
     @Test
     fun `Handle LoadSettings action`() = runTest {
@@ -27,7 +28,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.success(properties)
             }
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -44,7 +45,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.success(properties)
             }
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -61,7 +62,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.failure(Exception())
             }
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -78,7 +79,7 @@ class SettingsMiddlewareTest {
         properties["prop"] = "value"
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty("prop", "new-value"), state, processor)
@@ -98,8 +99,7 @@ class SettingsMiddlewareTest {
         properties[Settings.ADB_PATH_PROP] = "value"
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        coEvery { commandExecutor.executeCommand(any(), any()) } returns Result.success("")
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, "new-value"), state, processor)
@@ -115,7 +115,7 @@ class SettingsMiddlewareTest {
         val settings: Properties = mockk(relaxed = true)
         val state = AppState(settings = settings)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.SaveSettings, state, processor)
@@ -131,7 +131,7 @@ class SettingsMiddlewareTest {
         val properties = Properties()
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, commandExecutor, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, "true"), state, processor)
@@ -143,5 +143,44 @@ class SettingsMiddlewareTest {
             processor.reduce(capture(slot))
         }
         assertThat(slot.captured.props[Settings.DARK_MODE_PROP]).isEqualTo("true")
+    }
+
+    @Test
+    fun `SearchAdbPath toggles global loading and updates adb path on success`() = runTest {
+        val settingsRepository: SettingsRepository = mockk(relaxed = true)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+        coEvery { adbFinder.find() } returns Result.success("/opt/homebrew/bin/adb")
+
+        middleware.process(Action.SearchAdbPath, AppState(), processor)
+        advanceUntilIdle()
+
+        verify {
+            processor.reduce(Action.SetAdbPathSearching)
+            processor.reduce(Action.SetCommandRunning)
+            processor.reduce(Action.SetAdbPathSearchResult("/opt/homebrew/bin/adb"))
+            processor.perform(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, "/opt/homebrew/bin/adb"))
+            processor.reduce(Action.SetCommandCompleted)
+        }
+    }
+
+    @Test
+    fun `SearchAdbPath toggles global loading and sets inline error on failure`() = runTest {
+        val settingsRepository: SettingsRepository = mockk(relaxed = true)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val processor: IProcessor<AppState> = mockk(relaxed = true)
+
+        coEvery { adbFinder.find() } returns Result.failure(IllegalStateException("Not found"))
+
+        middleware.process(Action.SearchAdbPath, AppState(), processor)
+        advanceUntilIdle()
+
+        verify {
+            processor.reduce(Action.SetAdbPathSearching)
+            processor.reduce(Action.SetCommandRunning)
+            processor.reduce(match<IAction> { it is Action.SetAdbPathSearchError })
+            processor.reduce(Action.SetCommandCompleted)
+        }
     }
 }
