@@ -90,8 +90,6 @@ class ActivitiesPlugin(
         val items: List<ActivityInfo> = result.result
         val filter = result.searchTerm
 
-        var launchableFilter by remember { mutableStateOf(false) }
-        var debuggableFilter by remember { mutableStateOf(false) }
         var launcherFilter by remember { mutableStateOf(false) }
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -99,11 +97,7 @@ class ActivitiesPlugin(
             EnhancedSearchBar(
                 searchTerm = filter,
                 onSearchChange = { onAction(Action.ChangeFilter(id, it)) },
-                launchableChecked = launchableFilter,
-                debuggableChecked = debuggableFilter,
                 launcherChecked = launcherFilter,
-                onLaunchableChange = { launchableFilter = it },
-                onDebuggableChange = { debuggableFilter = it },
                 onLauncherChange = { launcherFilter = it }
             )
 
@@ -111,8 +105,6 @@ class ActivitiesPlugin(
             ActivitiesScrollableList(
                 items = items,
                 filter = filter,
-                launchableFilter = launchableFilter,
-                debuggableFilter = debuggableFilter,
                 launcherFilter = launcherFilter,
                 onAction = onAction
             )
@@ -124,11 +116,7 @@ class ActivitiesPlugin(
 private fun EnhancedSearchBar(
     searchTerm: String,
     onSearchChange: (String) -> Unit,
-    launchableChecked: Boolean,
-    debuggableChecked: Boolean,
     launcherChecked: Boolean,
-    onLaunchableChange: (Boolean) -> Unit,
-    onDebuggableChange: (Boolean) -> Unit,
     onLauncherChange: (Boolean) -> Unit
 ) {
     Card(
@@ -151,54 +139,6 @@ private fun EnhancedSearchBar(
                 placeholder = "Search activities or packages...",
                 modifier = Modifier.weight(1f)
             )
-
-            // Launchable checkbox
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.selectable(
-                    selected = launchableChecked,
-                    onClick = { onLaunchableChange(!launchableChecked) }
-                )
-            ) {
-                Checkbox(
-                    checked = launchableChecked,
-                    onCheckedChange = onLaunchableChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.onBackground,
-                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-                Text(
-                    "Launchable",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Debuggable checkbox
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.selectable(
-                    selected = debuggableChecked,
-                    onClick = { onDebuggableChange(!debuggableChecked) }
-                )
-            ) {
-                Checkbox(
-                    checked = debuggableChecked,
-                    onCheckedChange = onDebuggableChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.onBackground,
-                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-                Text(
-                    "Debuggable",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
 
             // Launcher checkbox
             Row(
@@ -231,8 +171,6 @@ private fun EnhancedSearchBar(
 private fun ActivitiesScrollableList(
     items: List<ActivityInfo>,
     filter: String,
-    launchableFilter: Boolean,
-    debuggableFilter: Boolean,
     launcherFilter: Boolean,
     onAction: OnAction
 ) {
@@ -256,14 +194,9 @@ private fun ActivitiesScrollableList(
                         val matchesSearch = filter.length < 3 ||
                                 activityInfo.packageName.contains(filter, ignoreCase = true) ||
                                 activityInfo.fullPath.contains(filter, ignoreCase = true)
-
-                        // For now, all activities are considered launchable and debuggable
-                        // These filters can be implemented when ActivityInfo model is extended
-                        val matchesLaunchable = !launchableFilter || true
-                        val matchesDebuggable = !debuggableFilter || true
                         val matchesLauncher = !launcherFilter || activityInfo.isLauncherCapable
 
-                        matchesSearch && matchesLaunchable && matchesDebuggable && matchesLauncher
+                        matchesSearch && matchesLauncher
                     }
                     .groupBy { it.packageName }
                     .flatMap { group ->
@@ -419,4 +352,3 @@ private fun CustomActionButton(
         )
     }
 }
-

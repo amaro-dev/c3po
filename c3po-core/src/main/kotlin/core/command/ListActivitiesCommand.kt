@@ -13,8 +13,9 @@ class ListActivitiesCommand : EnhancedAdbCommand<List<ActivityInfo>> {
 
 
     override fun parse(result: String): List<ActivityInfo> {
-        val activities = parseActivitiesFromDumpsys(result)
-        return enrichActivitiesWithLauncherInfo(activities)
+        // Parse activities from dumpsys output. Enrichment (e.g., launcher-capable info)
+        // must be performed by middleware via additional commands, not here.
+        return parseActivitiesFromDumpsys(result)
     }
 
     private fun parseActivitiesFromDumpsys(result: String): List<ActivityInfo> {
@@ -65,58 +66,4 @@ class ListActivitiesCommand : EnhancedAdbCommand<List<ActivityInfo>> {
             .sortedBy { "${it.packageName}/${it.activityPath}" }
     }
 
-    private fun enrichActivitiesWithLauncherInfo(activities: List<ActivityInfo>): List<ActivityInfo> {
-        return try {
-            // Query launcher activities to identify which ones are launcher-capable
-            val launcherCommand = QueryLauncherActivitiesCommand()
-
-            // For performance, we'll do a simple sync execution here
-            val process = ProcessBuilder(
-                "adb",
-                "shell",
-                "cmd",
-                "package",
-                "query-activities",
-                "-a",
-                "android.intent.action.MAIN",
-                "-c",
-                "android.intent.category.HOME",
-                "--brief",
-                "--user",
-                "0"
-            )
-                .redirectErrorStream(true)
-                .start()
-
-            val launcherOutput = process.inputStream.bufferedReader().readText()
-            val exitCode = process.waitFor()
-
-            if (exitCode == 0) {
-                val launcherActivities = launcherCommand.parse(launcherOutput).map { it.fullPath }.toSet()
-
-                // Enrich activities with launcher capability info
-                activities.map { activity ->
-                    activity.copy(isLauncherCapable = launcherActivities.contains(activity.fullPath))
-                }
-            } else {
-                // If command failed, fallback: assume some well-known launchers might be present
-                activities.map { activity ->
-                    val isLauncher = activity.packageName.contains("launcher") ||
-                            activity.packageName.contains("home") ||
-                            activity.activityPath.contains("Launcher") ||
-                            activity.activityPath.contains("Home")
-                    activity.copy(isLauncherCapable = isLauncher)
-                }
-            }
-        } catch (e: Exception) {
-            // If launcher query fails completely, fallback: assume some well-known launchers might be present
-            activities.map { activity ->
-                val isLauncher = activity.packageName.contains("launcher") ||
-                        activity.packageName.contains("home") ||
-                        activity.activityPath.contains("Launcher") ||
-                        activity.activityPath.contains("Home")
-                activity.copy(isLauncherCapable = isLauncher)
-            }
-        }
-    }
 }

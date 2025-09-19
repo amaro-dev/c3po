@@ -101,11 +101,9 @@ The search bar allows filtering by:
 
 #### Filter Options
 
-- **Launchable Only:** Show only activities that can be launched directly
-- **Debuggable Only:** Show only activities from debuggable applications
 - **Launcher Only:** Show only activities that can be set as the device's default launcher
 
-These filters help narrow down the list to relevant activities for your current task.
+This filter helps narrow down the list to relevant activities for your current task.
 
 ### Common Use Cases
 
@@ -193,7 +191,7 @@ The plugin helps you:
 1. **Use Search Efficiently**
     - Filter by package name when working with specific apps
     - Use partial matching to find activities quickly
-    - Apply filters to focus on relevant components
+   - Apply the launcher filter to focus on relevant components
 
 2. **Safe Testing Practices**
     - Test activities in debug mode when developing
