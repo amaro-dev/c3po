@@ -7,6 +7,7 @@ import core.command.GetDiskStatsCommand
 import core.command.GetDisplayInfoCommand
 import core.command.GetFullDeviceInfoCommand
 import core.command.GetMemoryInfoCommand
+import core.command.OpenSettingsCommand
 import core.command.PullFileCommand
 import core.command.RemoveDeviceFileCommand
 import core.command.RestartDeviceCommand
@@ -122,30 +123,21 @@ class DevicePluginMiddleware(
                                                 // Screenshot saved but cleanup failed - still success
                                                 processor.reduce(Action.SetSuccess("Screenshot saved to: $localPath (cleanup failed)"))
                                                 processor.reduce(Action.ScreenshotCaptured(localPath))
-                                                // TODO: I think there's no need to reduce the CommandCompleted when success is already informed
                                                 processor.reduce(Action.SetCommandCompleted) // Clear loading state
                                             }
                                     }
                                     .onFailure { error ->
                                         processor.reduce(Action.SetCommandError("Failed to pull screenshot: ${error.message}"))
-                                        // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
-                                        processor.reduce(Action.SetCommandCompleted) // Clear loading state
                                     }
                             }
                             .onFailure { error ->
                                 processor.reduce(Action.SetCommandError("Failed to capture screenshot: ${error.message}"))
-                                // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
-                                processor.reduce(Action.SetCommandCompleted) // Clear loading state
                             }
                     } catch (e: Exception) {
                         processor.reduce(Action.SetCommandError("Screenshot error: ${e.message}"))
-                        // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
-                        processor.reduce(Action.SetCommandCompleted) // Clear loading state
                     }
                 } else {
                     processor.reduce(Action.SetCommandError("No device connected for screenshot"))
-                    // TODO: I think there's no need to reduce the CommandCompleted when error is already informed
-                    processor.reduce(Action.SetCommandCompleted) // Clear loading state
                 }
             }
 
@@ -160,11 +152,25 @@ class DevicePluginMiddleware(
                         }
                         .onFailure { error ->
                             processor.reduce(Action.SetCommandError("Device restart failed: ${error.message}"))
-                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
                         }
                 } else {
                     processor.reduce(Action.SetCommandError("No device connected for restart"))
-                    processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                }
+            }
+
+            is Action.OpenDeviceSettings -> {
+                if (state.currentDevice != null) {
+                    val openSettingsCommand = OpenSettingsCommand()
+                    execute(openSettingsCommand, state, executor)
+                        .onSuccess {
+                            processor.reduce(Action.SetSuccess("Device Settings opened"))
+                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
+                        }
+                        .onFailure { error ->
+                            processor.reduce(Action.SetCommandError("Failed to open Settings: ${error.message}"))
+                        }
+                } else {
+                    processor.reduce(Action.SetCommandError("No device connected for operation"))
                 }
             }
         }

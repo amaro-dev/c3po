@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -71,6 +72,18 @@ fun DeviceActionPanel(
                     },
                     label = "Restart",
                     onClick = { onAction(Action.ConfirmRestartDevice) }
+                )
+
+                DeviceActionButton(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Open Device Settings",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    label = "Settings",
+                    onClick = { onAction(Action.OpenDeviceSettings) }
                 )
             }
         }

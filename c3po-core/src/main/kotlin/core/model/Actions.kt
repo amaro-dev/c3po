@@ -175,6 +175,8 @@ sealed interface Action : IAction {
 
     data object DismissRestartConfirmation : Action
 
+    data object OpenDeviceSettings : CommandAction
+
     data class ScreenshotCaptured(
         val filePath: String,
     ) : Action

@@ -64,18 +64,17 @@ class DevicePluginMiddlewareTest {
     }
 
     @Test
-    fun `RestartDevice with no device connected shows error and completes command`() = runTest {
+    fun `RestartDevice with no device connected shows error and does not complete command`() = runTest {
         // Given - State with no device
         val stateWithoutDevice = AppState(currentDevice = null)
 
         // When
         middleware.asyncProcess(Action.RestartDevice, stateWithoutDevice, mockProcessor)
 
-        // Then - Should show error and complete command
-        assertThat(capturedActions.size).isEqualTo(2)
+        // Then - Should show error and not dispatch completion
+        assertThat(capturedActions.size).isEqualTo(1)
         val errorAction = capturedActions[0] as Action.SetCommandError
         assertThat(errorAction.message).contains("No device connected for restart")
-        assertThat(capturedActions[1]).isEqualTo(Action.SetCommandCompleted)
     }
 
     @Test
@@ -95,5 +94,19 @@ class DevicePluginMiddlewareTest {
         assertThat(capturedActions.size).isEqualTo(2)
         assertThat(capturedActions[0]).isEqualTo(Action.ConfirmRestartDevice)
         assertThat(capturedActions[1]).isEqualTo(Action.DismissRestartConfirmation)
+    }
+
+    @Test
+    fun `OpenDeviceSettings with no device connected shows error and does not complete command`() = runTest {
+        // Given - State with no device
+        val stateWithoutDevice = AppState(currentDevice = null)
+
+        // When
+        middleware.asyncProcess(Action.OpenDeviceSettings, stateWithoutDevice, mockProcessor)
+
+        // Then - Should show error and not dispatch completion
+        assertThat(capturedActions.size).isEqualTo(1)
+        val errorAction = capturedActions[0] as Action.SetCommandError
+        assertThat(errorAction.message).contains("No device connected for operation")
     }
 }

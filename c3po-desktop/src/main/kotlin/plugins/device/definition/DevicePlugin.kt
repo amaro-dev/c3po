@@ -41,6 +41,7 @@ class DevicePlugin(
             is core.model.Action.RestartDevice -> true
             is core.model.Action.ConfirmRestartDevice -> true
             is core.model.Action.DismissRestartConfirmation -> true
+            is core.model.Action.OpenDeviceSettings -> true
             else -> false
         }
     }

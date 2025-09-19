@@ -132,6 +132,17 @@ asked to confirm before the restart proceeds.
 - Confirmation dialog prevents accidental restarts
 - Automatic reconnection when device comes back online
 
+#### Open Device Settings
+
+Launches the Android Settings app directly on your connected device. Click the settings button to open the device's
+system settings interface remotely.
+
+**Key Features:**
+
+- One-click access to device settings
+- Opens native Android Settings app
+- Perfect for configuration changes during testing
+
 ## Device Status
 
 ### Real-Time Status Monitoring
