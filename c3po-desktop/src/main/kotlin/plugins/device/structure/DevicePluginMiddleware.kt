@@ -148,11 +148,8 @@ class DevicePluginMiddleware(
                     execute(restartCommand, state, executor)
                         .onSuccess { result ->
                             processor.reduce(Action.SetSuccess(result))
-                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
                         }
-                        .onFailure { error ->
-                            processor.reduce(Action.SetCommandError("Device restart failed: ${error.message}"))
-                        }
+                        .handle(processor)
                 } else {
                     processor.reduce(Action.SetCommandError("No device connected for restart"))
                 }
@@ -164,11 +161,8 @@ class DevicePluginMiddleware(
                     execute(openSettingsCommand, state, executor)
                         .onSuccess {
                             processor.reduce(Action.SetSuccess("Device Settings opened"))
-                            processor.reduce(Action.SetCommandCompleted) // Clear loading state
                         }
-                        .onFailure { error ->
-                            processor.reduce(Action.SetCommandError("Failed to open Settings: ${error.message}"))
-                        }
+                        .handle(processor)
                 } else {
                     processor.reduce(Action.SetCommandError("No device connected for operation"))
                 }
