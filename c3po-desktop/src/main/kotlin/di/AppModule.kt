@@ -16,6 +16,7 @@ import core.middleware.SettingsMiddleware
 import core.middleware.StatusMiddleware
 import core.middleware.USBMonitorMiddleware
 import core.middleware.UpdateMiddleware
+import core.middleware.UrlMiddleware
 import core.model.Action
 import core.model.AppReducer
 import core.model.AppState
@@ -45,6 +46,7 @@ val AppModule =
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),
+                UrlMiddleware(),
                 SettingsMiddleware(get(), get()),
                 StatusMiddleware(get()),
                 USBMonitorMiddleware(get()),

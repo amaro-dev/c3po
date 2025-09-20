@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -431,6 +432,15 @@ private fun TopBar(
             Spacer(Modifier.weight(1f))
 
 
+            // Help icon (opens Getting Started guide)
+            IconButton(onClick = { onAction(Action.OpenUrl("https://amaro-dev.github.io/c3po/wiki/Getting-Started-Guide.html")) }) {
+                Icon(
+                    imageVector = Icons.Filled.Help,
+                    contentDescription = "Help",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
             // Settings gear icon
             IconButton(onClick = { onShowSettings() }) {
                 Icon(
@@ -606,4 +616,3 @@ private fun SuccessMessage(message: String, onDismiss: () -> Unit) {
         }
     }
 }
-

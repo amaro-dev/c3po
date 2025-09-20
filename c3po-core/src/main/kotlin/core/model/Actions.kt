@@ -166,6 +166,11 @@ sealed interface Action : IAction {
 
     data object RestartApplication : Action
 
+    // External actions
+    data class OpenUrl(
+        val url: String,
+    ) : Action
+
     // Device actions
     data object TakeScreenshot : CommandAction
 
