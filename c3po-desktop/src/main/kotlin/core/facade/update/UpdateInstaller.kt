@@ -111,7 +111,7 @@ class UpdateInstaller(
             }
 
             kotlinx.coroutines.delay(500) // Allow user to see completion message
-            InstallResult.success(requiresRestart = true)
+            InstallResult.success()
         } catch (e: SecurityException) {
             InstallResult.failure("Installation permission denied. Please run as administrator or check file permissions.")
         } catch (e: IOException) {
@@ -319,12 +319,10 @@ class UpdateInstaller(
     data class InstallResult(
         val success: Boolean,
         val message: String? = null,
-        val requiresRestart: Boolean = false
     ) {
         companion object {
-            fun success(requiresRestart: Boolean = false) = InstallResult(
+            fun success() = InstallResult(
                 success = true,
-                requiresRestart = requiresRestart
             )
 
             fun failure(message: String) = InstallResult(

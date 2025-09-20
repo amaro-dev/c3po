@@ -6,6 +6,8 @@ import core.model.AppState
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
+import java.io.File
+import java.net.URLDecoder
 import kotlin.system.exitProcess
 
 class RestartMiddleware : AsyncMiddlewareBase<AppState>() {
@@ -23,29 +25,56 @@ class RestartMiddleware : AsyncMiddlewareBase<AppState>() {
 
     private fun attemptRestart(processor: IProcessor<AppState>) {
         try {
-            val userDir = System.getProperty("user.dir")
-            logger.log("restart", "Debug", "Current working directory: $userDir")
+            val appBundle = detectCurrentMacAppBundle()
 
-            // For development: restart gradle task
-            // For production: open app bundle
-            val restartCommand = if (userDir?.contains("c3po") == true) {
-                // Development mode - restart gradle
-                val projectRoot = if (userDir.endsWith("c3po-desktop")) {
-                    userDir.substringBeforeLast("/c3po-desktop")
-                } else userDir
-
-                "cd '$projectRoot/c3po-desktop' && ../gradlew run"
-            } else {
-                // Production mode - open app bundle
-                "open -n /Applications/c3po.app"
+            if (appBundle == null) {
+                // Development environment detected: do not auto-restart
+                logger.log(
+                    "restart",
+                    "RestartSkippedInDev",
+                    "Packaged app bundle not detected; skipping restart in dev"
+                )
+                processor.reduce(Action.SetSuccess("Instalação concluída. Reinicie o C3PO manualmente."))
+                return
             }
 
-            ProcessBuilder("bash", "-c", restartCommand).start()
-            exitProcess(0)
+            // Production: relaunch the same bundle
+            val restartCommand = arrayOf("/usr/bin/open", "-n", appBundle.absolutePath)
+            logger.log("restart", "RestartCommand", "${restartCommand.joinToString(" ")}")
+
+            val process = ProcessBuilder(*restartCommand)
+                .redirectErrorStream(true)
+                .start()
+            val exitCode = process.waitFor()
+            logger.log("restart", "RestartResult", "exitCode=$exitCode")
+
+            if (exitCode == 0) {
+                exitProcess(0)
+            } else {
+                processor.reduce(Action.UpdateError("Instalação concluída. Reinicie o C3PO manualmente."))
+            }
 
         } catch (e: Exception) {
-            processor.reduce(Action.UpdateError("Installation complete. Please restart the application manually."))
+            processor.reduce(Action.UpdateError("Instalação concluída. Reinicie o C3PO manualmente."))
             logger.log("restart", "Failed", "Restart failed: ${e.message}")
+        }
+    }
+
+    private fun detectCurrentMacAppBundle(): File? {
+        return try {
+            val url = this::class.java.protectionDomain.codeSource.location
+            val decoded = URLDecoder.decode(url.path, Charsets.UTF_8.name())
+            var current = File(decoded)
+            var steps = 0
+            while (current.parentFile != null && steps < 12) {
+                if (current.name.endsWith(".app")) return current
+                current = current.parentFile
+                steps++
+            }
+            null
+        } catch (e: Exception) {
+            logger.log("restart", "BundleDetectError", "${e.message}")
+            null
         }
     }
 }

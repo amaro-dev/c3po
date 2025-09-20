@@ -79,9 +79,7 @@ class UpdateMiddlewareTest {
     fun `asyncProcess - InstallUpdate calls handleInstallUpdate`() = runBlocking {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
-        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns UpdateInstaller.InstallResult.success(
-            requiresRestart = true
-        )
+        coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns UpdateInstaller.InstallResult.success()
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
@@ -232,7 +230,7 @@ class UpdateMiddlewareTest {
         val action = Action.InstallUpdate("/path/to/file.dmg")
 
         coEvery { mockUpdateInstaller.installUpdate(any(), any()) } returns
-                UpdateInstaller.InstallResult.success(requiresRestart = false)
+                UpdateInstaller.InstallResult.success()
 
         middleware.asyncProcess(action, testState, mockProcessor)
 
@@ -267,7 +265,7 @@ class UpdateMiddlewareTest {
             onProgress("Starting installation process...")
             onProgress("Copying files...")
             onProgress("Installation completed successfully")
-            UpdateInstaller.InstallResult.success(requiresRestart = true)
+            UpdateInstaller.InstallResult.success()
         }
 
         middleware.asyncProcess(action, testState, mockProcessor)
