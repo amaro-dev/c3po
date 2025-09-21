@@ -4,6 +4,7 @@ import Settings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import core.facade.AdbFinder
+import core.facade.SettingsAnalyticsFacade
 import core.facade.SettingsRepository
 import core.middleware.SettingsMiddleware
 import dev.amaro.sonic.IAction
@@ -28,7 +29,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.success(properties)
             }
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -45,7 +46,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.success(properties)
             }
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -62,7 +63,7 @@ class SettingsMiddlewareTest {
             mockk(relaxed = true) {
                 every { load() } returns Result.failure(Exception())
             }
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.LoadSettings, mockk(), processor)
@@ -79,7 +80,7 @@ class SettingsMiddlewareTest {
         properties["prop"] = "value"
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty("prop", "new-value"), state, processor)
@@ -99,7 +100,7 @@ class SettingsMiddlewareTest {
         properties[Settings.ADB_PATH_PROP] = "value"
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, "new-value"), state, processor)
@@ -115,7 +116,7 @@ class SettingsMiddlewareTest {
         val settings: Properties = mockk(relaxed = true)
         val state = AppState(settings = settings)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.SaveSettings, state, processor)
@@ -131,7 +132,7 @@ class SettingsMiddlewareTest {
         val properties = Properties()
         val state = AppState(settings = properties)
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         middleware.process(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, "true"), state, processor)
@@ -148,7 +149,7 @@ class SettingsMiddlewareTest {
     @Test
     fun `SearchAdbPath toggles global loading and updates adb path on success`() = runTest {
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         coEvery { adbFinder.find() } returns Result.success("/opt/homebrew/bin/adb")
@@ -168,7 +169,7 @@ class SettingsMiddlewareTest {
     @Test
     fun `SearchAdbPath toggles global loading and sets inline error on failure`() = runTest {
         val settingsRepository: SettingsRepository = mockk(relaxed = true)
-        val middleware = SettingsMiddleware(settingsRepository, adbFinder, this)
+        val middleware = SettingsMiddleware(settingsRepository, adbFinder, SettingsAnalyticsFacade(), this)
         val processor: IProcessor<AppState> = mockk(relaxed = true)
 
         coEvery { adbFinder.find() } returns Result.failure(IllegalStateException("Not found"))

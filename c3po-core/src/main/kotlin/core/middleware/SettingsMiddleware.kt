@@ -2,6 +2,7 @@ package core.middleware
 
 import Settings
 import core.facade.AdbFinder
+import core.facade.SettingsAnalyticsFacade
 import core.facade.SettingsRepository
 import core.handle
 import core.model.Action
@@ -16,6 +17,7 @@ import java.util.Properties
 class SettingsMiddleware(
     private val settingsRepository: SettingsRepository,
     private val adbFinder: AdbFinder,
+    private val analyticsFacade: SettingsAnalyticsFacade,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : AsyncMiddlewareBase<AppState>(scope) {
     override suspend fun asyncProcess(
@@ -29,6 +31,7 @@ class SettingsMiddleware(
                     .load()
                     .onSuccess {
                         processor.reduce(Action.LoadSettingsIntoState(it))
+                        analyticsFacade.prepareOnLoad(it).forEach { act -> processor.perform(act) }
                         processor.perform(Action.RefreshDevices)
                     }.onFailure {
                         processor.reduce(Action.SettingsNotFound)
@@ -41,6 +44,11 @@ class SettingsMiddleware(
                 processor.reduce(Action.LoadSettingsIntoState(props))
                 processor.perform(Action.SaveSettings)
                 if (action.key == Settings.ADB_PATH_PROP) processor.perform(Action.RefreshDevices)
+
+                if (action.key == Settings.ANALYTICS_ENABLED_PROP) {
+                    val enabled = action.value.toBoolean()
+                    analyticsFacade.prepareOnToggle(enabled, props).forEach { act -> processor.perform(act) }
+                }
             }
 
             is Action.SaveSettings -> {

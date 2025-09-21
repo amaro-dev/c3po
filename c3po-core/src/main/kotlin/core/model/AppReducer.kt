@@ -239,6 +239,14 @@ class AppReducer : IReducer<AppState> {
                     currentState
                 }
 
+                is Action.StartAnalyticsSession -> {
+                    currentState.copy(analyticsSessionId = action.sessionId)
+                }
+
+                is Action.EndAnalyticsSession -> {
+                    currentState.copy(analyticsSessionId = null)
+                }
+
                 // Device restart confirmation dialog actions
                 is Action.ConfirmRestartDevice -> {
                     currentState.copy(showRestartConfirmation = true)

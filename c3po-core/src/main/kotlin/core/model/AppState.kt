@@ -20,6 +20,7 @@ data class AppState(
     val isSearchingAdbPath: Boolean = false,
     val adbSearchError: String? = null,
     val showRestartConfirmation: Boolean = false,
+    val analyticsSessionId: String? = null,
 ) {
     val hasDeviceSet: Boolean
         get() = currentDevice != null

@@ -24,6 +24,9 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.12")
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
+    // Analytics dependencies
+    implementation("ly.count.sdk:java:24.1.1")
+
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.11.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

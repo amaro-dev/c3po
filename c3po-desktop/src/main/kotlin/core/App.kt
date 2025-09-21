@@ -27,6 +27,8 @@ class App : KoinComponent {
     fun listen() = stateManager.listen()
 
     fun exit() {
+        perform(Action.EndAnalyticsSession)
+        perform(Action.ShutdownAnalytics)
         // Application cleanup if needed
     }
 }

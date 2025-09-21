@@ -186,4 +186,18 @@ sealed interface Action : IAction {
         val filePath: String,
     ) : Action
 
+    // Analytics
+    data class InitializeAnalytics(
+        val serverUrl: String,
+        val appKey: String,
+    ) : Action
+
+    data class StartAnalyticsSession(
+        val sessionId: String
+    ) : Action
+
+    data object ShutdownAnalytics : Action
+
+    data object EndAnalyticsSession : Action
+
 }
