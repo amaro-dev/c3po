@@ -6,6 +6,7 @@ import core.facade.update.UpdateInstaller
 import core.facade.update.UpdateUtils
 import core.model.Action
 import core.model.AppState
+import core.util.AppPaths
 import dev.amaro.sonic.AsyncMiddlewareBase
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
@@ -137,7 +138,7 @@ class UpdateMiddleware(
 
                     // Handle download completion
                     if (progress.progress >= 100) {
-                        val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+                        val downloadDir = AppPaths.getUpdateDownloadDirectory()
                         downloadedFile = File(downloadDir, UpdateUtils.getUpdateFileName(action.updateInfo.version))
 
                         // Validate downloaded file

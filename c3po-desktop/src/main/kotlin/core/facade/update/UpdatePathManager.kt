@@ -1,6 +1,7 @@
 package core.facade.update
 
 import core.facade.update.UpdateUtils.getUpdateFileName
+import core.util.AppPaths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -98,14 +99,8 @@ class UpdatePathManager {
      * Creates and validates all necessary paths for an update installation
      */
     fun createUpdatePaths(version: String, appName: String = "C3PO"): UpdatePaths {
-        // Robust temp directory resolution
-        val tempDir = resolveSystemTempDirectory()
-        val downloadDir = File(tempDir, "c3po-updates").apply {
-            // Ensure directory exists with proper permissions
-            if (!exists()) {
-                mkdirs()
-            }
-        }
+        // Unified download directory resolution
+        val downloadDir = AppPaths.getUpdateDownloadDirectory()
 
         // Construct DMG file path with validation
         val updateFile = File(downloadDir, getUpdateFileName(version))
@@ -302,32 +297,6 @@ class UpdatePathManager {
             }
         } else {
             -1
-        }
-    }
-
-    /**
-     * Resolves system temp directory with multiple fallbacks
-     */
-    private fun resolveSystemTempDirectory(): File {
-        val candidates = listOf(
-            System.getProperty("java.io.tmpdir"),
-            System.getenv("TMPDIR"),
-            System.getenv("TMP"),
-            System.getenv("TEMP"),
-            "/tmp",
-            "/var/tmp"
-        ).filterNotNull()
-
-        for (candidate in candidates) {
-            val dir = File(candidate)
-            if (dir.exists() && dir.isDirectory && dir.canWrite()) {
-                return dir
-            }
-        }
-
-        // Last resort: create in user home
-        return File(System.getProperty("user.home"), ".tmp").apply {
-            mkdirs()
         }
     }
 

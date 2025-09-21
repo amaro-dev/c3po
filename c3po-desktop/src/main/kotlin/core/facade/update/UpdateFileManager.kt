@@ -1,21 +1,15 @@
 package core.facade.update
 
+import core.util.AppPaths
 import java.io.File
 import java.io.IOException
 
 class UpdateFileManager {
 
     fun createDownloadDirectory(): File {
-        val downloadDir = File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+        val downloadDir = AppPaths.getUpdateDownloadDirectory()
 
         try {
-            if (!downloadDir.exists()) {
-                val created = downloadDir.mkdirs()
-                if (!created) {
-                    throw IOException("Failed to create download directory: ${downloadDir.absolutePath}")
-                }
-            }
-
             if (!downloadDir.canWrite()) {
                 throw IOException("Download directory is not writable: ${downloadDir.absolutePath}")
             }

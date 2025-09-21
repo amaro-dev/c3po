@@ -1,5 +1,6 @@
 package core.facade.update
 
+import core.util.AppPaths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -133,8 +134,7 @@ class UpdateInstaller(
     }
 
     private suspend fun extractZipToStaging(zipFile: File): File = withContext(Dispatchers.IO) {
-        val stagingDir = File(System.getProperty("java.io.tmpdir"), "c3po-update-staging-${System.currentTimeMillis()}")
-        stagingDir.mkdirs()
+        val stagingDir = AppPaths.createStagingDirectory("c3po-update-staging")
 
         // Use Java's built-in ZIP extraction
         java.util.zip.ZipInputStream(zipFile.inputStream().buffered()).use { zipInput ->

@@ -1,6 +1,7 @@
 package core.facade
 
 import core.command.TakeScreenshotCommand
+import core.util.AppPaths
 import java.io.File
 import java.io.IOException
 
@@ -42,8 +43,8 @@ object ScreenshotFileManager {
             return ensureC3poSubdirectory(downloadsDir)
         }
 
-        // Final fallback: system temp directory
-        return File(System.getProperty("java.io.tmpdir"))
+        // Final fallback: unified temp directory
+        return AppPaths.resolveTempDirectory()
     }
 
     /**
