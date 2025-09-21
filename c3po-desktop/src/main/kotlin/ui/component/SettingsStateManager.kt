@@ -11,6 +11,7 @@ data class SettingsState(
     val adbPath: String,
     val updatesUrl: String,
     val darkMode: Boolean,
+    val analyticsEnabled: Boolean,
     val loggingEnabled: Boolean,
     val adbLogging: String,
     val performLogging: Boolean,
@@ -54,6 +55,7 @@ class SettingsStateManager(initialState: SettingsState) {
     fun updateAdbPath(value: String) = updateField("adbPath", value)
     fun updateUpdatesUrl(value: String) = updateField("updatesUrl", value)
     fun updateDarkMode(value: Boolean) = updateField("darkMode", value)
+    fun updateAnalyticsEnabled(value: Boolean) = updateField("analyticsEnabled", value)
     fun updateLoggingEnabled(value: Boolean) = updateField("loggingEnabled", value)
     fun updateAdbLogging(value: String) = updateField("adbLogging", value)
     fun updatePerformLogging(value: Boolean) = updateField("performLogging", value)
@@ -106,6 +108,7 @@ class SettingsStateManager(initialState: SettingsState) {
         if (oldState.adbPath != newState.adbPath) changedFields.add("adbPath")
         if (oldState.updatesUrl != newState.updatesUrl) changedFields.add("updatesUrl")
         if (oldState.darkMode != newState.darkMode) changedFields.add("darkMode")
+        if (oldState.analyticsEnabled != newState.analyticsEnabled) changedFields.add("analyticsEnabled")
         if (oldState.loggingEnabled != newState.loggingEnabled) changedFields.add("loggingEnabled")
         if (oldState.adbLogging != newState.adbLogging) changedFields.add("adbLogging")
         if (oldState.performLogging != newState.performLogging) changedFields.add("performLogging")
@@ -122,6 +125,7 @@ class SettingsStateManager(initialState: SettingsState) {
             adbPath = localChanges["adbPath"] as? String ?: _lastExternalState.adbPath,
             updatesUrl = localChanges["updatesUrl"] as? String ?: _lastExternalState.updatesUrl,
             darkMode = localChanges["darkMode"] as? Boolean ?: _lastExternalState.darkMode,
+            analyticsEnabled = localChanges["analyticsEnabled"] as? Boolean ?: _lastExternalState.analyticsEnabled,
             loggingEnabled = localChanges["loggingEnabled"] as? Boolean ?: _lastExternalState.loggingEnabled,
             adbLogging = localChanges["adbLogging"] as? String ?: _lastExternalState.adbLogging,
             performLogging = localChanges["performLogging"] as? Boolean ?: _lastExternalState.performLogging,

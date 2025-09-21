@@ -9,6 +9,7 @@ object Settings {
     const val ANALYTICS_SERVER_URL_PROP = "analytics.server_url"
     const val ANALYTICS_APP_KEY_PROP = "analytics.app_key"
     const val ANALYTICS_INSTANCE_ID_PROP = "analytics.instance_id"
+    const val ANALYTICS_OPTIN_PROMPTED_PROP = "analytics.optin.prompted"
 
     // Logging configuration properties
     const val LOGGING_ENABLED_PROP = "logging.enabled"

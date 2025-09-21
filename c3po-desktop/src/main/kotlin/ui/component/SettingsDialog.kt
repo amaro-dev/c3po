@@ -52,6 +52,7 @@ import java.io.File
  * @param initialUpdatesUrl Current updates URL from settings
  * @param initialDarkMode Current dark mode setting from settings
  * @param initialLoggingEnabled Current logging enabled setting
+ * @param initialAnalyticsEnabled Current analytics enabled setting
  * @param initialAdbLogging Current ADB logging mode ("off", "errors", "full")
  * @param initialPerformLogging Current perform logging setting
  * @param initialReduceLogging Current reduce logging setting
@@ -63,6 +64,7 @@ fun SettingsDialog(
     initialAdbPath: String,
     initialUpdatesUrl: String,
     initialDarkMode: Boolean,
+    initialAnalyticsEnabled: Boolean,
     initialLoggingEnabled: Boolean,
     initialAdbLogging: String,
     initialPerformLogging: Boolean,
@@ -70,7 +72,7 @@ fun SettingsDialog(
     isSearchingAdbPath: Boolean,
     adbSearchError: String?,
     onAction: (Action) -> Unit,
-    onSave: (adbPath: String, updatesUrl: String, darkMode: Boolean, loggingEnabled: Boolean, adbLogging: String, performLogging: Boolean, reduceLogging: Boolean) -> Unit,
+    onSave: (adbPath: String, updatesUrl: String, darkMode: Boolean, analyticsEnabled: Boolean, loggingEnabled: Boolean, adbLogging: String, performLogging: Boolean, reduceLogging: Boolean) -> Unit,
     onCancel: () -> Unit,
     onCheckPermissions: () -> Unit = {}
 ) {
@@ -81,6 +83,7 @@ fun SettingsDialog(
                 adbPath = initialAdbPath,
                 updatesUrl = initialUpdatesUrl,
                 darkMode = initialDarkMode,
+                analyticsEnabled = initialAnalyticsEnabled,
                 loggingEnabled = initialLoggingEnabled,
                 adbLogging = initialAdbLogging,
                 performLogging = initialPerformLogging,
@@ -95,6 +98,7 @@ fun SettingsDialog(
         initialUpdatesUrl,
         initialDarkMode,
         initialLoggingEnabled,
+        initialAnalyticsEnabled,
         initialAdbLogging,
         initialPerformLogging,
         initialReduceLogging
@@ -103,6 +107,7 @@ fun SettingsDialog(
             adbPath = initialAdbPath,
             updatesUrl = initialUpdatesUrl,
             darkMode = initialDarkMode,
+            analyticsEnabled = initialAnalyticsEnabled,
             loggingEnabled = initialLoggingEnabled,
             adbLogging = initialAdbLogging,
             performLogging = initialPerformLogging,
@@ -293,6 +298,32 @@ fun SettingsDialog(
                             Switch(
                                 checked = currentSettings.darkMode,
                                 onCheckedChange = { stateManager.updateDarkMode(it) }
+                            )
+                        }
+
+                        // Analytics Opt-in Toggle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "Enable Analytics",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Allow anonymous usage analytics (can be changed later)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondaryTextColor
+                                )
+                            }
+                            Switch(
+                                checked = currentSettings.analyticsEnabled,
+                                onCheckedChange = { stateManager.updateAnalyticsEnabled(it) }
                             )
                         }
 
@@ -522,6 +553,7 @@ fun SettingsDialog(
                                 current.adbPath,
                                 current.updatesUrl,
                                 current.darkMode,
+                                current.analyticsEnabled,
                                 current.loggingEnabled,
                                 current.adbLogging,
                                 current.performLogging,
