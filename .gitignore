@@ -45,4 +45,4 @@ bin/
 .serena/cache/
 
 ### Local configuration ###
-local-config.properties
+local.properties

@@ -74,6 +74,7 @@ fun NewLayout(app: App) {
     val updatesUrl = state.settings.getProperty(Settings.UPDATES_URL_PROP) ?: ""
     val darkMode = state.settings.getProperty(Settings.DARK_MODE_PROP)?.toBoolean() ?: false
     val loggingEnabled = state.settings.getProperty(Settings.LOGGING_ENABLED_PROP)?.toBoolean() ?: false
+    val analyticsEnabled = state.settings.getProperty(Settings.ANALYTICS_ENABLED_PROP)?.toBoolean() ?: false
     val adbLogging = state.settings.getProperty(Settings.LOGGING_ADB_PROP) ?: "full"
     val performLogging = state.settings.getProperty(Settings.LOGGING_PERFORM_PROP)?.toBoolean() ?: true
     val reduceLogging = state.settings.getProperty(Settings.LOGGING_REDUCE_PROP)?.toBoolean() ?: true
@@ -81,11 +82,23 @@ fun NewLayout(app: App) {
 
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showAnalyticsOptIn by remember { mutableStateOf(false) }
 
     // Auto-show settings dialog when ADB path is not configured
     LaunchedEffect(settingsState, adbPath) {
         if (settingsState == core.model.SettingsState.Initialized && adbPath.isBlank()) {
             showSettingsDialog = true
+        }
+    }
+
+    // Show Analytics Opt-in dialog once when settings are loaded, not yet prompted and not enabled
+    LaunchedEffect(settingsState) {
+        if (settingsState == core.model.SettingsState.Initialized) {
+            val enabled = state.settings.getProperty(Settings.ANALYTICS_ENABLED_PROP, "false").toBoolean()
+            val prompted = state.settings.getProperty(Settings.ANALYTICS_OPTIN_PROMPTED_PROP, "false").toBoolean()
+            if (!enabled && !prompted) {
+                showAnalyticsOptIn = true
+            }
         }
     }
 
@@ -147,6 +160,7 @@ fun NewLayout(app: App) {
             initialAdbPath = adbPath,
             initialUpdatesUrl = updatesUrl,
             initialDarkMode = darkMode,
+            initialAnalyticsEnabled = analyticsEnabled,
             initialLoggingEnabled = loggingEnabled,
             initialAdbLogging = adbLogging,
             initialPerformLogging = performLogging,
@@ -154,10 +168,11 @@ fun NewLayout(app: App) {
             isSearchingAdbPath = state.isSearchingAdbPath,
             adbSearchError = state.adbSearchError,
             onAction = onAction,
-            onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
+            onSave = { newAdbPath, newUpdatesUrl, newDarkMode, newAnalyticsEnabled, newLoggingEnabled, newAdbLogging, newPerformLogging, newReduceLogging ->
                 onAction(Action.ChangeSettingsProperty(Settings.ADB_PATH_PROP, newAdbPath))
                 onAction(Action.ChangeSettingsProperty(Settings.UPDATES_URL_PROP, newUpdatesUrl))
                 onAction(Action.ChangeSettingsProperty(Settings.DARK_MODE_PROP, newDarkMode.toString()))
+                onAction(Action.ChangeSettingsProperty(Settings.ANALYTICS_ENABLED_PROP, newAnalyticsEnabled.toString()))
                 onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ENABLED_PROP, newLoggingEnabled.toString()))
                 onAction(Action.ChangeSettingsProperty(Settings.LOGGING_ADB_PROP, newAdbLogging))
                 onAction(Action.ChangeSettingsProperty(Settings.LOGGING_PERFORM_PROP, newPerformLogging.toString()))
@@ -166,6 +181,25 @@ fun NewLayout(app: App) {
             },
             onCancel = { showSettingsDialog = false },
             onCheckPermissions = { showPermissionDialog = true }
+        )
+    }
+
+    // Analytics Opt-in Dialog
+    if (showAnalyticsOptIn && !showSettingsDialog) {
+        ui.component.AnalyticsOptInDialog(
+            onEnable = {
+                onAction(Action.ChangeSettingsProperty(Settings.ANALYTICS_ENABLED_PROP, "true"))
+                onAction(Action.ChangeSettingsProperty(Settings.ANALYTICS_OPTIN_PROMPTED_PROP, "true"))
+                showAnalyticsOptIn = false
+            },
+            onDecline = {
+                onAction(Action.ChangeSettingsProperty(Settings.ANALYTICS_OPTIN_PROMPTED_PROP, "true"))
+                showAnalyticsOptIn = false
+            },
+            onDismiss = {
+                // If user dismisses, do not mark as prompted to allow showing again
+                showAnalyticsOptIn = false
+            }
         )
     }
 
@@ -254,8 +288,8 @@ fun NewLayout(app: App) {
                 onAction(Action.DownloadUpdate(state.updateInfo!!))
             },
             onInstallNow = {
-                // Get the downloaded file path from temp directory
-                val downloadDir = java.io.File(System.getProperty("java.io.tmpdir"), "c3po-updates")
+                // Get the downloaded file path from unified download directory
+                val downloadDir = core.util.AppPaths.getUpdateDownloadDirectory()
                 val downloadedFile =
                     java.io.File(downloadDir, UpdateUtils.getUpdateFileName(state.updateInfo!!.version))
                 if (downloadedFile.exists()) {

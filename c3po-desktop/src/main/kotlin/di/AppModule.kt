@@ -1,6 +1,7 @@
 package di
 
 import core.PluginSelectorMiddleware
+import core.analytics.AnalyticsService
 import core.facade.update.DefaultPlatformDetector
 import core.facade.update.UpdateChecker
 import core.facade.update.UpdateDownloader
@@ -8,6 +9,7 @@ import core.facade.update.UpdateFileManager
 import core.facade.update.UpdateInstaller
 import core.facade.update.UpdatePathManager
 import core.facade.update.UpdateValidator
+import core.middleware.AnalyticsMiddleware
 import core.middleware.ClipboardMiddleware
 import core.middleware.DeviceMiddleware
 import core.middleware.LoggingMiddleware
@@ -43,11 +45,12 @@ val AppModule =
         factory(named(MIDDLEWARE_LIST_DEPENDENCY)) {
             arrayOf(
                 LoggingMiddleware(), // Add logging as first middleware to capture all actions
+                AnalyticsMiddleware(get()), // Add analytics early in chain
                 DeviceMiddleware(get()),
                 PluginSelectorMiddleware(get(named(PLUGIN_LIST_DEPENDENCY))), // Does not exist
                 ClipboardMiddleware(get()),
                 UrlMiddleware(),
-                SettingsMiddleware(get(), get()),
+                SettingsMiddleware(get(), get(), get(), get()),
                 StatusMiddleware(get()),
                 USBMonitorMiddleware(get()),
                 UpdateMiddleware(get(), get(), get()),
@@ -63,6 +66,14 @@ val AppModule =
                 ),
             )
         }
+
+        // Analytics Service (no hardcoded initialization)
+        single { AnalyticsService() }
+
+        // Runtime analytics config from env/system (no persistence)
+        single { AnalyticsDefaultsProvider.loadFromRuntime() }
+        // Analytics Facade with runtime config
+        single { core.facade.SettingsAnalyticsFacade(get()) }
 
         // Update Services
         single { UpdateValidator() }
