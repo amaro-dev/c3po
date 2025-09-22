@@ -11,6 +11,11 @@ repositories {
     google()
 }
 
+// Avoid bringing android-specific coroutine prehandlers into core (desktop JVM)
+configurations.all {
+    exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-android")
+}
+
 dependencies {
     // Core dependencies for business logic
     implementation("org.jetbrains.kotlin:kotlin-stdlib")

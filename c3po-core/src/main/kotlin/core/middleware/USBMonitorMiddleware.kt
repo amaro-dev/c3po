@@ -29,7 +29,7 @@ class USBMonitorMiddleware(
         state: AppState,
         processor: IProcessor<AppState>,
     ) {
-        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+        val adbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
 
         when (action) {
             is Action.StartUSBMonitoring -> {
@@ -42,9 +42,9 @@ class USBMonitorMiddleware(
                 stopUSBMonitoring()
             }
 
-            is Action.LoadSettings -> {
-                // Start USB monitoring when settings are loaded (if ADB path is available)
-                val newAdbPath = state.settings.getProperty(Settings.ADB_PATH_PROP)
+            is Action.ILoadSettingsIntoState -> {
+                // Start USB monitoring after settings are applied, if ADB path is available
+                val newAdbPath = state.settings.getProperty(Settings.ADB_PATH_PROP) ?: ""
                 if (!isMonitoring && newAdbPath.isNotBlank()) {
                     debug("Starting USB monitoring after settings loaded")
                     startUSBMonitoring(newAdbPath, processor)
@@ -52,13 +52,14 @@ class USBMonitorMiddleware(
             }
 
             is Action.ChangeSettingsProperty -> {
-                // Restart monitoring if ADB path changed
                 if (action.key == Settings.ADB_PATH_PROP && action.value.isNotBlank()) {
                     if (isMonitoring) {
                         debug("Restarting USB monitoring with new ADB path")
                         stopUSBMonitoring()
-                        startUSBMonitoring(action.value, processor)
+                    } else {
+                        debug("Starting USB monitoring with new ADB path")
                     }
+                    startUSBMonitoring(action.value, processor)
                 }
             }
         }

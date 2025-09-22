@@ -20,6 +20,11 @@ repositories {
     google()
 }
 
+// Ensure Android-specific coroutines are not pulled into the desktop runtime
+configurations.all {
+    exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-android")
+}
+
 sentry {
     includeSourceContext = true
     org = "amaro-dev"
