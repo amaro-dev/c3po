@@ -14,6 +14,10 @@ version = rootProject.version
 val mainClassName = "MainKt"
 val mainClassPath = "$group.$mainClassName"
 
+// Read analytics defaults from environment (provided by CI)
+val analyticsServerUrlEnv = providers.environmentVariable("C3PO_ANALYTICS_SERVER_URL").orNull
+val analyticsAppKeyEnv = providers.environmentVariable("C3PO_ANALYTICS_APP_KEY").orNull
+
 repositories {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
@@ -70,6 +74,13 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "MainKt"
+        // Embed analytics defaults into launcher as JVM args only when provided
+        if (!analyticsServerUrlEnv.isNullOrBlank() && !analyticsAppKeyEnv.isNullOrBlank()) {
+            jvmArgs(
+                "-Danalytics.serverUrl=$analyticsServerUrlEnv",
+                "-Danalytics.appKey=$analyticsAppKeyEnv",
+            )
+        }
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "c3po"

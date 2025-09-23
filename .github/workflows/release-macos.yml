@@ -33,6 +33,10 @@ jobs:
         run: ../gradlew :c3po-desktop:test
 
       - name: Build .dmg and .zip
+        env:
+          # Passed as environment variables; Gradle embeds them as JVM args in the app launcher
+          C3PO_ANALYTICS_SERVER_URL: ${{ secrets.C3PO_ANALYTICS_SERVER_URL }}
+          C3PO_ANALYTICS_APP_KEY: ${{ secrets.C3PO_ANALYTICS_APP_KEY }}
         run: |
           ../gradlew :c3po-desktop:packageDmg -Pversion=${{ steps.version.outputs.version }}
           ../gradlew :c3po-desktop:packageZipDistribution -Pversion=${{ steps.version.outputs.version }}
