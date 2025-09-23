@@ -1,103 +1,33 @@
 package plugins.automation.definition
 
+
 import Settings
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import core.model.AppState
 import core.model.WindowResult
 import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IMiddleware
 import plugins.Plugin
+import plugins.automation.definition.ui.dialogs.ActivitySelectorDialog
+import plugins.automation.definition.ui.dialogs.PackageSelectorDialog
 import plugins.automation.structure.AutomationMiddleware
 import plugins.automation.structure.AutomationState
 import plugins.automation.structure.ScriptStep
 import plugins.automation.structure.ScriptStepType
 import ui.OnAction
-import ui.component.CustomActionButton
-import ui.component.CustomTextField
 import ui.component.DialogAction
-import ui.component.EnhancedHeaderRow
 import ui.component.FilePickerDialog
 import ui.component.FilePickerFilter
 import ui.component.FilePickerMode
-import ui.component.PrimaryButton
-import ui.component.SecondaryButton
 import ui.component.StandardDialog
 
-// Step execution state for visual progress
-data class StepExecutionState(
-    val isScriptRunning: Boolean,
-    val currentStepIndex: Int,
-    val failedStepIndex: Int,
-    val completedSteps: Set<Int>,
-)
-
-enum class StepStatus {
-    PENDING,  // Not yet executed
-    RUNNING,  // Currently executing
-    SUCCESS,  // Completed successfully 
-    FAILED    // Failed during execution
-}
-
-fun getStepStatus(stepIndex: Int, executionState: StepExecutionState): StepStatus {
-    return when {
-        // Failed step shows as failed
-        executionState.failedStepIndex == stepIndex -> StepStatus.FAILED
-
-        // Completed steps show as success
-        stepIndex in executionState.completedSteps -> StepStatus.SUCCESS
-
-        // Currently running step shows as running (only if script is actually running)
-        stepIndex == executionState.currentStepIndex && executionState.isScriptRunning -> StepStatus.RUNNING
-
-        // All other steps are pending
-        else -> StepStatus.PENDING
-    }
-}
 
 class AutomationPlugin(
     automationMiddleware: AutomationMiddleware,
@@ -112,6 +42,11 @@ class AutomationPlugin(
         object OpenScript : Actions
         data class ScriptFolderChosen(val folderPath: String) : Actions
         object DismissOpenScriptError : Actions
+
+        // Name dialog flow
+        data class OpenNameDialog(val isRename: Boolean) : Actions
+        object CloseNameDialog : Actions
+        data class ConfirmScriptName(val name: String) : Actions
 
         data class SetScriptName(
             val name: String,
@@ -185,82 +120,12 @@ class AutomationPlugin(
         val state = result.result.firstOrNull() ?: AutomationState()
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header card with main actions
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            plugins.automation.definition.ui.AutomationTopBar(state = state, onAction = onAction)
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        PrimaryButton(
-                            text = "Create New Script",
-                            onClick = { onAction(Actions.CreateNewScript) }
-                        )
-
-                        PrimaryButton(
-                            text = "Open Script",
-                            onClick = { onAction(Actions.OpenScript) },
-                            enabled = !state.isCreatingScript
-                        )
-
-                        // Save button - only show when creating script
-                        if (state.isCreatingScript) {
-                            PrimaryButton(
-                                text = "Save Script",
-                                onClick = { onAction(Actions.SaveScript) },
-                                enabled = state.currentScript?.name?.isNotBlank() == true && !state.isRunning
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Script creation UI or empty state
             if (state.isCreatingScript) {
-                ScriptCreationUI(state, onAction)
+                plugins.automation.definition.ui.ScriptCreationScreen(state, onAction)
             } else {
-                // Empty state card
-                Card(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(32.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "No script in progress",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Select 'Create New Script' to start or 'Open Script' to load existing scripts",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
+                plugins.automation.definition.ui.EmptyStateCard()
             }
         }
 
@@ -352,471 +217,15 @@ class AutomationPlugin(
                 Text(message)
             }
         }
-    }
-}
 
-@Composable
-private fun ScriptCreationUI(
-    state: AutomationState,
-    onAction: OnAction,
-) {
-    Card(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(bottom = 16.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            val listState = rememberLazyListState()
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    EnhancedHeaderRow("Create New Script")
-                }
-
-                item {
-                    // Script name input
-                    var scriptName by remember { mutableStateOf(state.currentScript?.name ?: "") }
-
-                    // Update local state when external state changes
-                    LaunchedEffect(state.currentScript?.name) {
-                        if (state.currentScript?.name != scriptName) {
-                            scriptName = state.currentScript?.name ?: ""
-                        }
-                    }
-
-                    CustomTextField(
-                        value = scriptName,
-                        onValueChange = { newValue ->
-                            scriptName = newValue
-                            onAction(AutomationPlugin.Actions.SetScriptName(newValue))
-                        },
-                        placeholder = "Enter script name...",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    Divider(
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    // Steps section header
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Steps (${state.currentScript?.steps?.size ?: 0})",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Add step dropdown (disabled while running)
-                            if (!state.isRunning) {
-                                AddStepDropdown(onAction)
-                            } else {
-                                Text(
-                                    text = "Running...",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                )
-                            }
-
-                            // Run button next to Add Step
-                            PrimaryButton(
-                                text = "Run",
-                                onClick = { onAction(AutomationPlugin.Actions.RunScript) },
-                                enabled = state.currentScriptFolder != null && !state.isRunning
-                            )
-                        }
-                    }
-                }
-
-                // Steps list
-                if (state.currentScript?.steps?.isNotEmpty() == true) {
-                    val executionState = StepExecutionState(
-                        isScriptRunning = state.isRunning,
-                        currentStepIndex = state.runningStepIndex,
-                        failedStepIndex = state.failedStepIndex,
-                        completedSteps = state.completedSteps
-                    )
-                    itemsIndexed(state.currentScript.steps) { index, step ->
-                        // Extract error message for this specific step
-                        val stepErrorMessage =
-                            if (executionState.failedStepIndex == index && state.runLogs.isNotEmpty()) {
-                                state.runLogs.find { it.contains("Step ${index + 1} failed:") }
-                            } else null
-                        
-                        StepItem(
-                            step = step,
-                            index = index,
-                            executionState = executionState,
-                            errorMessage = stepErrorMessage,
-                            onRemove = { onAction(AutomationPlugin.Actions.RemoveStep(index)) },
-                            onEdit = {
-                                // Only allow editing if not running and no dialogs are open
-                                if (!state.isRunning && !state.showPackageSelector && !state.showActivitySelector && !state.showApkPicker) {
-                                    onAction(AutomationPlugin.Actions.EditStep(index))
-                                }
-                            },
-                        )
-                    }
-                } else {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(100.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "No steps added yet. Use 'Add Step' to get started.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Divider(
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    // Action buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    ) {
-                        SecondaryButton(
-                            text = "Cancel",
-                            onClick = { onAction(AutomationPlugin.Actions.CancelScript) }
-                        )
-                    }
-                }
-            }
-
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState = listState)
+        // Name dialog for create/rename
+        if (state.showNameDialog) {
+            plugins.automation.definition.ui.dialogs.ScriptNameDialog(
+                isRename = state.isRenameDialog,
+                initialName = state.currentScript?.name ?: "",
+                onConfirm = { onAction(Actions.ConfirmScriptName(it)) },
+                onDismiss = { onAction(Actions.CloseNameDialog) }
             )
         }
     }
 }
-
-@Composable
-private fun AddStepDropdown(onAction: OnAction) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        PrimaryButton(
-            text = "Add Step",
-            onClick = { expanded = true }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            ScriptStepType.values().forEach { stepType ->
-                DropdownMenuItem(
-                    text = { Text(stepType.displayName) },
-                    onClick = {
-                        expanded = false
-                        onAction(AutomationPlugin.Actions.AddStep(stepType))
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StepItem(
-    step: ScriptStep,
-    index: Int,
-    executionState: StepExecutionState,
-    errorMessage: String? = null,
-    onRemove: () -> Unit,
-    onEdit: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().clickable { onEdit() },
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Step status indicator
-                val stepStatus = getStepStatus(index, executionState)
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            when (stepStatus) {
-                                StepStatus.SUCCESS -> androidx.compose.ui.graphics.Color(0xFF4CAF50).copy(alpha = 0.2f)
-                                StepStatus.FAILED -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                                StepStatus.RUNNING -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                StepStatus.PENDING -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                            },
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    when (stepStatus) {
-                        StepStatus.PENDING -> Text(
-                            text = "${index + 1}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-
-                        StepStatus.RUNNING -> CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        StepStatus.SUCCESS -> Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "Completed",
-                            modifier = Modifier.size(16.dp),
-                            tint = androidx.compose.ui.graphics.Color(0xFF4CAF50)
-                        )
-
-                        StepStatus.FAILED -> Icon(
-                            imageVector = Icons.Filled.Error,
-                            contentDescription = "Failed",
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = getStepDisplayName(step),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    val description = getStepDescription(step)
-                    if (description.isNotBlank()) {
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        )
-                    } else {
-                        Text(
-                            text = "⚠️ Configuration needed",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                        )
-                    }
-                }
-            }
-
-            CustomActionButton(
-                icon = Icons.Filled.Close,
-                contentDescription = "Remove step",
-                onClick = onRemove
-            )
-            }
-
-            // Show error message inline with the failed step
-            if (!errorMessage.isNullOrBlank()) {
-                Text(
-                    text = errorMessage,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PackageSelectorDialog(
-    packages: List<core.model.AppPackage>,
-    onPackageSelected: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var searchText by remember { mutableStateOf("") }
-    val filteredPackages = remember(packages, searchText) {
-        if (searchText.isBlank()) {
-            packages
-        } else {
-            packages.filter { it.packageName.contains(searchText, ignoreCase = true) }
-        }
-    }
-
-    StandardDialog(
-        title = "Select Package",
-        onDismiss = onDismiss,
-        secondaryAction = DialogAction(
-            text = "Cancel",
-            onClick = onDismiss
-        )
-    ) {
-        CustomTextField(
-            value = searchText,
-            onValueChange = { searchText = it },
-            placeholder = "Search packages...",
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 300.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(filteredPackages.size) { index ->
-                val packageInfo = filteredPackages[index]
-                Surface(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        onPackageSelected(packageInfo.packageName)
-                    },
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = packageInfo.packageName,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        if (packageInfo.versionName.isNotBlank()) {
-                            Text(
-                                text = "Version: ${packageInfo.versionName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActivitySelectorDialog(
-    activities: List<core.model.ActivityInfo>,
-    selectedPackage: String,
-    onActivitySelected: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var searchText by remember { mutableStateOf("") }
-    val filteredActivities = remember(activities, searchText) {
-        if (searchText.isBlank()) {
-            activities
-        } else {
-            activities.filter { it.activityPath.contains(searchText, ignoreCase = true) }
-        }
-    }
-
-    StandardDialog(
-        title = if (selectedPackage.isNotBlank()) "Select Activity - Package: $selectedPackage" else "Select Activity",
-        onDismiss = onDismiss,
-        secondaryAction = DialogAction(
-            text = "Cancel",
-            onClick = onDismiss
-        )
-    ) {
-        CustomTextField(
-            value = searchText,
-            onValueChange = { searchText = it },
-            placeholder = "Search activities...",
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 300.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(filteredActivities.size) { index ->
-                val activity = filteredActivities[index]
-                Surface(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        onActivitySelected(activity.activityPath)
-                    },
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = activity.activityPath,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Package: ${activity.packageName}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-private fun getStepDisplayName(step: ScriptStep): String =
-    when (step) {
-        is ScriptStep.InstallApk -> "Install APK"
-        is ScriptStep.RemovePackage -> "Remove Package"
-        is ScriptStep.StartActivity -> "Start Activity"
-        is ScriptStep.ClearData -> "Clear Data"
-        is ScriptStep.StopPackage -> "Stop Package"
-    }
-
-private fun getStepDescription(step: ScriptStep): String =
-    when (step) {
-        is ScriptStep.InstallApk -> if (step.apkPath.isNotBlank()) "APK: ${step.apkPath}" else ""
-        is ScriptStep.RemovePackage -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
-        is ScriptStep.StartActivity -> {
-            if (step.packageName.isNotBlank() && step.activityName.isNotBlank()) {
-                "Package: ${step.packageName}, Activity: ${step.activityName}"
-            } else {
-                ""
-            }
-        }
-
-        is ScriptStep.ClearData -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
-        is ScriptStep.StopPackage -> if (step.packageName.isNotBlank()) "Package: ${step.packageName}" else ""
-    }
-

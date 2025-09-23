@@ -25,6 +25,79 @@ class AutomationMiddleware(
         processor: IProcessor<AppState>,
     ) {
         when (action) {
+            is AutomationPlugin.Actions.OpenNameDialog -> {
+                val current = getCurrentState(state)
+                val updated = current.copy(
+                    showNameDialog = true,
+                    isRenameDialog = action.isRename
+                )
+                processor.deliver(pluginName, updated)
+            }
+
+            is AutomationPlugin.Actions.CloseNameDialog -> {
+                val current = getCurrentState(state)
+                processor.deliver(
+                    pluginName,
+                    current.copy(showNameDialog = false, isRenameDialog = false)
+                )
+            }
+
+            is AutomationPlugin.Actions.ConfirmScriptName -> {
+                val current = getCurrentState(state)
+                val name = action.name.trim()
+                if (name.isBlank()) {
+                    // ignore blank names, just close dialog
+                    processor.deliver(pluginName, current.copy(showNameDialog = false, isRenameDialog = false))
+                    return
+                }
+
+                if (current.isRenameDialog && current.currentScript != null) {
+                    val oldName = current.currentScript.name
+                    // If name didn't change, just close dialog
+                    if (oldName == name) {
+                        processor.deliver(pluginName, current.copy(showNameDialog = false, isRenameDialog = false))
+                        return
+                    }
+
+                    // If we have a folder already, rename the folder to avoid duplicates
+                    try {
+                        if (current.currentScriptFolder != null) {
+                            val newFolder = scriptStorage.renameScriptFolder(oldName, name)
+                            val updated = current.copy(
+                                currentScript = current.currentScript.copy(name = name),
+                                currentScriptFolder = newFolder.absolutePath,
+                                showNameDialog = false,
+                                isRenameDialog = false,
+                                isDirty = true,
+                            )
+                            processor.deliver(pluginName, updated)
+                        } else {
+                            // No folder yet (unsaved). Just update name in memory
+                            val updated = current.copy(
+                                currentScript = current.currentScript.copy(name = name),
+                                showNameDialog = false,
+                                isRenameDialog = false,
+                                isDirty = true,
+                            )
+                            processor.deliver(pluginName, updated)
+                        }
+                    } catch (e: Exception) {
+                        // Keep dialog open and report error
+                        processor.reduce(Action.SetCommandError("Failed to rename script: ${e.message}"))
+                        val keepDialog = current.copy(showNameDialog = true, isRenameDialog = true)
+                        processor.deliver(pluginName, keepDialog)
+                    }
+                } else {
+                    val newState = current.copy(
+                        isCreatingScript = true,
+                        currentScript = Script(name = name, version = "1.0", formatVersion = "1.0"),
+                        showNameDialog = false,
+                        isRenameDialog = false
+                    )
+                    processor.deliver(pluginName, newState)
+                }
+            }
+
             is AutomationPlugin.Actions.DismissOpenScriptError -> {
                 val current = getCurrentState(state)
                 processor.deliver(
@@ -51,6 +124,7 @@ class AutomationMiddleware(
                             openScriptError = null,
                             malformedScriptFolderPath = null,
                             currentScriptFolder = action.folderPath,
+                            isDirty = false,
                         )
                     )
                 } catch (e: Exception) {
@@ -75,6 +149,7 @@ class AutomationMiddleware(
                     val newState = currentState.copy(
                         // Keep script open: isCreatingScript remains true, currentScript preserved
                         currentScriptFolder = scriptFolder,
+                        isDirty = false,
                     )
                     processor.deliver(pluginName, newState)
 
@@ -173,6 +248,7 @@ class AutomationMiddleware(
                     currentState.copy(
                         isCreatingScript = true,
                         currentScript = Script(name = "", version = "1.0", formatVersion = "1.0"),
+                        isDirty = true,
                     )
                 processor.deliver(pluginName, newState)
             }
@@ -180,7 +256,7 @@ class AutomationMiddleware(
             is AutomationPlugin.Actions.SetScriptName -> {
                 val currentState = getCurrentState(state)
                 val updatedScript = currentState.currentScript?.copy(name = action.name)
-                val newState = currentState.copy(currentScript = updatedScript)
+                val newState = currentState.copy(currentScript = updatedScript, isDirty = true)
                 processor.deliver(pluginName, newState)
             }
 
@@ -191,7 +267,7 @@ class AutomationMiddleware(
                 val newStep = createDefaultStep(action.stepType)
                 val updatedSteps = currentScript.steps + newStep
                 val updatedScript = currentScript.copy(steps = updatedSteps)
-                val newState = currentState.copy(currentScript = updatedScript)
+                val newState = currentState.copy(currentScript = updatedScript, isDirty = true)
 
                 processor.deliver(pluginName, newState)
             }
@@ -205,8 +281,8 @@ class AutomationMiddleware(
 
                 // Adjust execution state indices after step removal
                 val stateWithAdjustedIndices = adjustExecutionStateAfterStepRemoval(currentState, action.index)
-                val newState = stateWithAdjustedIndices.copy(currentScript = updatedScript)
-
+                val newState = stateWithAdjustedIndices.copy(currentScript = updatedScript, isDirty = true)
+                
                 processor.deliver(pluginName, newState)
             }
 
@@ -281,7 +357,8 @@ class AutomationMiddleware(
                     val newState = currentState.copy(
                         currentScript = updatedScript,
                         editingStepIndex = null,
-                        showApkPicker = false
+                        showApkPicker = false,
+                        isDirty = true,
                     )
                     processor.deliver(pluginName, newState)
 
@@ -307,7 +384,8 @@ class AutomationMiddleware(
                 val newState = currentState.copy(
                     currentScript = updatedScript,
                     editingStepIndex = null,
-                    showPackageSelector = false
+                    showPackageSelector = false,
+                    isDirty = true,
                 )
                 processor.deliver(pluginName, newState)
             }
@@ -326,7 +404,8 @@ class AutomationMiddleware(
                 val newState = currentState.copy(
                     currentScript = updatedScript,
                     editingStepIndex = null,
-                    showActivitySelector = false
+                    showActivitySelector = false,
+                    isDirty = true,
                 )
                 processor.deliver(pluginName, newState)
             }
@@ -345,7 +424,8 @@ class AutomationMiddleware(
                 val newState = currentState.copy(
                     currentScript = updatedScript,
                     editingStepIndex = null,
-                    showPackageSelector = false
+                    showPackageSelector = false,
+                    isDirty = true,
                 )
                 processor.deliver(pluginName, newState)
             }
@@ -364,7 +444,8 @@ class AutomationMiddleware(
                 val newState = currentState.copy(
                     currentScript = updatedScript,
                     editingStepIndex = null,
-                    showPackageSelector = false
+                    showPackageSelector = false,
+                    isDirty = true,
                 )
                 processor.deliver(pluginName, newState)
             }
@@ -375,6 +456,7 @@ class AutomationMiddleware(
                     currentState.copy(
                         isCreatingScript = false,
                         currentScript = null,
+                        isDirty = false,
                     )
                 processor.reduce(Action.DeliverPluginResult(pluginName, listOf(newState)))
             }

@@ -145,4 +145,26 @@ class ScriptStorage {
         val scriptFolder = File(scriptsFolder, scriptName).absolutePath
         return ApkPathResolver.copyApkToScriptFolder(apkPath, scriptFolder)
     }
+
+    /**
+     * Renames the underlying script folder from oldName to newName.
+     * Returns the new folder if successful.
+     * Throws if the source doesn't exist or destination already exists/rename fails.
+     */
+    fun renameScriptFolder(oldName: String, newName: String): File {
+        val from = File(scriptsFolder, oldName)
+        val to = File(scriptsFolder, newName)
+
+        if (!from.exists()) {
+            throw IllegalArgumentException("Script folder not found: ${from.absolutePath}")
+        }
+        if (to.exists()) {
+            throw IllegalArgumentException("Target script folder already exists: ${to.absolutePath}")
+        }
+        val ok = from.renameTo(to)
+        if (!ok) {
+            throw IllegalStateException("Failed to rename script folder to ${to.absolutePath}")
+        }
+        return to
+    }
 }

@@ -3,6 +3,7 @@ package plugins.automation.structure
 data class AutomationState(
     val isCreatingScript: Boolean = false,
     val currentScript: Script? = null,
+    val isDirty: Boolean = false,
     val availableScripts: List<String> = emptyList(),
     val editingStepIndex: Int? = null,
     val availablePackages: List<core.model.AppPackage> = emptyList(),
@@ -11,6 +12,8 @@ data class AutomationState(
     val showActivitySelector: Boolean = false,
     val showApkPicker: Boolean = false,
     val showOpenScriptPicker: Boolean = false,
+    val showNameDialog: Boolean = false,
+    val isRenameDialog: Boolean = false,
     val openScriptError: String? = null,
     val malformedScriptFolderPath: String? = null,
     // UC3 - running
