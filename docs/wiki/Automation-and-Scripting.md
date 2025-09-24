@@ -77,6 +77,27 @@ Each script has basic metadata:
 Scripts execute on the currently selected device. Each step contains specific package names, activity names, or file
 paths as configured through the UI selectors.
 
+### Exporting and Importing Scripts
+
+The Automation plugin allows scripts to be moved between workstations through portable packages (`.c3po-script`).
+
+#### Export a Script
+
+- Save the script first (unsaved changes prevent export).
+- Click **Export Script** in the top bar.
+- Choose a destination folder; C3PO creates `<script-name>.c3po-script` containing `script.c3po` plus any APKs copied
+  to the script folder.
+- If the target file already exists, confirm overwrite or cancel before proceeding.
+
+#### Import a Script
+
+- Click **Import Script** and select a `.c3po-script` package.
+- C3PO validates the archive, restores the script folder under `scripts/<name>` and reopens the editor with the imported
+  contents.
+- When a script with the same name already exists, choose between **Overwrite** (replace the existing folder) or
+  **Rename** (supply an alternate script name). Canceling abandons the import and deletes temporary files.
+- Unsupported package formats or corrupted archives surface an import error dialog with guidance for next steps.
+
 ## Script Execution and Management
 
 ### Execution Process

@@ -32,6 +32,7 @@ fun StandardDialog(
     onDismiss: () -> Unit,
     primaryAction: DialogAction? = null,
     secondaryAction: DialogAction? = null,
+    tertiaryAction: DialogAction? = null,
     width: Int = 600,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -63,11 +64,19 @@ fun StandardDialog(
                 content()
 
                 // Action buttons (if any provided)
-                if (primaryAction != null || secondaryAction != null) {
+                if (primaryAction != null || secondaryAction != null || tertiaryAction != null) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                     ) {
+                        tertiaryAction?.let { action ->
+                            SecondaryButton(
+                                text = action.text,
+                                onClick = action.onClick,
+                                enabled = action.enabled
+                            )
+                        }
+
                         // Secondary button first (Cancel-style)
                         secondaryAction?.let { action ->
                             SecondaryButton(

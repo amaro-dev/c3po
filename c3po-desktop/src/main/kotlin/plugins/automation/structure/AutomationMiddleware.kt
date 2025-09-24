@@ -8,23 +8,126 @@ import dev.amaro.sonic.IAction
 import dev.amaro.sonic.IProcessor
 import plugins.PluginMiddleware
 import plugins.automation.definition.AutomationPlugin
+import java.io.File
 
 class AutomationMiddleware(
     pluginName: String,
     private val scriptStorage: ScriptStorage,
     private val executor: CommandExecutor,
+    private val packageService: ScriptPackageService,
 ) : PluginMiddleware(pluginName) {
     private val runner = ScriptRunner(pluginName)
 
     // Debounce mechanism for EditStep actions
     private var lastEditStepTime = 0L
     private var lastEditStepIndex = -1
+    private var pendingExportDirectory: File? = null
+    private var pendingImport: ScriptPackageService.PreparedImport? = null
     override suspend fun asyncProcess(
         action: IAction,
         state: AppState,
         processor: IProcessor<AppState>,
     ) {
         when (action) {
+            is AutomationPlugin.Actions.ExportScript -> {
+                handleExportRequest(state, processor)
+            }
+
+            is AutomationPlugin.Actions.CancelExportFlow -> {
+                pendingExportDirectory = null
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.clearExportUi())
+            }
+
+            is AutomationPlugin.Actions.ExportDestinationChosen -> {
+                handleExportDestination(action.folderPath, state, processor)
+            }
+
+            is AutomationPlugin.Actions.ConfirmExportOverwrite -> {
+                val destination = pendingExportDirectory
+                if (destination != null) {
+                    executeExport(destination, state, processor, overwrite = true)
+                } else {
+                    val current = getCurrentState(state)
+                    processor.deliver(pluginName, current.clearExportUi())
+                }
+            }
+
+            is AutomationPlugin.Actions.CancelExportOverwrite -> {
+                pendingExportDirectory = null
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.clearExportUi())
+            }
+
+            is AutomationPlugin.Actions.ImportScript -> {
+                handleImportRequest(state, processor)
+            }
+
+            is AutomationPlugin.Actions.CancelImportFlow -> {
+                packageService.discardPreparedImport(pendingImport)
+                pendingImport = null
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.resetImportUi())
+            }
+
+            is AutomationPlugin.Actions.ImportFileChosen -> {
+                handleImportFileChosen(action.filePath, state, processor)
+            }
+
+            is AutomationPlugin.Actions.ConfirmImportOverwrite -> {
+                finalizePendingImport(state, processor, ScriptPackageService.ImportResolution.Overwrite)
+            }
+
+            is AutomationPlugin.Actions.CancelImportOverwrite -> {
+                packageService.discardPreparedImport(pendingImport)
+                pendingImport = null
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.resetImportUi())
+            }
+
+            is AutomationPlugin.Actions.RequestImportRename -> {
+                val current = getCurrentState(state)
+                if (pendingImport != null) {
+                    val suggested =
+                        current.importSuggestedName ?: pendingImport?.script?.name?.let { suggestAlternativeName(it) }
+                    processor.deliver(
+                        pluginName,
+                        current.copy(
+                            showImportConflictDialog = false,
+                            showImportRenameDialog = true,
+                            importSuggestedName = suggested
+                        )
+                    )
+                }
+            }
+
+            is AutomationPlugin.Actions.SubmitImportRename -> {
+                val newName = action.newName.trim()
+                if (newName.isBlank()) {
+                    processor.reduce(Action.SetCommandError("Script name cannot be blank"))
+                    return
+                }
+
+                if (scriptStorage.getScriptFolder(newName).exists()) {
+                    processor.reduce(Action.SetCommandError("A script named '$newName' already exists"))
+                    return
+                }
+
+                finalizePendingImport(state, processor, ScriptPackageService.ImportResolution.Rename(newName))
+            }
+
+            is AutomationPlugin.Actions.CancelImportRename -> {
+                packageService.discardPreparedImport(pendingImport)
+                pendingImport = null
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.resetImportUi())
+            }
+
+            is AutomationPlugin.Actions.DismissImportError -> {
+                val current = getCurrentState(state)
+                processor.deliver(pluginName, current.copy(importErrorMessage = null))
+            }
+
             is AutomationPlugin.Actions.OpenNameDialog -> {
                 val current = getCurrentState(state)
                 val updated = current.copy(
@@ -180,6 +283,10 @@ class AutomationMiddleware(
             }
 
             is Action.StartPlugin -> {
+                packageService.discardPreparedImport(pendingImport)
+                pendingImport = null
+                pendingExportDirectory = null
+
                 val currentState = getCurrentState(state)
 
                 // Always reset execution state when plugin starts, but preserve other state
@@ -194,7 +301,17 @@ class AutomationMiddleware(
                     showPackageSelector = false,
                     showActivitySelector = false,
                     showApkPicker = false,
-                    showOpenScriptPicker = false
+                    showOpenScriptPicker = false,
+                    showExportPicker = false,
+                    showExportOverwriteDialog = false,
+                    pendingExportFilePath = null,
+                    showImportPicker = false,
+                    showImportConflictDialog = false,
+                    showImportRenameDialog = false,
+                    importSuggestedName = null,
+                    importConflictExistingName = null,
+                    pendingImportFilePath = null,
+                    importErrorMessage = null
                 )
 
                 // Load initial data only if we don't have packages and activities already
@@ -471,6 +588,237 @@ class AutomationMiddleware(
     private fun getCurrentState(appState: AppState): AutomationState =
         appState.windows[pluginName]?.result?.firstOrNull() as? AutomationState
             ?: AutomationState()
+
+    private fun AutomationState.clearExportUi(): AutomationState = copy(
+        showExportPicker = false,
+        showExportOverwriteDialog = false,
+        pendingExportFilePath = null
+    )
+
+    private fun AutomationState.resetImportUi(): AutomationState = copy(
+        showImportPicker = false,
+        showImportConflictDialog = false,
+        showImportRenameDialog = false,
+        importSuggestedName = null,
+        importConflictExistingName = null,
+        pendingImportFilePath = null
+    )
+
+    private suspend fun handleExportRequest(state: AppState, processor: IProcessor<AppState>) {
+        val current = getCurrentState(state)
+        when {
+            current.currentScript == null -> {
+                processor.reduce(Action.SetCommandError("No script available for export"))
+            }
+
+            current.currentScript.name.isBlank() -> {
+                processor.reduce(Action.SetCommandError("Script must have a name before export"))
+            }
+
+            current.currentScriptFolder == null || current.isDirty -> {
+                processor.reduce(Action.SetCommandError("Save the script before exporting"))
+            }
+
+            current.isRunning -> {
+                processor.reduce(Action.SetCommandError("Cannot export while script execution is running"))
+            }
+
+            else -> {
+                pendingExportDirectory = null
+                processor.deliver(
+                    pluginName,
+                    current.copy(
+                        showExportPicker = true,
+                        showExportOverwriteDialog = false,
+                        pendingExportFilePath = null
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun handleExportDestination(
+        folderPath: String,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
+        val current = getCurrentState(state)
+        val script = current.currentScript
+        val scriptFolderPath = current.currentScriptFolder
+
+        if (script == null || scriptFolderPath == null) {
+            processor.reduce(Action.SetCommandError("No script available for export"))
+            processor.deliver(pluginName, current.clearExportUi())
+            return
+        }
+
+        val destinationDir = File(folderPath)
+        pendingExportDirectory = destinationDir
+
+        val targetFile = packageService.resolvePackageFile(script.name, destinationDir)
+        if (targetFile.exists()) {
+            processor.deliver(
+                pluginName,
+                current.copy(
+                    showExportPicker = false,
+                    showExportOverwriteDialog = true,
+                    pendingExportFilePath = targetFile.absolutePath
+                )
+            )
+        } else {
+            executeExport(destinationDir, state, processor, overwrite = false)
+        }
+    }
+
+    private suspend fun executeExport(
+        destinationDir: File,
+        state: AppState,
+        processor: IProcessor<AppState>,
+        overwrite: Boolean,
+    ) {
+        val current = getCurrentState(state)
+        val script = current.currentScript
+        val folderPath = current.currentScriptFolder
+
+        if (script == null || folderPath == null) {
+            processor.reduce(Action.SetCommandError("No script available for export"))
+            processor.deliver(pluginName, current.clearExportUi())
+            return
+        }
+
+        processor.deliver(pluginName, current.clearExportUi())
+
+        val result = packageService.exportScript(File(folderPath), destinationDir, script.name, overwrite)
+        pendingExportDirectory = null
+
+        result.onSuccess { file ->
+            processor.reduce(Action.SetSuccess("Script '${script.name}' exported to ${file.absolutePath}"))
+        }.onFailure { error ->
+            processor.reduce(Action.SetCommandError("Failed to export script: ${error.message}"))
+        }
+    }
+
+    private suspend fun handleImportRequest(state: AppState, processor: IProcessor<AppState>) {
+        val current = getCurrentState(state)
+        if (current.isRunning) {
+            processor.reduce(Action.SetCommandError("Cannot import while a script is running"))
+            return
+        }
+
+        packageService.discardPreparedImport(pendingImport)
+        pendingImport = null
+
+        processor.deliver(
+            pluginName,
+            current.copy(
+                showImportPicker = true,
+                showImportConflictDialog = false,
+                showImportRenameDialog = false,
+                importSuggestedName = null,
+                importConflictExistingName = null,
+                pendingImportFilePath = null,
+                importErrorMessage = null
+            )
+        )
+    }
+
+    private suspend fun handleImportFileChosen(
+        filePath: String,
+        state: AppState,
+        processor: IProcessor<AppState>,
+    ) {
+        packageService.discardPreparedImport(pendingImport)
+        pendingImport = null
+
+        val current = getCurrentState(state)
+        val baseState = current.copy(
+            showImportPicker = false,
+            showImportConflictDialog = false,
+            showImportRenameDialog = false,
+            importSuggestedName = null,
+            importConflictExistingName = null,
+            pendingImportFilePath = filePath,
+            importErrorMessage = null
+        )
+        processor.deliver(pluginName, baseState)
+
+        val preparation = packageService.prepareImport(File(filePath))
+        preparation.onSuccess { prepared ->
+            pendingImport = prepared
+            val existing = scriptStorage.getScriptFolder(prepared.script.name).exists()
+            if (existing) {
+                val suggestion = suggestAlternativeName(prepared.script.name)
+                processor.deliver(
+                    pluginName,
+                    baseState.copy(
+                        showImportConflictDialog = true,
+                        importConflictExistingName = prepared.script.name,
+                        importSuggestedName = suggestion
+                    )
+                )
+            } else {
+                finalizePendingImport(state, processor, ScriptPackageService.ImportResolution.Overwrite)
+            }
+        }.onFailure { error ->
+            processor.deliver(
+                pluginName,
+                baseState.copy(
+                    importErrorMessage = "Failed to import script: ${error.message}",
+                    pendingImportFilePath = null
+                )
+            )
+            processor.reduce(Action.SetCommandError("Failed to import script: ${error.message}"))
+        }
+    }
+
+    private suspend fun finalizePendingImport(
+        state: AppState,
+        processor: IProcessor<AppState>,
+        resolution: ScriptPackageService.ImportResolution,
+    ) {
+        val prepared = pendingImport ?: return
+        val current = getCurrentState(state)
+        val baseState = current.resetImportUi()
+        processor.deliver(pluginName, baseState)
+
+        val result = packageService.finalizeImport(prepared, resolution)
+        pendingImport = null
+
+        result.onSuccess { importResult ->
+            val updatedState = baseState.copy(
+                isCreatingScript = true,
+                currentScript = importResult.script,
+                currentScriptFolder = importResult.targetFolder.absolutePath,
+                isDirty = false,
+                pendingImportFilePath = null,
+                importErrorMessage = null,
+                openScriptError = null,
+                malformedScriptFolderPath = null
+            )
+            processor.deliver(pluginName, updatedState)
+            processor.reduce(Action.SetSuccess("Script '${importResult.script.name}' imported successfully"))
+        }.onFailure { error ->
+            processor.deliver(
+                pluginName,
+                baseState.copy(
+                    importErrorMessage = "Failed to import script: ${error.message}",
+                    pendingImportFilePath = null
+                )
+            )
+            processor.reduce(Action.SetCommandError("Failed to import script: ${error.message}"))
+        }
+    }
+
+    private fun suggestAlternativeName(baseName: String): String {
+        val sanitized = baseName.ifBlank { "Script" }
+        var index = 1
+        var candidate: String
+        do {
+            candidate = "${sanitized}_copy${if (index == 1) "" else "_$index"}"
+            index++
+        } while (scriptStorage.getScriptFolder(candidate).exists())
+        return candidate
+    }
 
     /**
      * Adjusts execution state indices after a step is removed.

@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
@@ -93,6 +95,20 @@ fun AutomationTopBar(
                     } else "Cannot Save",
                     onClick = { if (canSave) onAction(AutomationPlugin.Actions.SaveScript) }
                 )
+                // Import
+                val canImport = !state.isRunning
+                CustomActionButton(
+                    icon = Icons.Filled.FileDownload,
+                    contentDescription = if (canImport) "Import Script" else "Cannot Import",
+                    onClick = { if (canImport) onAction(AutomationPlugin.Actions.ImportScript) }
+                )
+                // Export
+                val canExport = state.currentScriptFolder != null && !state.isDirty && !state.isRunning
+                CustomActionButton(
+                    icon = Icons.Filled.FileUpload,
+                    contentDescription = if (canExport) "Export Script" else "Cannot Export",
+                    onClick = { if (canExport) onAction(AutomationPlugin.Actions.ExportScript) }
+                )
                 // Run
                 val canRun = state.currentScriptFolder != null && !state.isRunning
                 CustomActionButton(
@@ -104,4 +120,3 @@ fun AutomationTopBar(
         }
     }
 }
-

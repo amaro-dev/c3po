@@ -33,6 +33,7 @@ import plugins.activities.definition.ActivitiesPlugin
 import plugins.attrs.definition.DeviceAttrsPlugin
 import plugins.automation.definition.AutomationPlugin
 import plugins.automation.structure.AutomationMiddleware
+import plugins.automation.structure.ScriptPackageService
 import plugins.device.definition.DevicePlugin
 import plugins.packages.definition.PackagesPlugin
 import plugins.permissions.definition.PermissionsPlugin
@@ -97,8 +98,9 @@ val AppModule =
         }
 
         single { AutomationDataScriptStorage() }
+        single { ScriptPackageService(get()) }
 
-        single { AutomationMiddleware("AUTOMATION", get(), get()) }
+        single { AutomationMiddleware("AUTOMATION", get(), get(), get()) }
 
         single {
             AppStateManager(

@@ -19,6 +19,7 @@ import plugins.automation.definition.ui.dialogs.ActivitySelectorDialog
 import plugins.automation.definition.ui.dialogs.PackageSelectorDialog
 import plugins.automation.structure.AutomationMiddleware
 import plugins.automation.structure.AutomationState
+import plugins.automation.structure.ScriptPackageService
 import plugins.automation.structure.ScriptStep
 import plugins.automation.structure.ScriptStepType
 import ui.OnAction
@@ -108,6 +109,22 @@ class AutomationPlugin(
         object CancelScript : Actions
 
         object LoadScripts : Actions
+
+        object ExportScript : Actions
+        data class ExportDestinationChosen(val folderPath: String) : Actions
+        object CancelExportFlow : Actions
+        object ConfirmExportOverwrite : Actions
+        object CancelExportOverwrite : Actions
+
+        object ImportScript : Actions
+        data class ImportFileChosen(val filePath: String) : Actions
+        object CancelImportFlow : Actions
+        object ConfirmImportOverwrite : Actions
+        object CancelImportOverwrite : Actions
+        object RequestImportRename : Actions
+        data class SubmitImportRename(val newName: String) : Actions
+        object CancelImportRename : Actions
+        object DismissImportError : Actions
     }
 
     override fun isResponsibleFor(action: IAction): Boolean = action is Actions
@@ -184,6 +201,107 @@ class AutomationPlugin(
             )
         }
 
+        if (state.showExportPicker) {
+            val initialDirectory = state.currentScriptFolder?.let { folder ->
+                java.io.File(folder).parentFile?.absolutePath
+            } ?: run {
+                try {
+                    val base =
+                        if (Settings.isDebug()) java.io.File(".") else java.io.File(Settings.productionSettingsFolder())
+                    java.io.File(base, "scripts").absolutePath
+                } catch (_: Exception) {
+                    java.io.File("./scripts").absolutePath
+                }
+            }
+
+            FilePickerDialog(
+                title = "Select Destination Folder",
+                mode = FilePickerMode.DIRECTORY,
+                initialDirectory = initialDirectory,
+                onFileSelected = { folder -> onAction(Actions.ExportDestinationChosen(folder)) },
+                onDismiss = { onAction(Actions.CancelExportFlow) }
+            )
+        }
+
+        if (state.showImportPicker) {
+            FilePickerDialog(
+                title = "Select Script Package",
+                mode = FilePickerMode.FILE,
+                filter = FilePickerFilter(
+                    "C3PO Script Packages",
+                    listOf(ScriptPackageService.PACKAGE_EXTENSION)
+                ),
+                onFileSelected = { path -> onAction(Actions.ImportFileChosen(path)) },
+                onDismiss = { onAction(Actions.CancelImportFlow) }
+            )
+        }
+
+        if (state.showExportOverwriteDialog && state.pendingExportFilePath != null) {
+            StandardDialog(
+                title = "Overwrite Export File",
+                primaryAction = DialogAction(
+                    text = "Overwrite",
+                    onClick = { onAction(Actions.ConfirmExportOverwrite) },
+                    isPrimary = true
+                ),
+                secondaryAction = DialogAction(
+                    text = "Cancel",
+                    onClick = { onAction(Actions.CancelExportOverwrite) },
+                    isPrimary = false
+                ),
+                onDismiss = {}
+            ) {
+                Text("The file ${state.pendingExportFilePath} already exists. Do you want to overwrite it?")
+            }
+        }
+
+        if (state.showImportConflictDialog && state.importConflictExistingName != null) {
+            StandardDialog(
+                title = "Script Already Exists",
+                primaryAction = DialogAction(
+                    text = "Overwrite",
+                    onClick = { onAction(Actions.ConfirmImportOverwrite) },
+                    isPrimary = true
+                ),
+                secondaryAction = DialogAction(
+                    text = "Rename",
+                    onClick = { onAction(Actions.RequestImportRename) },
+                    isPrimary = false
+                ),
+                tertiaryAction = DialogAction(
+                    text = "Cancel",
+                    onClick = { onAction(Actions.CancelImportOverwrite) },
+                    isPrimary = false
+                ),
+                onDismiss = {}
+            ) {
+                Text("A script named ${state.importConflictExistingName} already exists. Choose overwrite, rename or cancel.")
+            }
+        }
+
+        if (state.showImportRenameDialog) {
+            plugins.automation.definition.ui.dialogs.ScriptNameDialog(
+                isRename = true,
+                initialName = state.importSuggestedName ?: "",
+                onConfirm = { onAction(Actions.SubmitImportRename(it)) },
+                onDismiss = { onAction(Actions.CancelImportRename) }
+            )
+        }
+
+        state.importErrorMessage?.let { message ->
+            StandardDialog(
+                title = "Import Error",
+                primaryAction = DialogAction(
+                    text = "OK",
+                    onClick = { onAction(Actions.DismissImportError) },
+                    isPrimary = true
+                ),
+                onDismiss = {}
+            ) {
+                Text(message)
+            }
+        }
+
 
         // Folder picker for opening a script
         if (state.showOpenScriptPicker) {
@@ -207,12 +325,12 @@ class AutomationPlugin(
         state.openScriptError?.let { message ->
             StandardDialog(
                 title = "Open Script Error",
-                onDismiss = { onAction(Actions.DismissOpenScriptError) },
                 primaryAction = DialogAction(
                     text = "OK",
                     onClick = { onAction(Actions.DismissOpenScriptError) },
                     isPrimary = true
-                )
+                ),
+                onDismiss = {}
             ) {
                 Text(message)
             }
