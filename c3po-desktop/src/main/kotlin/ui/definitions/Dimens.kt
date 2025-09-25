@@ -3,7 +3,7 @@ package ui.definitions
 interface Dimens {
     companion object {
         const val WINDOW_WIDTH = 1024
-        const val WINDOW_HEIGHT = 800
+        const val WINDOW_HEIGHT = 900
         const val HORIZONTAL_SPACER = 8
         const val VERTICAL_SPACER = 4
         const val SCROLL_BAR_MARGIN = 10

@@ -42,7 +42,7 @@ fun main() {
             state =
                 WindowState(
                     width = Dimens.WINDOW_WIDTH.dp,
-                    height = Dimens.WINDOW_HEIGHT.dp,
+                    height = Dimens.WINDOW_HEIGHT.dp
                 ),
         ) {
             val state = myApp.listen().collectAsState().value
