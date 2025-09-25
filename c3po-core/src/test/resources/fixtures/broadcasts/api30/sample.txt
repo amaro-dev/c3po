@@ -1,0 +1,63 @@
+# Source: Reconstructed from Android 11 (API 30) system behavior patterns
+# Based on AOSP Android 11+ package visibility restrictions and broadcast changes
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+
+  Historical broadcasts summary [foreground]:
+    #0: BroadcastRecord{1a2b3c4d u-1 android.intent.action.CLOSE_SYSTEM_DIALOGS} to user -1
+      act=android.intent.action.CLOSE_SYSTEM_DIALOGS cat=[android.intent.category.DEFAULT] flg=0x50000010
+      extras: Bundle[{reason=globalactions}]
+      enqueueTime=2023-01-01 16:45:12.789 dispatchTime=2023-01-01 16:45:12.791 finishTime=2023-01-01 16:45:12.792
+
+  Historical broadcasts summary [background]:
+    #0: BroadcastRecord{2b3c4d5e u0 android.intent.action.PACKAGE_DATA_CLEARED} to user 0
+      act=android.intent.action.PACKAGE_DATA_CLEARED dat=package:com.example.testapp flg=0x1000010
+      extras: Bundle[{android.intent.extra.UID=10234, android.intent.extra.user_handle=0}]
+      enqueueTime=2023-01-01 16:44:08.123 dispatchTime=2023-01-01 16:44:08.125 finishTime=2023-01-01 16:44:08.130
+
+  Sticky broadcasts for user -1:
+    * Sticky action android.intent.action.BATTERY_CHANGED:
+      Intent: Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000010 }
+        Bundle[{status=4, health=2, present=true, level=45, scale=100, voltage=3720, temperature=290, technology=Li-ion, plugged=2, charge_counter=1890000, capacity=3000000, charge_counter_path=/sys/class/power_supply/battery/charge_counter, cycle_count=245}]
+
+  Sticky broadcasts for user 0:
+    * Sticky action android.net.conn.CONNECTIVITY_CHANGE:
+      Intent: Intent { act=android.net.conn.CONNECTIVITY_CHANGE flg=0x4000010 }
+        Bundle[{networkInfo=NetworkInfo: type: WIFI[WIFI], state: CONNECTED/CONNECTED, reason: (unspecified), extra: "office_5g", failover: false, available: true, roaming: false, metered: false, captivePortal: false}]
+
+    * Sticky action android.intent.action.AIRPLANE_MODE:
+      Intent: Intent { act=android.intent.action.AIRPLANE_MODE flg=0x60000010 }
+        Bundle[{state=false}]
+
+  Receiver List:
+    * ReceiverList{3c4d5e6f 9012 system/1000/u0}
+      app=9012:system/u0a1000 pid=9012 uid=1000 user=0
+      Filter #0: BroadcastFilter{4d5e6f7a}
+        IntentFilter:
+          actions=["android.intent.action.BOOT_COMPLETED", "android.intent.action.LOCKED_BOOT_COMPLETED"]
+          priority=1000
+          hasDataType=false
+
+    * ReceiverList{5e6f7a8b 1234 com.android.systemui/10048/u0}
+      app=1234:com.android.systemui/u0a10048 pid=1234 uid=10048 user=0
+      Filter #0: BroadcastFilter{6f7a8b9c}
+        IntentFilter:
+          actions=["android.intent.action.CLOSE_SYSTEM_DIALOGS", "android.intent.action.SCREEN_OFF", "android.intent.action.SCREEN_ON", "android.intent.action.USER_SWITCHED"]
+          priority=0
+          hasDataType=false
+
+    * ReceiverList{7a8b9c0d 2345 com.google.android.gms/10064/u0}
+      app=2345:com.google.android.gms/u0a10064 pid=2345 uid=10064 user=0
+      Filter #0: BroadcastFilter{8b9c0d1e}
+        IntentFilter:
+          actions=["android.net.conn.CONNECTIVITY_CHANGE", "android.net.wifi.WIFI_STATE_CHANGED", "android.intent.action.PACKAGE_REPLACED", "android.intent.action.PACKAGE_REMOVED"]
+          schemes=["package"]
+          priority=0
+          hasDataType=false
+
+    * ReceiverList{9c0d1e2f 3456 com.whatsapp/10135/u0}
+      app=3456:com.whatsapp/u0a10135 pid=3456 uid=10135 user=0
+      Filter #0: BroadcastFilter{0d1e2f3a}
+        IntentFilter:
+          actions=["android.net.conn.CONNECTIVITY_CHANGE", "android.intent.action.BOOT_COMPLETED"]
+          priority=0
+          hasDataType=false

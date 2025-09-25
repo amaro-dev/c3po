@@ -1,0 +1,46 @@
+# Source: Reconstructed from Android 8.0 (API 26) system behavior patterns
+# Based on AOSP Android 8.0+ background execution limits and broadcast changes
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+
+Historical broadcasts [foreground]:
+  #0: BroadcastRecord{8f7e6d5 u-1 android.intent.action.CLOSE_SYSTEM_DIALOGS} ord=0 sticky=false
+    act=android.intent.action.CLOSE_SYSTEM_DIALOGS flg=0x50000010 (FLAG_RECEIVER_NO_ABORT)
+    extras: Bundle[{reason=homekey}]
+    enqueueClockTime=2023-01-01 10:30:15 dispatchClockTime=2023-01-01 10:30:15
+
+Historical broadcasts [background]:
+  #0: BroadcastRecord{9e8d7c6 u0 android.intent.action.USER_PRESENT} ord=1 sticky=false
+    act=android.intent.action.USER_PRESENT flg=0x24000010
+    enqueueClockTime=2023-01-01 10:29:45 dispatchClockTime=2023-01-01 10:29:45
+
+Sticky broadcasts for user -1:
+  * Sticky action android.intent.action.BATTERY_CHANGED:
+    Intent: Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000010 }
+      Bundle[{level=72, plugged=1, status=3, health=2, present=true, scale=100, voltage=3850, temperature=280, technology=Li-ion, charge_counter=2890000}]
+
+Sticky broadcasts for user 0:
+  * Sticky action android.net.conn.CONNECTIVITY_CHANGE:
+    Intent: Intent { act=android.net.conn.CONNECTIVITY_CHANGE flg=0x4000010 cmp=ComponentInfo{com.android.settings/com.android.settings.network.NetworkChangeReceiver} }
+      Bundle[{networkInfo=NetworkInfo: type: mobile[LTE], state: CONNECTED/CONNECTED, reason: connected, extra: fast.t-mobile.com, failover: false, available: true, roaming: false}]
+
+Receiver Resolver Table:
+  Full MIME Types:
+
+  Base MIME Types:
+
+  Wild MIME Types:
+
+  Schemes:
+
+  Non-Data Actions:
+      android.intent.action.BOOT_COMPLETED:
+        com.android.systemui/.BootCompleteReceiver
+        com.google.android.gms/.gcm.GcmReceiver
+        com.android.providers.calendar/.CalendarReceiver
+      android.intent.action.SCREEN_ON:
+        com.android.systemui/.recents.ScreenPinningRequest$ScreenOnReceiver
+        com.google.android.apps.nexuslauncher/.qsb.OPAStatusReceiver
+      android.net.conn.CONNECTIVITY_CHANGE:
+        com.google.android.gms/.analytics.ConnectivityReceiver
+        com.android.chrome/org.chromium.chrome.browser.ConnectivityReceiver
+        com.spotify.music/.receivers.ConnectivityReceiver

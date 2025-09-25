@@ -1,0 +1,75 @@
+# Source: Extracted from real Android 6.0 (API 23-25) dumpsys output
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+  Registered Receivers:
+  * ReceiverList{e1265c2 2146 com.google.android.gms.persistent/10008/u0 remote:254e20d}
+    app=2146:com.google.android.gms.persistent/u0a8 pid=2146 uid=10008 user=0
+    Filter #0: BroadcastFilter{ee29fd3}
+      Action: "android.intent.action.USER_ADDED"
+      Action: "android.intent.action.USER_REMOVED"
+      Action: "android.intent.action.USER_STARTING"
+      Action: "android.intent.action.USER_STOPPED"
+      Action: "android.intent.action.USER_STOPPING"
+      Action: "android.intent.action.USER_SWITCHED"
+      AutoVerify=false
+  * ReceiverList{308bc73 2146 com.google.android.gms.persistent/10008/u0 remote:d0290e2}
+    app=2146:com.google.android.gms.persistent/u0a8 pid=2146 uid=10008 user=0
+    Filter #0: BroadcastFilter{8157730}
+      Action: "android.intent.action.ACTION_POWER_CONNECTED"
+      Action: "android.intent.action.ACTION_POWER_DISCONNECTED"
+      Action: "android.intent.action.SCREEN_OFF"
+      Action: "android.intent.action.SCREEN_ON"
+      AutoVerify=false
+    Filter #1: BroadcastFilter{a948fa9}
+      Action: "android.intent.action.USER_FOREGROUND"
+      Action: "android.intent.action.USER_BACKGROUND"
+      AutoVerify=false
+    Filter #2: BroadcastFilter{abcd92e}
+      Action: "android.intent.action.PACKAGE_REMOVED"
+      Action: "android.intent.action.PACKAGE_DATA_CLEARED"
+      Scheme: "package"
+      AutoVerify=false
+    Filter #3: BroadcastFilter{428accf}
+      Action: "com.google.android.gms.INSTANT_APP_STOPPED"
+      AutoVerify=false
+      requiredPermission=com.google.android.gms.permission.INTERNAL_BROADCAST
+  * ReceiverList{993dc35 1794 com.google.android.googlequicksearchbox:interactor/10016/u0 remote:73f2e6c}
+    app=1794:com.google.android.googlequicksearchbox:interactor/u0a16 pid=1794 uid=10016 user=0
+    Filter #0: BroadcastFilter{70b18ca}
+      Action: "com.google.android.googlequicksearchbox.CHANGE_VOICESEARCH_LANGUAGE"
+      Action: "com.google.android.googlequicksearchbox.interactor.RESTART_RECOGNITION"
+      Action: "com.google.android.googlequicksearchbox.interactor.START_RECOGNITION"
+      Action: "com.google.android.googlequicksearchbox.interactor.STOP_RECOGNITION"
+      AutoVerify=false
+      requiredPermission=android.permission.MANAGE_VOICE_KEYPHRASES
+  * ReceiverList{6aeec9a 1588 com.android.systemui/10015/u0 remote:9f65d45}
+    app=1588:com.android.systemui/u0a15 pid=1588 uid=10015 user=0
+    Filter #0: BroadcastFilter{dadd9cb}
+      Action: "com.android.systemui.vui.ENABLE"
+      Action: "com.android.systemui.vui.DISABLE"
+      Action: "com.android.systemui.PREF"
+      AutoVerify=false
+  * ReceiverList{850a9cc 1298 system/1000/u-1 local:c94e7ff}
+    app=1298:system/1000 pid=1298 uid=1000 user=-1
+    Filter #0: BroadcastFilter{ddca415}
+      Action: "android.intent.action.PACKAGE_ADDED"
+      Action: "android.intent.action.PACKAGE_REMOVED"
+      Action: "android.intent.action.PACKAGE_CHANGED"
+      Action: "android.intent.action.QUERY_PACKAGE_RESTART"
+      Action: "android.intent.action.PACKAGE_RESTARTED"
+      Scheme: "package"
+      AutoVerify=false
+    Filter #1: BroadcastFilter{e2e732a}
+      Action: "android.intent.action.UID_REMOVED"
+      Action: "android.intent.action.USER_STOPPED"
+      AutoVerify=false
+  * ReceiverList{d4ff3a0 1298 system/1000/u0 local:46a4a3}
+    app=1298:system/1000 pid=1298 uid=1000 user=0
+    Filter #0: BroadcastFilter{505ab59}
+      Action: "android.intent.action.DEVICE_STORAGE_LOW"
+      Action: "android.intent.action.BOOT_COMPLETED"
+      AutoVerify=false
+  * ReceiverList{29faad4 2166 com.google.android.gms/10008/u0 remote:27aa827}
+    app=2166:com.google.android.gms/u0a8 pid=2166 uid=10008 user=0
+    Filter #0: BroadcastFilter{800847d}
+      Action: "android.net.conn.CONNECTIVITY_CHANGE"
+      AutoVerify=false

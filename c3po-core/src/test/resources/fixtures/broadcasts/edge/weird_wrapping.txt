@@ -1,0 +1,73 @@
+# Source: Edge case fixture with unusual formatting and wrapped lines
+# Based on observed variations in dumpsys output formatting across devices
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+
+Historical broadcasts [foreground]:
+#0: BroadcastRecord{ab1cd2ef3456789a u-1
+android.intent.action.CLOSE_SYSTEM_DIALOGS}
+  act=android.intent.action.CLOSE_SYSTEM_DIALOGS
+  cat=[android.intent.category.DEFAULT] flg=0x50000010
+  extras: Bundle[{reason=recentapps,
+    android.intent.extra.user_handle=0}]
+  enqueueTime=2023-12-25 23:59:59.999 dispatchTime=2023-12-25
+23:59:59.999
+
+Sticky broadcasts for user 0:
+* Sticky action android.intent.action.BATTERY_CHANGED:
+Intent: { act=android.intent.action.BATTERY_CHANGED
+flg=0x60000010 }
+Bundle[{status=2, health=2, present=true, level=50, scale=100,
+voltage=3850, temperature=250, technology=Li-ion,
+plugged=1, charge_counter=2500000,
+extra_long_key_name_that_might_cause_wrapping=some_very_long_value_here}]
+
+* Sticky action android.net.conn.CONNECTIVITY_CHANGE:
+Intent: { act=android.net.conn.CONNECTIVITY_CHANGE flg=0x4000010
+cmp=ComponentInfo{com.android.settings/com.android.settings.network.NetworkChangeReceiver} }
+Bundle[{networkInfo=NetworkInfo: type: mobile_supl[SUPL], state:
+CONNECTED/CONNECTED, reason: connected, extra: null, failover: false,
+available: true, roaming: true,
+metered: true}]
+
+Registered Receivers:
+* ReceiverList{1a2b3c4d5e6f7890 1234
+com.very.long.package.name.that.might.wrap/10123/u0 remote:9e8d7c6b5a4f3210}
+app=1234:com.very.long.package.name.that.might.wrap/u0a10123 pid=1234
+uid=10123 user=0
+Filter #0: BroadcastFilter{fedcba0987654321}
+Action: "android.intent.action.BOOT_COMPLETED"
+Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+Action: "android.intent.action.MY_PACKAGE_REPLACED"
+Action: "android.intent.action.PACKAGE_REPLACED"
+Action: "android.intent.action.PACKAGE_REMOVED"
+
+* ReceiverList{2b3c4d5e6f7a8901 2345 com.example.test/10124/u0
+remote:8d7c6b5a4f3e2109}
+app=2345:com.example.test/u0a10124 pid=2345 uid=10124 user=0
+Filter #0: BroadcastFilter{dcba098765432109}
+Action: "android.net.conn.CONNECTIVITY_CHANGE"
+Action: "android.net.wifi.WIFI_STATE_CHANGED"
+Priority: -1000
+hasCode: false
+
+mReceiverResolver:
+Non-Data Actions:
+android.intent.action.BOOT_COMPLETED:
+BroadcastFilter{abcdef0123456789}:
+ReceiverList{bcdef01234567890a 3456 com.google.android.gms/10064/u0}
+IntentFilter{priority=0,
+actions=["android.intent.action.BOOT_COMPLETED",
+"android.intent.action.MY_PACKAGE_REPLACED"],
+hasDataType=false, hasScheme=true}
+
+android.net.conn.CONNECTIVITY_CHANGE:
+BroadcastFilter{cdef01234567890ab}: ReceiverList{def01234567890abc 4567
+com.spotify.music/10125/u0}
+IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE"],
+hasDataType=false}
+
+BroadcastFilter{ef01234567890abcd}: ReceiverList{f01234567890abcde 5678
+com.whatsapp/10135/u0}
+IntentFilter{priority=0,
+actions=["android.net.conn.CONNECTIVITY_CHANGE",
+"android.intent.action.BOOT_COMPLETED"], hasDataType=false}

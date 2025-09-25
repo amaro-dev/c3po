@@ -11,6 +11,7 @@
 - [Device Information and Monitoring](Device-Information-and-Monitoring.html)
 - [Package Management Deep Dive](Package-Management-Deep-Dive.html)
 - [Activities and Services Management](Activities-and-Services-Management.html)
+- [Broadcasts Inspection and Testing](Broadcasts-Inspection-and-Testing.html)
 
 ## Advanced Topics
 

@@ -34,6 +34,7 @@ import plugins.attrs.definition.DeviceAttrsPlugin
 import plugins.automation.definition.AutomationPlugin
 import plugins.automation.structure.AutomationMiddleware
 import plugins.automation.structure.ScriptPackageService
+import plugins.broadcasts.definition.BroadcastsPlugin
 import plugins.device.definition.DevicePlugin
 import plugins.packages.definition.PackagesPlugin
 import plugins.permissions.definition.PermissionsPlugin
@@ -90,6 +91,7 @@ val AppModule =
                 ActivitiesPlugin(get()),
                 PackagesPlugin(get(), get()),
                 DeviceAttrsPlugin(get()),
+                BroadcastsPlugin(get()),
                 ServicesPlugin(get()),
                 PermissionsPlugin(get()),
                 SignaturePlugin(get()),

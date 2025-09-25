@@ -1,0 +1,74 @@
+# Source: Reconstructed from Android 13 (API 33) system behavior patterns
+# Based on AOSP Android 13+ themed icons and notification runtime permissions
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+
+  Recent Foreground Broadcasts:
+    #0: BroadcastRecord{ab1cd2ef u-1 android.intent.action.CLOSE_SYSTEM_DIALOGS}
+        act=android.intent.action.CLOSE_SYSTEM_DIALOGS cat=[android.intent.category.DEFAULT] flg=0x50000010
+        extras: Bundle[{reason=assist}]
+        enqueueClockTime=2023-08-15 09:15:30.456 dispatchClockTime=2023-08-15 09:15:30.458
+        finishTime=2023-08-15 09:15:30.460 resultCode=0
+
+  Recent Background Broadcasts:
+    #0: BroadcastRecord{bc2de3fa u0 android.intent.action.LOCALE_CHANGED}
+        act=android.intent.action.LOCALE_CHANGED flg=0x30000010
+        enqueueClockTime=2023-08-15 09:14:15.123 dispatchClockTime=2023-08-15 09:14:15.125
+        finishTime=2023-08-15 09:14:15.890 resultCode=0
+
+    #1: BroadcastRecord{cd3ef4ab u0 android.intent.action.MY_PACKAGE_REPLACED}
+        act=android.intent.action.MY_PACKAGE_REPLACED dat=package:com.example.updatedapp flg=0x5000010
+        extras: Bundle[{android.intent.extra.UID=10456, android.intent.extra.REPLACING=true}]
+        enqueueClockTime=2023-08-15 09:10:45.789 dispatchClockTime=2023-08-15 09:10:45.792
+        finishTime=2023-08-15 09:10:45.850 resultCode=0
+
+  Sticky broadcasts for user -1:
+    * Sticky action android.intent.action.BATTERY_CHANGED:
+        Intent: { act=android.intent.action.BATTERY_CHANGED flg=0x60000010 }
+        Bundle[{status=2, health=2, present=true, level=88, scale=100, voltage=4150, temperature=245, technology=Li-ion, plugged=1, charge_counter=3520000, capacity=4000000, charge_counter_path=/sys/class/power_supply/battery/charge_counter, cycle_count=89, full=4000000}]
+
+  Sticky broadcasts for user 0:
+    * Sticky action android.net.conn.CONNECTIVITY_CHANGE:
+        Intent: { act=android.net.conn.CONNECTIVITY_CHANGE flg=0x4000010 }
+        Bundle[{networkInfo=NetworkInfo: type: WIFI[WIFI], state: CONNECTED/CONNECTED, reason: (unspecified), extra: "home_mesh", failover: false, available: true, roaming: false, metered: false, captivePortal: false}]
+
+    * Sticky action android.net.wifi.WIFI_STATE_CHANGED:
+        Intent: { act=android.net.wifi.WIFI_STATE_CHANGED flg=0x4000010 }
+        Bundle[{wifi_state=3, previous_wifi_state=2, supplicant_state=10, supplicant_state_change_reason=0}]
+
+    * Sticky action android.bluetooth.adapter.action.STATE_CHANGED:
+        Intent: { act=android.bluetooth.adapter.action.STATE_CHANGED flg=0x4000010 }
+        Bundle[{android.bluetooth.adapter.extra.STATE=12, android.bluetooth.adapter.extra.PREVIOUS_STATE=10}]
+
+  mReceiverResolver:
+    All Receivers:
+
+    Wild MIME Types:
+
+    Base MIME Types:
+
+    Full MIME Types:
+
+    Schemes:
+
+    Non-Data Actions:
+      android.intent.action.BOOT_COMPLETED:
+        BroadcastFilter{de4fa5bc}: ReceiverList{ef5ab6cd 4567 system/1000/u0}
+          IntentFilter{priority=1000, actions=["android.intent.action.BOOT_COMPLETED", "android.intent.action.LOCKED_BOOT_COMPLETED"]}
+        BroadcastFilter{fa6bc7de}: ReceiverList{ab7cd8ef 5678 com.android.systemui/10048/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.BOOT_COMPLETED"]}
+        BroadcastFilter{bc8de9fa}: ReceiverList{cd9ef0ab 6789 com.google.android.gms/10064/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.BOOT_COMPLETED", "android.intent.action.LOCKED_BOOT_COMPLETED"]}
+
+      android.intent.action.SCREEN_ON:
+        BroadcastFilter{de0fa1bc}: ReceiverList{ef1ab2cd 7890 com.android.systemui/10048/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.SCREEN_ON", "android.intent.action.SCREEN_OFF", "android.intent.action.USER_PRESENT"]}
+        BroadcastFilter{fa2bc3de}: ReceiverList{ab3cd4ef 8901 com.samsung.android.oneui.home/10150/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.SCREEN_ON", "android.intent.action.USER_PRESENT"]}
+
+      android.net.conn.CONNECTIVITY_CHANGE:
+        BroadcastFilter{bc4de5fa}: ReceiverList{cd5ef6ab 9012 com.google.android.gms/10064/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE", "android.net.wifi.WIFI_STATE_CHANGED"]}
+        BroadcastFilter{de6fa7bc}: ReceiverList{ef7ab8cd 0123 com.spotify.music/10125/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE"]}
+        BroadcastFilter{fa8bc9de}: ReceiverList{ab9cd0ef 1234 com.whatsapp/10135/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE"]}

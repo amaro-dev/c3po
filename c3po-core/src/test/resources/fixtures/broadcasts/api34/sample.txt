@@ -1,0 +1,95 @@
+# Source: Reconstructed from Android 14 (API 34) system behavior patterns
+# Based on AOSP Android 14+ partial photo picker and enhanced security features
+ACTIVITY MANAGER BROADCAST STATE (dumpsys activity broadcasts)
+
+  Active Broadcast Summary:
+    Foreground broadcast queue:
+      (currently empty)
+
+    Background broadcast queue:
+      (currently empty)
+
+  Historical Broadcast Records [foreground]:
+    #0: BroadcastRecord{1a2b3c4d5e6f u-1 android.intent.action.CLOSE_SYSTEM_DIALOGS}
+        act=android.intent.action.CLOSE_SYSTEM_DIALOGS cat=[android.intent.category.DEFAULT] flg=0x50000010
+        extras: Bundle[{reason=screenshot}]
+        enqueueTime=2024-01-20 11:30:45.678 dispatchTime=2024-01-20 11:30:45.680
+        finishTime=2024-01-20 11:30:45.685 resultCode=0 nextReceiver=0
+        anrCount=0 dispatchState=IDLE
+
+  Historical Broadcast Records [background]:
+    #0: BroadcastRecord{2b3c4d5e6f7a u0 android.intent.action.PACKAGE_REPLACED}
+        act=android.intent.action.PACKAGE_REPLACED dat=package:com.example.myapp flg=0x5000010
+        extras: Bundle[{android.intent.extra.UID=10567, android.intent.extra.REPLACING=true, android.intent.extra.user_handle=0}]
+        enqueueTime=2024-01-20 11:25:30.123 dispatchTime=2024-01-20 11:25:30.126
+        finishTime=2024-01-20 11:25:30.450 resultCode=0 nextReceiver=0
+        anrCount=0 dispatchState=IDLE
+
+    #1: BroadcastRecord{3c4d5e6f7a8b u0 android.intent.action.USER_PRESENT}
+        act=android.intent.action.USER_PRESENT flg=0x24000010
+        enqueueTime=2024-01-20 11:20:15.456 dispatchTime=2024-01-20 11:20:15.458
+        finishTime=2024-01-20 11:20:15.490 resultCode=0 nextReceiver=0
+        anrCount=0 dispatchState=IDLE
+
+  Sticky broadcasts for user -1:
+    * Sticky action android.intent.action.BATTERY_CHANGED:
+        Intent: { act=android.intent.action.BATTERY_CHANGED flg=0x60000010 }
+        Bundle[{status=2, health=2, present=true, level=92, scale=100, voltage=4250, temperature=235, technology=Li-ion, plugged=2, charge_counter=3680000, capacity=4000000, charge_counter_path=/sys/class/power_supply/battery/charge_counter, cycle_count=156, full=4000000, current_now=-450000, charge_full_design=4000000}]
+
+  Sticky broadcasts for user 0:
+    * Sticky action android.net.conn.CONNECTIVITY_CHANGE:
+        Intent: { act=android.net.conn.CONNECTIVITY_CHANGE flg=0x4000010 }
+        Bundle[{networkInfo=NetworkInfo: type: WIFI[WIFI], state: CONNECTED/CONNECTED, reason: (unspecified), extra: "pixel_hotspot", failover: false, available: true, roaming: false, metered: false, captivePortal: false, validated: true}]
+
+    * Sticky action android.net.wifi.WIFI_STATE_CHANGED:
+        Intent: { act=android.net.wifi.WIFI_STATE_CHANGED flg=0x4000010 }
+        Bundle[{wifi_state=3, previous_wifi_state=2, supplicant_state=10, supplicant_state_change_reason=0, network_id=5}]
+
+    * Sticky action android.bluetooth.adapter.action.STATE_CHANGED:
+        Intent: { act=android.bluetooth.adapter.action.STATE_CHANGED flg=0x4000010 }
+        Bundle[{android.bluetooth.adapter.extra.STATE=12, android.bluetooth.adapter.extra.PREVIOUS_STATE=11}]
+
+    * Sticky action android.intent.action.DREAMING_STARTED:
+        Intent: { act=android.intent.action.DREAMING_STARTED flg=0x40000010 }
+        Bundle[{}]
+
+  Receiver resolver table:
+    Full MIME Types:
+      (none)
+
+    Base MIME Types:
+      application/vnd.android.package-archive:
+        BroadcastFilter{4d5e6f7a8b9c}: ReceiverList{5e6f7a8b9c0d 1357 com.android.packageinstaller/10003/u0}
+
+    Wild MIME Types:
+      (none)
+
+    Schemes:
+      package:
+        BroadcastFilter{6f7a8b9c0d1e}: ReceiverList{7a8b9c0d1e2f 2468 com.google.android.gms/10064/u0}
+        BroadcastFilter{8b9c0d1e2f3a}: ReceiverList{9c0d1e2f3a4b 3579 com.android.vending/10032/u0}
+
+    Non-Data Actions:
+      android.intent.action.BOOT_COMPLETED:
+        BroadcastFilter{0d1e2f3a4b5c}: ReceiverList{1e2f3a4b5c6d 4680 system/1000/u0}
+          IntentFilter{priority=1000, actions=["android.intent.action.BOOT_COMPLETED", "android.intent.action.LOCKED_BOOT_COMPLETED"], hasDataType=false}
+        BroadcastFilter{2f3a4b5c6d7e}: ReceiverList{3a4b5c6d7e8f 5791 com.android.systemui/10048/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.BOOT_COMPLETED"], hasDataType=false}
+        BroadcastFilter{4b5c6d7e8f9a}: ReceiverList{5c6d7e8f9a0b 6802 com.google.android.gms/10064/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.BOOT_COMPLETED", "android.intent.action.MY_PACKAGE_REPLACED"], hasDataType=false, hasScheme=true}
+
+      android.intent.action.SCREEN_ON:
+        BroadcastFilter{6d7e8f9a0b1c}: ReceiverList{7e8f9a0b1c2d 7913 com.android.systemui/10048/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.SCREEN_ON", "android.intent.action.SCREEN_OFF", "android.intent.action.USER_PRESENT", "android.intent.action.USER_SWITCHED"], hasDataType=false}
+        BroadcastFilter{8f9a0b1c2d3e}: ReceiverList{9a0b1c2d3e4f 8024 com.google.android.apps.nexuslauncher/10029/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.SCREEN_ON", "android.intent.action.USER_PRESENT"], hasDataType=false}
+        BroadcastFilter{0b1c2d3e4f5a}: ReceiverList{1c2d3e4f5a6b 9135 com.samsung.android.bixby.agent/10089/u0}
+          IntentFilter{priority=0, actions=["android.intent.action.SCREEN_ON"], hasDataType=false}
+
+      android.net.conn.CONNECTIVITY_CHANGE:
+        BroadcastFilter{2d3e4f5a6b7c}: ReceiverList{3e4f5a6b7c8d 0246 com.google.android.gms/10064/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE", "android.net.wifi.WIFI_STATE_CHANGED", "android.net.wifi.SCAN_RESULTS"], hasDataType=false}
+        BroadcastFilter{4f5a6b7c8d9e}: ReceiverList{5a6b7c8d9e0f 1357 com.spotify.music/10125/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE"], hasDataType=false}
+        BroadcastFilter{6b7c8d9e0f1a}: ReceiverList{7c8d9e0f1a2b 2468 com.whatsapp/10135/u0}
+          IntentFilter{priority=0, actions=["android.net.conn.CONNECTIVITY_CHANGE", "android.intent.action.BOOT_COMPLETED"], hasDataType=false}

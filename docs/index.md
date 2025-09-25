@@ -22,6 +22,7 @@ Explore C3PO's powerful features for Android development and debugging:
 | [**📊 Device Information**](wiki/Device-Information-and-Monitoring.html)     | System info, hardware details, device control, and real-time monitoring |
 | [**📦 Package Management**](wiki/Package-Management-Deep-Dive.html)          | Install, uninstall, copy, and analyze APK packages                      |
 | [**⚙️ Activities & Services**](wiki/Activities-and-Services-Management.html) | Control app components and background services                          |
+| [**📡 Broadcasts**](wiki/Broadcasts-Inspection-and-Testing.html)             | Inspect live receivers, craft extras, and trigger broadcast intents     |
 
 ## 🔧 Advanced Topics
 
