@@ -171,6 +171,58 @@ class FilesPluginMiddleware(
 }
 ```
 
+## User feedback success/error - Command Status Handling
+
+When working with command lifecycle and UI loading/error feedback, follow these strict rules:
+
+- Never reduce `Action.SetCommandCompleted` after reducing `Action.SetCommandError` for the same operation. An error
+  must leave `commandStatus = Failed` visible to the UI.
+- Prefer `Result.handle(processor)` for command results:
+    - On success: it reduces `SetCommandCompleted` automatically.
+    - On failure: it reduces only `SetCommandError` (do not add `SetCommandCompleted`).
+- Only dispatch `SetCommandCompleted` explicitly on clear success paths that are not using `handle(...)`.
+- For ADB-backed actions, always mark them as `Action.CommandAction` so `DeviceMiddleware` enforces ADB path and sets
+  `SetCommandRunning` consistently.
+- Do not overwrite `Failed` with `Completed` as a way to “clear loading” — the error state already clears loading and
+  must remain until `Action.ClearError`.
+
+## Composite Command Pattern
+
+Some features require multiple ADB calls to build a single UI result (e.g., list activities + query which are
+launcher-capable).
+
+- Where to implement: In plugin middleware (extend `AsyncMiddlewareBase<AppState>`), not in `parse(...)`.
+- Parallelism: Launch sub-commands in parallel using coroutines (`coroutineScope { async { ... } }`) to reduce latency.
+- Status handling:
+    - Avoid calling `Result.handle(processor)` per sub-command; aggregate and set status once for the overall operation.
+    - If an essential sub-command fails, reduce only `Action.SetCommandError(message)` and do not send
+      `SetCommandCompleted`.
+    - If a non-essential enrichment fails, deliver base results and then reduce `SetCommandCompleted`.
+- Device/ADB propagation: Always use `PluginMiddleware.execute(cmd, state, executor)` so `adbPath` and selected device
+  are honored.
+- Parsing purity: Keep `AdbCommand.parse(result)` side-effect free; no ADB/I-O inside `parse`.
+
+Example sketch:
+
+```
+coroutineScope {
+  val baseDef = async { execute(BaseCommand(), state, executor) }
+  val enrichDef = async { execute(EnrichCommand(), state, executor) }
+
+  val baseRes = baseDef.await()
+  if (baseRes.isFailure) {
+    processor.reduce(Action.SetCommandError(baseRes.exceptionOrNull()?.message ?: "Base command failed"))
+    return@coroutineScope
+  }
+
+  val base = baseRes.getOrThrow()
+  val enrich = enrichDef.await().getOrNull()
+  val merged = merge(base, enrich)
+  processor.reduce(Action.DeliverPluginResult(pluginId, merged))
+  processor.reduce(Action.SetCommandCompleted)
+}
+```
+
 ## Common Pitfalls
 
 - Forgetting to mark ADB-backed actions as `Action.CommandAction` (breaks loading and ADB checks).
@@ -187,7 +239,7 @@ source):
 - Add or edit relevant pages in `docs/wiki/` and ensure `docs/index.md` links are current.
 - Keep language user-focused (what it does, how to use it, screenshots if helpful).
 - Do not mix agent/developer guidance with user docs — engineering guidance stays in `AGENTS.md` and `.claude/`.
-- If the feature impacts onboarding or settings, update the “Getting Started” or related guides accordingly.
+- If the feature impacts onboarding or settings, update the "Getting Started" or related guides accordingly.
 
 ## Scope & Non-Goals
 
