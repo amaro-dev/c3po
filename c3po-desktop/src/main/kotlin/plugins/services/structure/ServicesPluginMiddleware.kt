@@ -33,7 +33,13 @@ class ServicesPluginMiddleware(
             }
 
             is ServicesPlugin.Actions.Launch -> {
-                execute(StartServiceCommand(action.activityInfo, state.currentDevice!!), state, executor)
+                val device = state.currentDevice
+                if (device == null) {
+                    processor.reduce(Action.SetCommandError("No device connected for service launch"))
+                    return
+                }
+
+                execute(StartServiceCommand(action.activityInfo, device), state, executor)
                     .onSuccess {
                         processor.reduce(Action.SetSuccess("Service '${action.activityInfo.fullPath}' started successfully"))
                     }
