@@ -69,6 +69,10 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk:0.28.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Compose UI Testing for instrumentation tests
+    testImplementation(compose.desktop.uiTestJUnit4)
+    testImplementation("io.insert-koin:koin-test:4.0.2")
 }
 
 compose.desktop {
